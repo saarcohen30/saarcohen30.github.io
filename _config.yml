@@ -10,7 +10,7 @@ locale                   : "en-US"
 title                    : "Saar Cohen"
 title_separator          : "-"
 name                     : &name "Saar Cohen"
-description              : &description "Postdoc in Political Science"
+description              : &description "Ph.D. Candidate"
 url                      : https://saarcohen30.github.io # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : "" # the subpath of your site, e.g. "/blog"
 repository               : "saarcohen30/saarcohen30.github.io"
@@ -82,16 +82,16 @@ analytics:
 
 # Site Author
 author:
-  name             : "Rob Williams"
+  name             : "Saar Cohen"
   avatar           : "profile.png"
-  bio              : "Data Scientist"
+  bio              : "Ph.D. Candidate"
   location         :
   employer         :
   pubmed           :
-  orcid            : "http://orcid.org/0000-0001-9259-3883"
-  googlescholar    : "https://scholar.google.com/citations?user=fiaPSmgAAAAJ"
-  email            : "rob.williams@wustl.edu"
-  researchgate     :  # example: "https://www.researchgate.net/profile/yourprofile"
+  orcid            : "https://orcid.org/0000-0001-8262-405X"
+  googlescholar    : "https://scholar.google.co.il/citations?user=WYESfoUAAAAJ"
+  email            : "saar30@gmail.com"
+  researchgate     : "https://www.researchgate.net/scientific-contributions/Saar-Cohen-2181465917"
   uri              :
   bitbucket        :
   codepen          :
@@ -99,18 +99,18 @@ author:
   flickr           :
   facebook         :
   foursquare       :
-  github           : "jayrobwilliams"
-  gitlab           : "jayrobwilliams"
+  github           : "saarcohen30"
+  gitlab           : 
   google_plus      :
   keybase          :
   instagram        :
   impactstory      : #"https://profiles.impactstory.org/u/xxxx-xxxx-xxxx-xxxx"
   lastfm           :
-  linkedin         : "jayrobwilliams"
-  mastodon         : "fosstodon.org/@jayrobw"
+  linkedin         : 
+  mastodon         : 
   pinterest        :
   soundcloud       :
-  stackoverflow    : #"https://stackoverflow.com/users/10912314/jayrobwilliams"
+  stackoverflow    : 
   steam            :
   tumblr           :
   twitter          : 
