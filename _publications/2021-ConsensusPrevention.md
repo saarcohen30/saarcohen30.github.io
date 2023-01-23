@@ -1,5 +1,5 @@
 ---
-title: "Spatial Consensus-Prevention in Robotic Swarms"
+title: "Spatial Consensus\-Prevention in Robotic Swarms"
 collection: publications
 permalink: /publication/2019-bayespostest
 date: 2021-05-03
