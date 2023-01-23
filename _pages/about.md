@@ -8,7 +8,7 @@ redirect_from:
   - /about.html
 ---
 
-I am a Ph.D. candidate at the Department of Computer Science at Bar-Ilan University, where I am a member of the SMART research group led by Prof. Noa Agmon.
+I am a Ph.D. candidate at the Department of Computer Science at Bar-Ilan University, where I am a member of the SMART research group led by [Prof. Noa Agmon](https://u.cs.biu.ac.il/~agmon/).
 
 My research interests largely concern the realm of multi-agent systems, including (but not limited to) multi-agent learning, machine learning, graph theory, (algorithmic) game theory, reinforcement learning etc.
 
