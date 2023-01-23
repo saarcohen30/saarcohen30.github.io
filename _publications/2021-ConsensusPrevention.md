@@ -1,7 +1,7 @@
 ---
 title: "Spatial Consensus-Prevention in Robotic Swarms"
 collection: publications
-permalink: /publication/2019-bayespostest
+permalink: /publication/2021-ConsensusPrevention
 date: 2021-05-03
 venue: 'AAMAS'
 link: 'https://dl.acm.org/doi/10.5555/3463952.3463999'
