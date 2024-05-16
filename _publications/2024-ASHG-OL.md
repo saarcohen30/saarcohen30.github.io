@@ -1,10 +1,8 @@
 ---
-title: "Online Coalitional Skill Formation"
+title: "Online Learning of Partitions in Additively Separable Hedonic Games"
 collection: publications
-permalink: /publication/2023-ocsf
-date: 2023-05-29
-venue: 'AAMAS'
-link: 'https://ifaamas.org/Proceedings/aamas2023/pdfs/p494.pdf'
-github: 'https://github.com/saarcohen30/ocsf'
-citation: 'Saar Cohen and Noa Agmon. &quot;Online Coalitional Skill Formation.&quot; <i>In AAMAS 2023: Proceedings of the 22th International Conference on Autonomous Agents and Multiagent Systems</i>, 2023.'
+permalink: /publication/2024-ASHG-OL
+date: 2024-08-03
+venue: 'IJCAI'
+citation: 'Saar Cohen and Noa Agmon. &quot;Online Learning of Partitions in Additively Separable Hedonic Games (To Appear).&quot; <i>In IJCAI 2024: Proceedings of the 33rd International Joint Conference on Artificial Intelligence</i>, 2024.'
 ---
