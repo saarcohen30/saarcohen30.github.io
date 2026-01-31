@@ -10,7 +10,7 @@ locale                   : "en-US"
 title                    : "Saar Cohen"
 title_separator          : "-"
 name                     : &name "Saar Cohen"
-description              : &description "Ph.D. Candidate"
+description              : &description "Ph.D."
 url                      : https://saarcohen30.github.io # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : "" # the subpath of your site, e.g. "/blog"
 repository               : "saarcohen30/saarcohen30.github.io"
@@ -84,7 +84,7 @@ analytics:
 author:
   name             : "Saar Cohen"
   avatar           : "profile.png"
-  bio              : "Ph.D. Candidate"
+  bio              : "Ph.D."
   location         :
   employer         :
   pubmed           :
