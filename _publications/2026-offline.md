@@ -1,5 +1,5 @@
 ---
-title: "Delayed Assignments in Online Non-Centroid Clustering with Stochastic Arrivals"
+title: "Offline Learning of Nash Stable Coalition Structures with Possibly Overlapping Coalitions"
 collection: publications
 permalink: /publication/2026-offline
 date: 2026-05-29
