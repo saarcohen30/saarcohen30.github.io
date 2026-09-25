@@ -13,7 +13,7 @@ const n = pub.authors.length;
   {
     pub.authors.map((a, i) => (
       <Fragment>
-        <span class:list={{ me: isMe(a.name) }}>{a.name}</span>
+        <span class:list={['an', { me: isMe(a.name) }]}>{a.name}</span>
         {a.equal && (
           <sup class="eq" title="Equal contribution">
             *
@@ -29,6 +29,9 @@ const n = pub.authors.length;
 <style>
   .authors {
     color: var(--ink-2);
+  }
+  .an {
+    white-space: nowrap;
   }
   .me {
     color: var(--ink);

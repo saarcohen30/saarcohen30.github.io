@@ -22,6 +22,8 @@ const searchText = [pub.title, pub.note, pub.authors.map((a) => a.name).join(' '
   .join(' ')
   .toLowerCase();
 const uid = `${pub.id}${compact ? '-c' : ''}`;
+// A manuscript under review with no public copy has nothing useful to cite yet.
+const citable = !(pub.isUnderReview && pub.links.length === 0);
 ---
 
 <article
@@ -69,11 +71,13 @@ const uid = `${pub.id}${compact ? '-c' : ''}`;
               <Icon name="chevron" size={13} class="chev" />
             </button>
           )}
+          {citable && (
           <button type="button" class="toggle" aria-expanded="false" aria-controls={`cite-${uid}`} data-toggle>
             <Icon name="quote" size={15} />
             Cite
             <Icon name="chevron" size={13} class="chev" />
           </button>
+          )}
         </div>
       </div>
     )
@@ -88,7 +92,7 @@ const uid = `${pub.id}${compact ? '-c' : ''}`;
     )
   }
   {
-    !compact && (
+    !compact && citable && (
       <div class="drawer cite" id={`cite-${uid}`} hidden>
         <p class="citation" data-copy-source>{citationText(pub)}</p>
         <pre class="bibtex" tabindex="0" aria-label="BibTeX"><code data-copy-source>{bibtex(pub)}</code></pre>

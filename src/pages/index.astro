@@ -25,6 +25,16 @@ for (const t of themes) {
 }
 const highlight = featured.length ? featured.map((pub) => ({ theme: null, pub })) : byTheme;
 
+// Example papers on the theme cards: avoid repeating one card's examples on another.
+const shownOnCards = new Set<string>();
+const cardExamples = themes.map((t) => {
+  const all = pubsForTheme(t);
+  const fresh = all.filter((p) => !shownOnCards.has(p.id));
+  const picks = [...fresh, ...all.filter((p) => shownOnCards.has(p.id))].slice(0, 2);
+  picks.forEach((p) => shownOnCards.add(p.id));
+  return { count: all.length, picks };
+});
+
 const description = `${profile.name} is a ${profile.role} at the ${profile.affiliation}, working on ${profile.areas.slice(0, -1).join(', ').toLowerCase()} and ${profile.areas.at(-1).toLowerCase()}: strategic interaction, collective decisions, fair allocation, learning and AI safety.`;
 
 const jsonLd = {
@@ -136,20 +146,20 @@ const facts = [
       <ol class="themes" role="list">
         {
           themes.map((t, i) => {
-            const tp = pubsForTheme(t);
+            const { count, picks } = cardExamples[i];
             return (
               <li class="theme" data-reveal style={`--reveal-i:${i}`}>
                 <ThemeGlyph theme={t.id} />
                 <h3>{t.title}</h3>
                 <p class="theme-areas mono">{t.areas.join(' · ')}</p>
                 <p class="theme-summary">{t.summary}</p>
-                {tp.length > 0 && (
+                {count > 0 && (
                   <div class="theme-papers">
                     <p class="mono theme-count">
-                      {tp.length} paper{tp.length > 1 ? 's' : ''}
+                      {count} paper{count > 1 ? 's' : ''}
                     </p>
                     <ul role="list">
-                      {tp.slice(0, 2).map((p) => (
+                      {picks.map((p) => (
                         <li>
                           <a href={`/publications/${p.id}/`}>{p.title}</a>
                           <span class="mono">{p.venueLabel ?? (p.isWorkingPaper ? 'Working paper' : p.statusLabel)}</span>

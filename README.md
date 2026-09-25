@@ -13,6 +13,7 @@ to GitHub Pages by GitHub Actions.
 | `npm run dev` | local preview with live reload at http://localhost:4321 |
 | `npm run add-pub` | add a publication interactively |
 | `npm run check` | validate `src/data/publications.yaml` |
+| `npm test` | schema rules + data validation (also runs in CI) |
 | `npm run build` | build the static site into `dist/` |
 | `npm run preview` | serve the built site |
 
@@ -25,7 +26,7 @@ public/files/pdf/            CV PDF (URL unchanged from the old site)
 src/pages/                   routes: /, /publications/, /publications/<id>/, /cv/, 404, /publications.bib
 src/components/              Hero, Header/Footer, publication components (pubs/)
 src/lib/pubs/                publication schema, validation, sorting, BibTeX/citation generation
-src/lib/coalition-sim.ts     the hero's online coalition formation simulation (pure, deterministic)
+src/lib/field/               the hero: one engine (core, canvas/SVG painters) + scenes/ (adapt, exchange, share, gather)
 src/scripts/                 small client scripts: hero canvas, publication filters, theme/disclosure/copy
 src/styles/global.css        design tokens (colour, type scale, motion) and base styles
 scripts/                     add-publication and validate-publications CLIs
@@ -42,14 +43,21 @@ come from each record's `aliases`.
 
 ## Design notes
 
-- **Motif.** The hero is a small, real instance of online coalition formation. Agents arrive one at a time in random
-  order, value each other through additively separable hedonic utilities, and are irrevocably assigned to the
-  coalition they value most, or found a new one. The same visual language (nodes, edges, coalitions) is used for
-  the site mark, research-theme diagrams, type glyphs and the 404 page.
-- **Entrance.** The full sequence (about 2.5 s, skippable by any key, click or scroll) plays at most once every
-  12 hours. Returning visitors see the settled field immediately. With `prefers-reduced-motion` or without
-  JavaScript, a static SVG rendered at build time is shown and no animation code is loaded.
-- **Performance.** No framework runtime. Page JavaScript is roughly 4 KB site-wide, plus 8 KB for the hero canvas
+- **Motif.** The hero is an abstract image of the research territory, not a diagram of one model. One small
+  engine (nodes, edges, halos, arrival pings, token bars, one spring model) drives a family of four scenes that
+  differ only in behaviour:
+  - **Adapt**: an uncertain network learns and regroups (learning under uncertainty).
+  - **Exchange**: sequences pass between two mirrored groups, some stopped at the boundary (language models,
+    interaction, safety).
+  - **Share**: resources arrive and are distributed evenly (fair allocation).
+  - **Gather**: agents arrive and form groups (strategic interaction, coalitions).
+- **Entrance and rotation.** A visit that is eligible for the full entrance (the first visit, or 12 hours since
+  the last one) advances to the next scene and plays it (about 2.5 s, skippable by any key, click or scroll).
+  Other visits show the same scene already settled. The choice is made in `<head>` before first paint. Only
+  the chosen scene's code (about 2 KB gzipped) is downloaded. With `prefers-reduced-motion` or without
+  JavaScript, a build-time SVG still of the Adapt scene is shown and no animation code loads. If
+  `localStorage` is unavailable, the first scene is shown.
+- **Performance.** No framework runtime. Page JavaScript is roughly 4 KB site-wide, plus about 4.5 KB gzipped for the hero engine and one scene
   (home page only) and 4 KB for the filters (publications page only). Two self-hosted variable fonts (Newsreader,
   JetBrains Mono; latin subset); images are optimised at build time.
 - **Themes.** Light, dark and system, stored per visitor. The hero and 404 "stage" are always dark.

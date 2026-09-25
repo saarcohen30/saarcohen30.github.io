@@ -19,20 +19,25 @@ const v = pub.venue;
   v && (
     <p class:list={['venue-line', { short }, className]}>
       {!short && <span class="vname">{v.name}</span>}
+      {/* "NeurIPS 2026 [To Appear]" never breaks apart. */}
       {v.acronym ? (
         <Fragment>
           {' '}
-          <strong class="vacr">{v.acronym}</strong> <span class="vyear">{pub.year}</span>
+          <span class="vid">
+            <strong class="vacr">{v.acronym}</strong> <span class="vyear">{pub.year}</span>
+            {pub.status === 'to-appear' && <span class="appear"> [To Appear]</span>}
+          </span>
         </Fragment>
       ) : (
-        !short && <span class="vyear">{`, ${pub.year}`}</span>
+        <Fragment>
+          {short ? <span class="vname">{pub.venueLabel}</span> : <span class="vyear">{`, ${pub.year}`}</span>}
+          {pub.status === 'to-appear' && <span class="appear"> [To Appear]</span>}
+        </Fragment>
       )}
-      {short && !v.acronym && <span class="vname">{pub.venueLabel}</span>}
       {full && v.series && <span class="vmeta">{`, ${v.series}`}</span>}
       {full && v.volume && <span class="vmeta">{`, vol. ${v.volume}`}</span>}
       {full && v.number && <span class="vmeta">{`(${v.number})`}</span>}
       {full && v.pages && <span class="vmeta">{`, pp. ${v.pages}`}</span>}
-      {pub.status === 'to-appear' && <span class="appear"> [To Appear]</span>}
     </p>
   )
 }
@@ -57,9 +62,11 @@ const v = pub.venue;
   .vyear {
     color: var(--ink-2);
   }
+  .vid {
+    white-space: nowrap;
+  }
   .appear {
     color: var(--ink-2);
-    white-space: nowrap;
   }
   .short {
     font-family: var(--font-mono);

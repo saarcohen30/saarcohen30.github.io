@@ -11,7 +11,7 @@ import { createInterface } from 'node:readline/promises';
 import { stdin, stdout, argv, exit } from 'node:process';
 import { parse, stringify } from 'yaml';
 import { loadPublications, PublicationDataError } from '../src/lib/pubs/index.mjs';
-import { TYPE_META, STATUS_META, LINK_META, WORKING_STATUSES } from '../src/lib/pubs/schema.mjs';
+import { PRESENTATION_META, LINK_META } from '../src/lib/pubs/schema.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const FILE = new URL('src/data/publications.yaml', ROOT);
@@ -38,6 +38,10 @@ const clean = (s) =>
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
+    // Simple inline maths from arXiv ($n$, $\log k$) becomes plain text.
+    .replace(/\$([^$]{1,60})\$/g, (_, m) =>
+      m.replace(/\\log/g, 'log').replace(/\\in/g, ' ∈ ').replace(/\\ge(q)?/g, '≥').replace(/\\le(q)?/g, '≤').replace(/[{}]/g, '').replace(/\s+/g, ' ').trim(),
+    )
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -53,10 +57,7 @@ const VENUES = [
   [/Economics and Computation/, 'EC'],
   [/Web and Internet Economics/, 'WINE'],
 ];
-const guessShort = (name, year) => {
-  const hit = VENUES.find(([re]) => re.test(name ?? ''));
-  return hit ? `${hit[1]} ${year ?? ''}`.trim() : '';
-};
+const guessAcronym = (name) => VENUES.find(([re]) => re.test(name ?? ''))?.[1] ?? '';
 
 async function fromDoi(doi) {
   const res = await fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`);
@@ -72,7 +73,7 @@ async function fromDoi(doi) {
     date: parts.length >= 2 ? `${parts[0]}-${String(parts[1]).padStart(2, '0')}${parts[2] ? '-' + String(parts[2]).padStart(2, '0') : ''}` : undefined,
     type: m.type === 'journal-article' ? 'journal' : 'conference',
     venueName: venue,
-    venueShort: guessShort(venue, year),
+    venueAcronym: guessAcronym(venue),
     pages: m.page?.replace('-', '–'),
     volume: m.volume,
     number: m.issue,
@@ -91,7 +92,7 @@ async function fromArxiv(id) {
     title: pick('title'),
     authors: [...entry.matchAll(/<name>(.*?)<\/name>/g)].map((m) => m[1]),
     year: Number(pick('published').slice(0, 4)),
-    type: 'working-paper',
+    date: pick('published').slice(0, 10),
     abstract: pick('summary'),
     links: { arxiv: id.replace(/v\d+$/, '') },
   };
@@ -114,8 +115,9 @@ function toYaml(rec) {
   const lines = [`- id: ${rec.id}`, `  title: ${scalar(rec.title)}`];
   if (rec.note) lines.push(`  note: ${scalar(rec.note)}`);
   lines.push(`  authors: [${rec.authors.map((a) => (/[,:[\]{}#&*!|>'"%@`]/.test(a) ? scalar(a) : a)).join(', ')}]`);
-  lines.push(`  type: ${Array.isArray(rec.type) ? `[${rec.type.join(', ')}]` : rec.type}`);
+  if (rec.type) lines.push(`  type: ${Array.isArray(rec.type) ? `[${rec.type.join(', ')}]` : rec.type}`);
   if (rec.status && rec.status !== 'published') lines.push(`  status: ${rec.status}`);
+  if (rec.presentation) lines.push(`  presentation: ${rec.presentation}`);
   if (rec.year) lines.push(`  year: ${rec.year}`);
   if (rec.date) lines.push(`  date: ${rec.date}`);
   if (rec.venue) {
@@ -166,28 +168,30 @@ const authors = (await ask('Authors, comma-separated (append * for equal contrib
   .map((s) => s.trim())
   .filter(Boolean);
 
-const typeKeys = Object.keys(TYPE_META);
-console.log(c.dim(`Types: ${typeKeys.map((t, i) => `${i + 1}) ${TYPE_META[t].label}`).join('  ')}  — a survey in a journal is "4,3"`));
-const defaultType = String(typeKeys.indexOf(pre.type ?? 'conference') + 1);
-const typeAnswer = await ask('Type', defaultType);
-const types = typeAnswer
-  .split(/[,\s]+/)
-  .map((n) => typeKeys[Number(n) - 1] ?? n)
-  .filter((t) => typeKeys.includes(t));
-const isWorking = types.includes('working-paper');
+// Where is the paper in its life? This decides type and status; an arXiv link never does.
+console.log(c.dim('\nStage: 1) accepted or published  2) under review  3) under revision  4) public working paper (preprint, not under review)'));
+let stage = '';
+while (!['1', '2', '3', '4'].includes(stage)) stage = await ask('Stage', pre.links?.doi ? '1' : '');
 
-const rec = { id: '', title, authors, type: types.length === 1 ? types[0] : types, links: {} };
-
-if (isWorking) {
-  console.log(c.dim(`Statuses: ${WORKING_STATUSES.join(', ')}`));
-  rec.status = await ask('Status', 'under-review');
+const rec = { id: '', title, authors, links: {} };
+if (stage === '4') {
+  rec.type = 'working-paper';
+  if (pre.date) rec.date = pre.date;
+} else if (stage === '2' || stage === '3') {
+  rec.status = stage === '2' ? 'under-review' : 'under-revision';
+  if (await yes('Is it a survey?', false)) rec.type = 'survey';
 } else {
+  const kind = await ask('Venue type: 1) conference  2) journal', pre.type === 'journal' ? '2' : '1');
+  const types = [kind === '2' ? 'journal' : 'conference'];
+  if (await yes('Is it a survey?', false)) types.unshift('survey');
+  rec.type = types.length === 1 ? types[0] : types;
+  rec.status = (await yes('Already published (proceedings/journal out)? No = accepted, to appear', true)) ? 'published' : 'to-appear';
   rec.year = Number(await ask('Year', pre.year));
   const date = await ask('Date (YYYY-MM or YYYY-MM-DD, only used for ordering; optional)', pre.date);
   if (date) rec.date = date;
   const name = await ask('Venue — full proceedings or journal name', pre.venueName);
-  const short = await ask('Venue — short label shown on cards (e.g. "AAMAS 2027")', pre.venueShort || guessShort(name, rec.year));
-  rec.venue = { short, name };
+  const acronym = await ask('Venue — acronym shown in bold, e.g. "NeurIPS" (optional for journals)', pre.venueAcronym || guessAcronym(name));
+  rec.venue = { name, ...(acronym && { acronym }) };
   const pages = await ask('Pages (optional)', pre.pages);
   if (pages) rec.venue.pages = pages;
   if (pre.volume) rec.venue.volume = pre.volume;
@@ -195,12 +199,16 @@ if (isWorking) {
   if (pre.publisher) rec.venue.publisher = pre.publisher;
   const note = await ask('Note, e.g. "Extended Abstract" (optional)');
   if (note) rec.note = note;
-  const status = await ask('Status (published / to-appear)', 'published');
-  if (status !== 'published') rec.status = status;
+  if (types.includes('conference')) {
+    const keys = Object.keys(PRESENTATION_META);
+    console.log(c.dim(`Presentation — only if the official programme says so: ${keys.map((k, i) => `${i + 1}) ${PRESENTATION_META[k].label}`).join('  ')}`));
+    const pres = keys[Number(await ask('Presentation (number, optional)')) - 1];
+    if (pres) rec.presentation = pres;
+  }
 }
 
 console.log(c.dim('\nLinks — paste a URL or press Enter to skip. DOI and arXiv take bare ids.'));
-for (const kind of ['paper', 'pdf', 'arxiv', 'doi', 'code']) {
+for (const kind of ['paper', 'pdf', 'arxiv', 'doi', 'openreview', 'code']) {
   const v = await ask(`  ${LINK_META[kind].label}`, pre.links?.[kind]);
   if (v) rec.links[kind] = v.replace(/^https?:\/\/(dx\.)?doi\.org\//, '').replace(/^https?:\/\/arxiv\.org\/abs\//, '');
 }

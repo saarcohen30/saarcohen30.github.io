@@ -140,7 +140,14 @@ function compare(a, b) {
 // ---------------------------------------------------------------- citations
 
 const STOP = new Set(['a', 'an', 'the', 'on', 'of', 'in', 'for', 'to', 'and', 'with', 'via', 'under', 'by']);
-const lastName = (name) => name.trim().split(/\s+/).at(-1);
+const PARTICLES = new Set(['la', 'le', 'de', 'di', 'da', 'del', 'della', 'van', 'von', 'der', 'den', 'du', 'dos', 'ten', 'ter']);
+/** Surname including particles: "Emanuele La Malfa" → "La Malfa", "Ludwig van Beethoven" → "van Beethoven". */
+const lastName = (name) => {
+  const parts = name.trim().split(/\s+/);
+  let i = parts.length - 1;
+  while (i > 1 && PARTICLES.has(parts[i - 1].toLowerCase())) i--;
+  return parts.slice(i).join(' ');
+};
 const ascii = (s) => s.normalize('NFKD').replace(/[^A-Za-z0-9]/g, '');
 
 function assignBibKeys(pubs) {
