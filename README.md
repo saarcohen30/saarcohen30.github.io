@@ -16,6 +16,59 @@ to GitHub Pages by GitHub Actions.
 | `npm test` | schema rules + data validation (also runs in CI) |
 | `npm run build` | build the static site into `dist/` |
 | `npm run preview` | serve the built site |
+| `npm run preview:status` / `preview:stop` | inspect / stop a preview server started in the background |
+
+## Local development
+
+`npm run dev` and `npm run preview` do different jobs:
+
+- **`npm run dev`** serves the site from source with live reload. Use it while editing. It does not produce
+  `dist/`, and it is not exactly what gets deployed.
+- **`npm run build` then `npm run preview`** builds the production site into `dist/` and serves exactly those files.
+  Use it to check what will be deployed (and for Lighthouse).
+
+| Task | Command |
+|---|---|
+| Start development | `npm run dev`, then open http://localhost:4321 |
+| Stop development | **Ctrl+C** in that terminal (releases the port) |
+| Build for production | `npm run build` |
+| Serve the production build | `npm run preview`, then open http://localhost:4321 |
+| Stop the preview | **Ctrl+C** in that terminal |
+| Is a preview running somewhere? | `npm run preview:status` |
+| Stop a preview started in the background | `npm run preview:stop` |
+| Replace a background preview with a fresh one | `npx astro preview --background --force` (then `npm run preview:stop` when done) |
+
+**"Another astro preview server is already running"** means Astro found a preview it started earlier and is still
+tracking. Astro 7 allows one dev server and one preview server per project. It tracks them with lock files in
+`.astro/`, which are ignored automatically once their process has exited. Fix it with `npm run preview:stop`, then
+`npm run preview` again. Note:
+
+- Plain `npx astro preview --force` is **not** honoured in the foreground in this Astro version; only
+  `--background --force` replaces a server.
+- When `astro preview` is run by an automated agent or tool, Astro 7 starts it **in the background** on purpose,
+  so it keeps running after the tool finishes. That is how a stale preview can appear without you starting one.
+  `npm run preview:stop` ends it.
+- The same applies to dev servers: `npx astro dev status` and `npx astro dev stop`.
+
+## Previewing hero scenes
+
+Normal visitors get the rotation described under *Design notes*. To review a particular scene, add query
+parameters to the home page URL. These overrides **never read or write the stored rotation**, so they cannot
+change what normal visits see. They also work on the live site.
+
+| Scene | With the entrance | Settled (no entrance) |
+|---|---|---|
+| Adapt | `/?scene=adapt&intro=1` | `/?scene=adapt` |
+| Exchange | `/?scene=exchange&intro=1` | `/?scene=exchange` |
+| Share | `/?scene=share&intro=1` | `/?scene=share` |
+| Gather | `/?scene=gather&intro=1` | `/?scene=gather` |
+
+Reload to replay. An unknown scene name is ignored, and the page behaves normally. With *reduce motion* enabled
+in the operating system, the entrance never plays and the static still is shown: accessibility wins over
+`intro=1`. Only the requested scene's code is downloaded.
+
+To replay the *normal* rotation locally, run `localStorage.removeItem('intro-seen')` in the browser console and
+reload. Each such reload advances one scene.
 
 ## Where things live
 
@@ -26,7 +79,7 @@ public/files/pdf/            CV PDF (URL unchanged from the old site)
 src/pages/                   routes: /, /publications/, /publications/<id>/, /cv/, 404, /publications.bib
 src/components/              Hero, Header/Footer, publication components (pubs/)
 src/lib/pubs/                publication schema, validation, sorting, BibTeX/citation generation
-src/lib/field/               the hero: one engine (core, canvas/SVG painters) + scenes/ (adapt, exchange, share, gather)
+src/lib/field/               the hero: one engine (core, canvas/SVG painters) + scenes/ (meta.ts = names, index.ts = lazy loaders)
 src/scripts/                 small client scripts: hero canvas, publication filters, theme/disclosure/copy
 src/styles/global.css        design tokens (colour, type scale, motion) and base styles
 scripts/                     add-publication and validate-publications CLIs
@@ -53,7 +106,9 @@ come from each record's `aliases`.
   - **Gather**: agents arrive and form groups (strategic interaction, coalitions).
 - **Entrance and rotation.** A visit that is eligible for the full entrance (the first visit, or 12 hours since
   the last one) advances to the next scene and plays it (about 2.5 s, skippable by any key, click or scroll).
-  Other visits show the same scene already settled. The choice is made in `<head>` before first paint. Only
+  Other visits show the same scene already settled. `localStorage` stores just two values: `scene` (the index of
+  the scene shown last) and `intro-seen` (when the entrance last played). See *Previewing hero scenes* for
+  review URLs. The choice is made in `<head>` before first paint. Only
   the chosen scene's code (about 2 KB gzipped) is downloaded. With `prefers-reduced-motion` or without
   JavaScript, a build-time SVG still of the Adapt scene is shown and no animation code loads. If
   `localStorage` is unavailable, the first scene is shown.

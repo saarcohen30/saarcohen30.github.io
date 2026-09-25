@@ -1,12 +1,13 @@
-// The scene family, in rotation order. Each entry is loaded on demand, so a visit only
-// downloads the scene it shows.
+// Client-side scene registry: each scene is loaded on demand, so a visit downloads only the
+// scene it shows. Order and names come from ./meta.ts.
 import type { SceneFactory } from '../core';
+import { SCENE_IDS, type SceneId } from './meta';
 
-// First visits see Adapt (the broadest image: many agents, uncertainty resolving into
-// structure), matching the static still; later visits rotate through the others.
-export const SCENES = [
-  { id: 'adapt', load: () => import('./adapt').then((m) => m.createAdapt) },
-  { id: 'exchange', load: () => import('./exchange').then((m) => m.createExchange) },
-  { id: 'share', load: () => import('./share').then((m) => m.createShare) },
-  { id: 'gather', load: () => import('./gather').then((m) => m.createGather) },
-] satisfies { id: string; load: () => Promise<SceneFactory> }[];
+const LOADERS: Record<SceneId, () => Promise<SceneFactory>> = {
+  adapt: () => import('./adapt').then((m) => m.createAdapt),
+  exchange: () => import('./exchange').then((m) => m.createExchange),
+  share: () => import('./share').then((m) => m.createShare),
+  gather: () => import('./gather').then((m) => m.createGather),
+};
+
+export const SCENES = SCENE_IDS.map((id) => ({ id, load: LOADERS[id] }));

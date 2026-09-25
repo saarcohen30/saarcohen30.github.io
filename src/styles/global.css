@@ -390,24 +390,6 @@ main {
   transform: translateX(3px);
 }
 
-/* ---------------------------------------------------------------- reveal on scroll
-   Content is visible by default; the `js` class opts into the reveal only when
-   JavaScript is running, and reduced-motion users never get it. */
-@media (prefers-reduced-motion: no-preference) {
-  .js [data-reveal] {
-    opacity: 0;
-    transform: translateY(14px);
-    transition:
-      opacity 700ms var(--ease-out),
-      transform 900ms var(--ease-out);
-    transition-delay: calc(var(--reveal-i, 0) * 70ms);
-  }
-  .js [data-reveal].is-in {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 /* ---------------------------------------------------------------- cross-document view transitions */
 @view-transition {
   navigation: auto;
@@ -488,10 +470,6 @@ main {
   }
   a {
     text-decoration: none;
-  }
-  .js [data-reveal] {
-    opacity: 1 !important;
-    transform: none !important;
   }
 }
 

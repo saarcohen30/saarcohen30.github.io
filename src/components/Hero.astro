@@ -261,32 +261,11 @@ still.draw(svg.painter, -1);
   .cue-line span {
     position: absolute;
     left: -2px;
-    top: 0;
+    bottom: 0;
     width: 5px;
     height: 5px;
     border-radius: 50%;
     background: var(--stage-ink-2);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .cue-line span {
-      animation: cue 2.4s var(--ease-in-out) infinite;
-    }
-  }
-  @keyframes cue {
-    0% {
-      transform: translateY(-6px);
-      opacity: 0;
-    }
-    20% {
-      opacity: 1;
-    }
-    80% {
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(36px);
-      opacity: 0;
-    }
   }
   @media (max-width: 859px) {
     .cue {
@@ -325,11 +304,6 @@ still.draw(svg.painter, -1);
     }
     /* Scroll-linked: the hero content drifts up and fades as you leave it. */
     @supports (animation-timeline: view()) {
-      .inner {
-        animation: hero-exit linear both;
-        animation-timeline: view();
-        animation-range: exit 0% exit 80%;
-      }
       canvas {
         animation: field-exit linear both;
         animation-timeline: view();
@@ -347,12 +321,6 @@ still.draw(svg.painter, -1);
   @keyframes word-rise {
     from {
       transform: translateY(105%);
-    }
-  }
-  @keyframes hero-exit {
-    to {
-      opacity: 0.1;
-      transform: translateY(-8vh);
     }
   }
   @keyframes field-exit {

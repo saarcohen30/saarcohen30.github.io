@@ -10,6 +10,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "preview:status": "astro preview status",
+    "preview:stop": "astro preview stop",
     "check": "node scripts/validate-publications.mjs",
     "add-pub": "node scripts/add-publication.mjs",
     "test": "node scripts/test-schema.mjs && node scripts/validate-publications.mjs"

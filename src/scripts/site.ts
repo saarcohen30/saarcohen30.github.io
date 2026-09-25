@@ -58,27 +58,6 @@ if (header) {
   }
 }
 
-// ------------------------------------------------------------------ reveal on scroll
-const revealables = document.querySelectorAll<HTMLElement>('[data-reveal]');
-if (revealables.length) {
-  if (reduceMotion.matches || !('IntersectionObserver' in window)) {
-    revealables.forEach((el) => el.classList.add('is-in'));
-  } else {
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            e.target.classList.add('is-in');
-            io.unobserve(e.target);
-          }
-        }
-      },
-      { rootMargin: '0px 0px -8% 0px', threshold: 0.05 },
-    );
-    revealables.forEach((el) => io.observe(el));
-  }
-}
-
 // ------------------------------------------------------------------ disclosure (Abstract / Cite)
 document.addEventListener('click', (event) => {
   const btn = (event.target as Element).closest<HTMLButtonElement>('[data-toggle]');

@@ -116,19 +116,6 @@ const items = [
   .brand :global(.mark) {
     --mark-accent: var(--c-conference);
   }
-  .brand :global(.mark-n) {
-    transition: transform 520ms var(--ease-out);
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .brand:hover :global(.n4) {
-      transform: translate(-3.5px, 4px);
-    }
-    .brand:hover :global(.n2) {
-      transform: translateY(-1px);
-    }
-  }
   .over-stage .brand :global(.mark) {
     --mark-accent: #a9bbff;
   }

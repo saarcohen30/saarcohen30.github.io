@@ -3,10 +3,9 @@ import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
 import PubItem from '../components/pubs/PubItem.astro';
-import ThemeGlyph from '../components/ThemeGlyph.astro';
 import Icon from '../components/Icon.astro';
 import portrait from '../assets/portrait.jpg';
-import { SCENES } from '../lib/field/scenes';
+import { SCENE_IDS } from '../lib/field/scenes/meta';
 import { profile, publications, themes, pubsForTheme, inlineMd, SITE_URL, type Publication } from '../lib/site';
 
 const accepted = publications.filter((p) => p.isAccepted);
@@ -72,28 +71,43 @@ const facts = [
 ---
 
 <Base description={description} stageHeader jsonLd={jsonLd} ogType="profile">
-  <script is:inline slot="head" define:vars={{ sceneCount: SCENES.length, replayMs: 12 * 3600e3 }}>
+  <script is:inline slot="head" define:vars={{ sceneIds: SCENE_IDS, replayMs: 12 * 3600e3 }}>
     // Before first paint: pick the hero scene and decide whether this visit gets the entrance.
-    // A visit that is eligible for the full entrance (first visit, or 12 h since the last one)
-    // advances to the next scene; otherwise the current scene is shown already settled.
+    //
+    // Normal visits: a visit eligible for the full entrance (first visit, or 12 h since the
+    // last one) advances to the next scene and plays it; other visits show the current scene
+    // settled. Stored: localStorage "scene" (index shown last) and "intro-seen" (timestamp).
+    //
+    // Preview URLs (for reviewing scenes; never touch localStorage):
+    //   /?scene=share            that scene, settled
+    //   /?scene=share&intro=1    that scene, with the entrance
+    // Reduced motion always wins: no entrance, static still.
     var d = document.documentElement;
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var q = new URLSearchParams(location.search);
+    var forced = sceneIds.indexOf((q.get('scene') || '').toLowerCase());
     var scene = 0;
-    try {
-      var raw = localStorage.getItem('scene');
-      var last = raw === null ? -1 : +raw;
-      var seen = +localStorage.getItem('intro-seen') || 0;
-      scene = last >= 0 && last < sceneCount ? last : 0;
-      if (Date.now() - seen > replayMs) {
-        scene = (last + 1) % sceneCount;
-        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          d.classList.add('intro');
-          localStorage.setItem('intro-seen', String(Date.now()));
-          localStorage.setItem('scene', String(scene));
+    if (forced >= 0) {
+      scene = forced;
+      if (q.get('intro') === '1' && !reduce) d.classList.add('intro');
+    } else {
+      try {
+        var raw = localStorage.getItem('scene');
+        var last = raw === null ? -1 : +raw;
+        var seen = +localStorage.getItem('intro-seen') || 0;
+        scene = last >= 0 && last < sceneIds.length ? last : 0;
+        if (Date.now() - seen > replayMs) {
+          scene = (last + 1) % sceneIds.length;
+          if (!reduce) {
+            d.classList.add('intro');
+            localStorage.setItem('intro-seen', String(Date.now()));
+            localStorage.setItem('scene', String(scene));
+          }
         }
+      } catch (e) {
+        // Storage unavailable: first scene, with the entrance (it is short and skippable).
+        if (!reduce) d.classList.add('intro');
       }
-    } catch (e) {
-      // Storage unavailable: first scene, and the entrance (it is short and skippable).
-      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('intro');
     }
     d.dataset.scene = String(scene);
   </script>
@@ -103,16 +117,16 @@ const facts = [
   <!-- 01 About -->
   <section id="about" class="section about" aria-labelledby="about-h">
     <div class="wrap about-grid">
-      <header class="section-head" data-reveal>
+      <header class="section-head">
         <p class="eyebrow"><span class="n">01</span> — About</p>
         <h2 id="about-h" class="visually-hidden">About</h2>
       </header>
       <div class="about-body">
-        <div class="prose" data-reveal>
+        <div class="prose">
           <p class="lead-bio" set:html={inlineMd(profile.bio[0])} />
           {profile.bio.slice(1).map((p: string) => <p set:html={inlineMd(p)} />)}
         </div>
-        <dl class="facts" data-reveal>
+        <dl class="facts">
           {
             facts.map((f) => (
               <div class="fact">
@@ -125,12 +139,12 @@ const facts = [
             ))
           }
         </dl>
-        <div class="actions-row" data-reveal>
+        <div class="actions-row">
           <a class="btn btn--solid" href="/cv/">Curriculum vitae <Icon name="arrow-right" class="arrow" /></a>
           <a class="btn" href={profile.cv_pdf}><Icon name="download" /> PDF</a>
         </div>
       </div>
-      <figure class="portrait" data-reveal>
+      <figure class="portrait">
         <Image src={portrait} alt={`Portrait of ${profile.name}`} widths={[240, 360, 480, 720]} sizes="(min-width: 900px) 18rem, 40vw" loading="lazy" decoding="async" />
       </figure>
     </div>
@@ -139,7 +153,7 @@ const facts = [
   <!-- 02 Research -->
   <section id="research" class="section" aria-labelledby="research-h">
     <div class="wrap">
-      <header class="section-head" data-reveal>
+      <header class="section-head">
         <p class="eyebrow"><span class="n">02</span> — Research</p>
         <h2 id="research-h">What I work on</h2>
       </header>
@@ -148,8 +162,10 @@ const facts = [
           themes.map((t, i) => {
             const { count, picks } = cardExamples[i];
             return (
-              <li class="theme" data-reveal style={`--reveal-i:${i}`}>
-                <ThemeGlyph theme={t.id} />
+              <li class="theme">
+                <p class="theme-n mono" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </p>
                 <h3>{t.title}</h3>
                 <p class="theme-areas mono">{t.areas.join(' · ')}</p>
                 <p class="theme-summary">{t.summary}</p>
@@ -179,7 +195,7 @@ const facts = [
   <!-- 03 Publications -->
   <section id="publications" class="section" aria-labelledby="pubs-h">
     <div class="wrap pubs-grid">
-      <header class="section-head" data-reveal>
+      <header class="section-head">
         <p class="eyebrow"><span class="n">03</span> — Publications</p>
         <h2 id="pubs-h">{featured.length ? 'Selected work' : 'Current work'}</h2>
         <p class="section-sub">
@@ -188,7 +204,7 @@ const facts = [
         </p>
         <a class="btn" href="/publications/">All publications <Icon name="arrow-right" class="arrow" /></a>
       </header>
-      <div class="pubs-list" data-reveal>
+      <div class="pubs-list">
         {
           highlight.map(({ theme, pub }) => (
             <div class="highlight">
@@ -204,12 +220,12 @@ const facts = [
   <!-- 04 Recognition & service -->
   <section id="recognition" class="section" aria-labelledby="rec-h">
     <div class="wrap">
-      <header class="section-head" data-reveal>
+      <header class="section-head">
         <p class="eyebrow"><span class="n">04</span> — Recognition &amp; service</p>
         <h2 id="rec-h" class="visually-hidden">Recognition and service</h2>
       </header>
       <div class="rec-grid">
-        <div data-reveal>
+        <div>
           <h3 class="col-h">Awards &amp; scholarships</h3>
           <ul role="list" class="timeline">
             {
@@ -225,7 +241,7 @@ const facts = [
             }
           </ul>
         </div>
-        <div data-reveal style="--reveal-i:1">
+        <div>
           <h3 class="col-h">Service</h3>
           <ul role="list" class="timeline">
             {
@@ -254,7 +270,7 @@ const facts = [
 
   <!-- Contact -->
   <section id="contact" class="section contact" aria-labelledby="contact-h">
-    <div class="wrap" data-reveal>
+    <div class="wrap">
       <p class="eyebrow"><span class="n">05</span> — Contact</p>
       <h2 id="contact-h" class="contact-h">
         <a href={`mailto:${profile.email}`}>{profile.email}</a>
@@ -360,11 +376,12 @@ const facts = [
     }
   }
 
-  /* Research themes */
+  /* Research themes — calm, typographic cards. Subgrid aligns each row (number, title,
+     fields, summary, papers) across the cards so the section reads as one table. */
   .themes {
     display: grid;
     gap: 1px;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
     background: var(--line);
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
@@ -375,22 +392,37 @@ const facts = [
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
-    padding: var(--space-6) var(--space-5) var(--space-5);
+    padding: var(--space-5) var(--space-5) var(--space-5);
     background: var(--bg);
-    transition: background-color var(--dur-2);
   }
-  .theme:hover {
-    background: var(--bg-elev);
+  @supports (grid-template-rows: subgrid) {
+    .theme {
+      display: grid;
+      grid-row: span 5;
+      grid-template-rows: subgrid;
+      row-gap: var(--space-3);
+      align-content: start;
+    }
+    .theme-papers {
+      margin-top: 0 !important;
+    }
+  }
+  .theme-n {
+    font-size: var(--step--2);
+    color: var(--ink-3);
+    letter-spacing: 0.08em;
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--line);
   }
   .theme h3 {
     font-size: var(--step-2);
-    margin-top: var(--space-3);
+    margin-top: var(--space-2);
+    align-self: end;
   }
   .theme-areas {
     font-size: var(--step--2);
     color: var(--accent);
     letter-spacing: 0.01em;
-    margin-top: calc(-1 * var(--space-1));
   }
   .theme-summary {
     color: var(--ink-2);
@@ -400,6 +432,8 @@ const facts = [
   .theme-papers {
     margin-top: auto;
     padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+    align-self: start;
     display: grid;
     gap: 0.5rem;
   }
