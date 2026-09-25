@@ -1,0 +1,189 @@
+---
+// Small diagrams for each research theme, in the same visual language as the hero.
+// Decorative only (aria-hidden); they animate subtly when their card is hovered.
+interface Props {
+  theme: string;
+}
+const { theme } = Astro.props;
+---
+
+<svg class="tg" data-theme-glyph={theme} viewBox="0 0 132 56" aria-hidden="true" focusable="false">
+  {
+    theme === 'online-coalition-formation' && (
+      <Fragment>
+        <path class="axis" d="M4 46h58" />
+        <circle class="q q1" cx="12" cy="46" r="2.6" />
+        <circle class="q q2" cx="26" cy="46" r="2.6" />
+        <circle class="q q3" cx="40" cy="46" r="2.6" />
+        <path class="probe" d="M54 46C70 44 78 30 92 20" />
+        <path class="probe" d="M54 46C74 46 90 44 110 38" />
+        <g class="c ca">
+          <path class="e" d="M88 14 98 22 86 26z" />
+          <circle cx="88" cy="14" r="3" />
+          <circle cx="98" cy="22" r="3" />
+          <circle cx="86" cy="26" r="3" />
+        </g>
+        <g class="c cb">
+          <path class="e" d="M112 34 122 42 108 44z" />
+          <circle cx="112" cy="34" r="3" />
+          <circle cx="122" cy="42" r="3" />
+          <circle cx="108" cy="44" r="3" />
+        </g>
+        <circle class="arrive" cx="54" cy="46" r="3.4" />
+      </Fragment>
+    )
+  }
+  {
+    theme === 'learning-coalitions' && (
+      <Fragment>
+        <g class="c ca">
+          <path class="e learn" d="M14 16 32 12 28 32 12 34z M14 16 28 32" />
+          <circle cx="14" cy="16" r="3" />
+          <circle cx="32" cy="12" r="3" />
+          <circle cx="28" cy="32" r="3" />
+          <circle cx="12" cy="34" r="3" />
+        </g>
+        <g class="c cb">
+          <path class="e learn" d="M62 22 80 18 74 40z" />
+          <circle cx="62" cy="22" r="3" />
+          <circle cx="80" cy="18" r="3" />
+          <circle cx="74" cy="40" r="3" />
+        </g>
+        <g class="c cc">
+          <path class="e learn" d="M104 30 122 26 116 46z" />
+          <circle cx="104" cy="30" r="3" />
+          <circle cx="122" cy="26" r="3" />
+          <circle cx="116" cy="46" r="3" />
+        </g>
+        <path class="probe" d="M32 12C44 6 52 10 62 22" />
+        <path class="probe" d="M80 18C90 14 98 20 104 30" />
+      </Fragment>
+    )
+  }
+  {
+    theme === 'online-allocation' && (
+      <Fragment>
+        <path class="axis" d="M4 14h124" />
+        <rect class="item i1" x="10" y="10" width="8" height="8" rx="1.5" />
+        <rect class="item i2" x="34" y="10" width="8" height="8" rx="1.5" />
+        <rect class="item i3" x="58" y="10" width="8" height="8" rx="1.5" />
+        <rect class="item i4" x="82" y="10" width="8" height="8" rx="1.5" />
+        <path class="probe" d="M14 18v16M38 18l10 16M62 18 48 34M86 18l24 16" />
+        <g class="c ca">
+          <circle cx="16" cy="42" r="4" />
+          <circle cx="48" cy="42" r="4" />
+          <circle cx="80" cy="42" r="4" />
+          <circle cx="112" cy="42" r="4" />
+        </g>
+      </Fragment>
+    )
+  }
+  {
+    theme === 'graph-learning' && (
+      <Fragment>
+        <path class="e net" d="M14 30 36 12 60 26 36 44z M60 26 86 14 110 24 98 44 70 44z M86 14 98 44 M36 12 36 44 M110 24 124 38" />
+        <g class="c ca">
+          <circle cx="14" cy="30" r="3" />
+          <circle cx="36" cy="12" r="3" />
+          <circle cx="36" cy="44" r="3" />
+          <circle cx="60" cy="26" r="3.6" class="hub" />
+          <circle cx="86" cy="14" r="3" />
+          <circle cx="110" cy="24" r="3" />
+          <circle cx="98" cy="44" r="3" />
+          <circle cx="70" cy="44" r="3" />
+          <circle cx="124" cy="38" r="3" />
+        </g>
+        <path class="pulse" d="M14 30 36 12 60 26 86 14 110 24 124 38" />
+      </Fragment>
+    )
+  }
+</svg>
+
+<style>
+  .tg {
+    width: 132px;
+    height: 56px;
+    overflow: visible;
+    color: var(--ink);
+  }
+  .axis {
+    stroke: var(--line-2);
+    stroke-width: 1;
+    stroke-dasharray: 2 3;
+    fill: none;
+  }
+  .q,
+  .item {
+    fill: var(--ink-3);
+    transition: transform 700ms var(--ease-out);
+  }
+  .probe {
+    fill: none;
+    stroke: var(--ink-3);
+    stroke-width: 1;
+    stroke-dasharray: 2 3;
+    opacity: 0.5;
+  }
+  .c circle {
+    fill: var(--ink);
+  }
+  .ca circle {
+    fill: var(--c-conference);
+  }
+  .cb circle {
+    fill: var(--c-journal);
+  }
+  .cc circle {
+    fill: var(--c-survey);
+  }
+  .e {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.1;
+    stroke-linejoin: round;
+    opacity: 0.35;
+  }
+  .learn {
+    stroke-dasharray: 3 3;
+    transition:
+      stroke-dasharray 700ms var(--ease-out),
+      opacity 700ms;
+  }
+  .arrive {
+    fill: var(--c-working-paper);
+    transition: transform 800ms var(--ease-out);
+  }
+  .pulse {
+    fill: none;
+    stroke: var(--c-conference);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-dasharray: 10 200;
+    stroke-dashoffset: 10;
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.theme:hover) .arrive {
+      transform: translate(46px, -24px);
+    }
+    :global(.theme:hover) .q {
+      transform: translateX(14px);
+    }
+    :global(.theme:hover) .learn {
+      stroke-dasharray: 3 0;
+      opacity: 0.55;
+    }
+    :global(.theme:hover) .item {
+      transform: translateX(24px);
+    }
+    :global(.theme:hover) .pulse {
+      opacity: 0.9;
+      animation: pulse 1.6s var(--ease-in-out) infinite;
+    }
+  }
+  @keyframes pulse {
+    to {
+      stroke-dashoffset: -150;
+    }
+  }
+</style>

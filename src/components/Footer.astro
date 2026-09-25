@@ -1,0 +1,73 @@
+---
+import Mark from './Mark.astro';
+import SocialLinks from './SocialLinks.astro';
+import { profile, BUILD_DATE } from '../lib/site';
+
+const updated = BUILD_DATE.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<footer class="site-footer">
+  <div class="wrap grid">
+    <div class="id">
+      <Mark size={22} />
+      <p>
+        <span class="name">{profile.name}</span><br />
+        <span class="muted">{profile.role}<br />{profile.affiliation}</span>
+      </p>
+    </div>
+    <div class="links">
+      <p class="eyebrow">Elsewhere</p>
+      <SocialLinks compact />
+    </div>
+    <div class="meta mono">
+      <p><a href={`mailto:${profile.email}`}>{profile.email}</a></p>
+      <p class="muted">Updated <time datetime={BUILD_DATE.toISOString().slice(0, 10)}>{updated}</time></p>
+      <p class="muted">© {BUILD_DATE.getFullYear()} {profile.name}</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: var(--space-8);
+    padding-block: var(--space-7) var(--space-6);
+    border-top: 1px solid var(--line);
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+  .grid {
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    align-items: start;
+  }
+  .id {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+  }
+  .id :global(.mark) {
+    color: var(--ink);
+    --mark-accent: var(--c-conference);
+    margin-top: 0.2rem;
+  }
+  .name {
+    color: var(--ink);
+    font-size: var(--step-0);
+  }
+  .muted {
+    color: var(--ink-3);
+  }
+  .links .eyebrow {
+    margin-bottom: var(--space-3);
+  }
+  .meta {
+    display: grid;
+    gap: 0.35rem;
+    font-size: var(--step--2);
+  }
+  .meta a {
+    color: var(--ink);
+    font-size: var(--step--1);
+  }
+</style>

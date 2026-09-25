@@ -1,0 +1,627 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  THE single source of truth for every paper on the site.
+#
+#  • Order does not matter — the site sorts automatically (working papers first,
+#    then newest first). Year and type filters are generated from this file.
+#  • Easiest way to add a paper:  npm run add-pub   (asks a few questions,
+#    can prefill from a DOI or arXiv id, and validates the result).
+#  • Check the file at any time:   npm run check
+#  • Full field reference: PUBLICATIONS.md
+#
+#  Minimal record:
+#
+#  - id: my-new-paper                 # URL → /publications/my-new-paper/
+#    title: My New Paper
+#    authors: [Saar Cohen, Noa Agmon] # append * for equal contribution: "Saar Cohen*"
+#    type: conference                 # conference | journal | survey | working-paper (or a list)
+#    year: 2027
+#    venue: { short: AAMAS 2027, name: Proceedings of the 26th International Conference on Autonomous Agents and Multiagent Systems }
+#    links: { arxiv: 2701.12345, code: https://github.com/saarcohen30/repo }
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Working papers ───────────────────────────────────────────────────────────
+# Source: "Under Review / Revision" section of the CV (files/pdf/CV - Saar Cohen.pdf).
+
+- id: fairness-efficiency-online-coalition-formation-partial-information
+  title: Fairness and Efficiency in Online Coalition Formation with Partial Information
+  authors: [Saar Cohen, Noa Agmon]
+  type: working-paper
+  status: under-revision
+  topics: [online-coalition-formation]
+
+- id: near-optimal-online-resource-allocation-random-order
+  title: Near-Optimal Online Resource Allocation in the Random-Order Model
+  authors: [Saar Cohen, Noa Agmon]
+  type: working-paper
+  status: under-review
+  topics: [online-allocation]
+
+- id: egalitarian-welfare-maximization-online-coalition-formation
+  title: Egalitarian Welfare Maximization in Online Coalition Formation
+  authors: [Saar Cohen, Noa Agmon]
+  type: working-paper
+  status: under-review
+  topics: [online-coalition-formation]
+
+- id: stability-accuracy-tradeoffs-decentralized-online-learning
+  title: Stability-Accuracy Tradeoffs in Decentralized Online Learning of Coalition Structures by Selfish Agents
+  authors: [Saar Cohen, Noa Agmon]
+  type: working-paper
+  status: under-review
+  topics: [learning-coalitions]
+
+# ── 2026 ─────────────────────────────────────────────────────────────────────
+
+- id: offline-learning-nash-stable-overlapping-coalitions
+  title: Offline Learning of Nash Stable Coalition Structures with Possibly Overlapping Coalitions
+  authors: [Saar Cohen]
+  type: conference
+  year: 2026
+  date: 2026-05-29
+  venue:
+    short: AAMAS 2026
+    name: Proceedings of the 25th International Conference on Autonomous Agents and Multiagent Systems
+  topics: [learning-coalitions]
+  links:
+    pdf: https://ifaamas.org/Proceedings/aamas2026/pdfs/ZZZS1209.pdf
+    doi: 10.65109/zzzs1209
+    arxiv: 2602.14321
+    code: https://github.com/saarcohen30/pocf
+  aliases: [/publication/2026-offline]
+  abstract: >-
+    Coalition formation concerns strategic collaborations of selfish agents that form coalitions
+    based on their preferences. It is often assumed that coalitions are disjoint and preferences are
+    fully known, which may not hold in practice. In this paper, we thus present a new model of
+    coalition formation with possibly overlapping coalitions under partial information, where
+    selfish agents may be part of multiple coalitions simultaneously and their full preferences are
+    initially unknown. Instead, information about past interactions and associated utility feedback
+    is stored in a fixed offline dataset, and we aim to efficiently infer the agents' preferences
+    from this dataset. We analyze the impact of diverse dataset information constraints by studying
+    two types of utility feedback that can be stored in the dataset: agent- and coalition-level
+    utility feedback. For both feedback models, we identify assumptions under which the dataset
+    covers sufficient information for an offline learning algorithm to infer preferences and use
+    them to recover a partition that is (approximately) Nash stable, in which no agent can improve
+    her utility by unilaterally deviating. Our additional goal is devising algorithms with low
+    sample complexity, requiring only a small dataset to obtain a desired approximation to Nash
+    stability. Under agent-level feedback, we provide a sample-efficient algorithm proven to obtain
+    an approximately Nash stable partition under a sufficient and necessary assumption on the
+    information covered by the dataset. However, under coalition-level feedback, we show that only
+    under a stricter assumption is sufficient for sample-efficient learning. Still, in multiple
+    cases, our algorithms' sample complexity bounds have optimality guarantees up to logarithmic
+    factors. Finally, extensive experiments show that our algorithm converges to a low approximation
+    level to Nash stability across diverse settings.
+
+- id: delayed-assignments-online-non-centroid-clustering
+  title: Delayed Assignments in Online Non-Centroid Clustering with Stochastic Arrivals
+  authors: [Saar Cohen]
+  type: conference
+  year: 2026
+  date: 2026-05-29
+  venue:
+    short: AAMAS 2026
+    name: Proceedings of the 25th International Conference on Autonomous Agents and Multiagent Systems
+  topics: [online-allocation]
+  links:
+    pdf: https://ifaamas.org/Proceedings/aamas2026/pdfs/AVAR7513.pdf
+    doi: 10.65109/avar7513
+    arxiv: 2601.16091
+  aliases: [/publication/2026-delays]
+  abstract: >-
+    Clustering is a fundamental problem, aiming to partition a set of elements, like agents or data
+    points, into clusters such that elements in the same cluster are closer to each other than to
+    those in other clusters. In this paper, we present a new framework for studying online
+    non-centroid clustering with delays, where elements, that arrive one at a time as points in a
+    finite metric space, should be assigned to clusters, but assignments need not be immediate.
+    Specifically, upon arrival, each point's location is revealed, and an online algorithm has to
+    irrevocably assign it to an existing cluster or create a new one containing, at this moment,
+    only this point. However, we allow decisions to be postponed at a delay cost, instead of
+    following the more common assumption of immediate decisions upon arrival. This poses a critical
+    challenge: the goal is to minimize both the total distance costs between points in each cluster
+    and the overall delay costs incurred by postponing assignments. In the classic worst-case
+    arrival model, where points arrive in an arbitrary order, no algorithm has a competitive ratio
+    better than sublogarithmic in the number of points. To overcome this strong impossibility, we
+    focus on a stochastic arrival model, where points' locations are drawn independently across time
+    from an unknown and fixed probability distribution over the finite metric space. We offer hope
+    for beyond worst-case adversaries: we devise an algorithm that is constant competitive in the
+    sense that, as the number of points grows, the ratio between the expected overall costs of the
+    output clustering and an optimal offline clustering is bounded by a constant.
+
+- id: convexified-message-passing-graph-neural-networks
+  title: Convexified Message-Passing Graph Neural Networks
+  authors: [Saar Cohen, Noa Agmon, Uri Shaham]
+  type: conference
+  year: 2026
+  date: 2026-05-02
+  venue:
+    short: AISTATS 2026
+    name: Proceedings of the 29th International Conference on Artificial Intelligence and Statistics
+    pages: 676–684
+    series: Proceedings of Machine Learning Research
+    volume: 300
+  topics: [graph-learning]
+  links:
+    paper: https://proceedings.mlr.press/v300/cohen26a.html
+    pdf: https://raw.githubusercontent.com/mlresearch/v300/main/assets/cohen26a/cohen26a.pdf
+    arxiv: 2505.18289
+    code: https://github.com/saarcohen30/cgcn
+  aliases: [/publication/2026-CGNN]
+  abstract: >-
+    Graph Neural Networks (GNNs) are key tools for graph representation learning, demonstrating
+    strong results across diverse prediction tasks. In this paper, we present Convexified
+    Message-Passing Graph Neural Networks (CGNNs), a novel and general framework that combines the
+    power of message-passing GNNs with the tractability of convex optimization. By mapping their
+    nonlinear filters into a reproducing kernel Hilbert space, CGNNs transform training into a
+    convex optimization problem, which projected gradient methods can solve both efficiently and
+    optimally. Convexity further allows CGNNs' statistical properties to be analyzed accurately and
+    rigorously. For two-layer CGNNs, we establish rigorous generalization guarantees, showing
+    convergence to the performance of an optimal GNN. To scale to deeper architectures, we adopt a
+    principled layer-wise training strategy. Experiments on benchmark datasets show that CGNNs
+    significantly exceed the performance of leading GNN models, obtaining 10-40% higher accuracy in
+    most cases, underscoring their promise as a powerful and principled method with strong
+    theoretical foundations. In rare cases where improvements are not quantitatively substantial,
+    the convex models either slightly exceed or match the baselines, stressing their robustness and
+    wide applicability. Though over-parameterization is often used to enhance performance in
+    non-convex models, we show that our CGNNs yield shallow convex models that can surpass
+    non-convex ones in accuracy and model compactness.
+
+# ── 2025 ─────────────────────────────────────────────────────────────────────
+
+- id: online-learning-fair-coalition-structures
+  title: Online Learning of Fair Coalition Structures
+  authors: [Saar Cohen, Noa Agmon]
+  type: conference
+  year: 2025
+  date: 2025-10-25
+  venue:
+    short: ECAI 2025
+    name: Proceedings of the 28th European Conference on Artificial Intelligence
+    series: Frontiers in Artificial Intelligence and Applications
+  topics: [learning-coalitions]
+  links:
+    paper: https://ebooks.iospress.nl/volumearticle/76341
+    doi: 10.3233/FAIA251405
+  abstract: >-
+    Coalition formation concerns partitioning agents into disjoint coalitions based on their
+    preferences for one another. In online learning of coalition structures, agents’ true
+    preferences may be initially unknown. Thus, coalitions are repeatedly formed based on
+    preferences learned online from iterative feedback derived from interactions in those
+    coalitions. This work introduces a new fairness-oriented approach to online learning in
+    coalition formation, relying only on partial noisy feedback observed after agents interact. We
+    analyze the system in terms of envy-based fairness notions. Envy-freeness is a popular
+    criterion, where no agent prefers another agent’s coalition over her own. While trivial
+    envy-free solutions exist for unconstrained number of coalitions and coalition sizes,
+    constraints may make envy-free partitions unattainable. We thus present a new
+    envy-freeness-based metric into hedonic games: minimax envy partitions, which minimize the
+    maximum envy experienced by any agent. We devise an algorithm designed to minimize maximum envy,
+    proven to attain sublinear envy regret.
+
+- id: decentralized-online-learning-selfish-agents-coalition-formation
+  title: Decentralized Online Learning by Selfish Agents in Coalition Formation
+  authors: [Saar Cohen, Noa Agmon]
+  type: conference
+  year: 2025
+  date: 2025-08-16
+  venue:
+    short: IJCAI 2025
+    name: Proceedings of the 34th International Joint Conference on Artificial Intelligence
+    pages: 3796–3804
+  topics: [learning-coalitions]
+  links:
+    paper: https://www.ijcai.org/proceedings/2025/422
+    doi: 10.24963/ijcai.2025/422
+  aliases: [/publication/2025-Decentralized-OL-ASHG]
+  abstract: >-
+    Coalition formation involves self-organized coalitions generated through strategic interactions
+    of autonomous selfish agents. In online learning of coalition structures, agents' preferences
+    toward each other are initially unknown before agents interact. Coalitions are formed
+    iteratively based on preferences that agents learn online from repeated feedback resulting from
+    their interactions. In this paper, we introduce online learning in coalition formation through
+    the lens of distributed decision-making, where self-interested agents operate without global
+    coordination or information sharing, and learn only from their own experience. Under our selfish
+    perspective, each agent seeks to maximize her own utility. Thus, we analyze the system in terms
+    of Nash stability, where no agent can improve her utility by unilaterally deviating. We devise a
+    sample-efficient decentralized algorithm for selfish agents that minimize their Nash regret,
+    yielding approximately Nash stable solutions. In our algorithm, each agent uses only one utility
+    feedback per round to update her strategy, but our algorithm still has Nash regret and sample
+    complexity bounds that are optimal up to logarithmic factors.
+
+- id: egalitarianism-online-coalition-formation
+  title: Egalitarianism in Online Coalition Formation
+  note: Extended Abstract
+  authors: [Saar Cohen, Noa Agmon]
+  type: conference
+  year: 2025
+  date: 2025-05-19
+  venue:
+    short: AAMAS 2025
+    name: Proceedings of the 24th International Conference on Autonomous Agents and Multiagent Systems
+    pages: 2475–2477
+  topics: [online-coalition-formation]
+  links:
+    pdf: https://www.ifaamas.org/Proceedings/aamas2025/pdfs/p2475.pdf
+    doi: 10.65109/glkn7757
+  aliases: [/publication/2025-egal]
+  abstract: >-
+    We investigate the online coalition formation problem, where agents arrive one by one and must
+    be assigned to coalitions, with their utilities for others revealed upon arrival. Our focus lies
+    on additively separable hedonic games, where agents assign cardinal utilities to others, assumed
+    to be controlled by an adversary in our online context. This paper introduces the evaluation of
+    partitions based on their egalitarian social welfare, with the goal of maximizing the minimum
+    utility of any agent. This objective strikes balance between fairness and efficiency by
+    prioritizing the satisfaction of the least well-off agents. For various real-life scenarios, we
+    establish tight or nearly tight upper bounds on the competitive ratio and complement these
+    findings with optimal or near-optimal algorithms. However, we also demonstrate that in some
+    cases, no competitive algorithm is feasible. In particular, under the classic worst-case
+    adversarial model, where agents arrive in an arbitrary order, we show that no algorithm has a
+    non-trivial competitive ratio, if at all.
+
+- id: online-learning-coalition-structures-selfish-agents
+  title: Online Learning of Coalition Structures by Selfish Agents
+  authors: [Saar Cohen, Noa Agmon]
+  type: conference
+  year: 2025
+  date: 2025-02-25
+  venue:
+    short: AAAI 2025
+    name: Proceedings of the 39th AAAI Conference on Artificial Intelligence
+    volume: 39
+    number: 13
+    pages: 13709–13717
+  topics: [learning-coalitions]
+  links:
+    paper: https://ojs.aaai.org/index.php/AAAI/article/view/33498
+    doi: 10.1609/aaai.v39i13.33498
+  aliases: [/publication/2025-OL-ASHGs-NS]
+  abstract: >-
+    Coalition formation concerns autonomous agents that strategically interact to form
+    self-organized coalitions. When agents lack initial sufficient information to evaluate their
+    preferences before interacting with others, they learn them online through repeated feedback
+    while iteratively forming coalitions. In this work, we introduce online learning in coalition
+    formation from a non-cooperative perspective, studying the impact of collective data utilization
+    where selfish agents aim to accelerate their learning by leveraging a shared data platform.
+    Thus, the efficiency and dynamics of the learning process are affected by each agent's local
+    feedbacks, motivating us to explore the tension between semi-bandit and bandit feedback, which
+    differ in the granularity of utility information observed by each agent. Under our
+    non-cooperative viewpoint, we evaluate the system by means of Nash stability, where no agent can
+    improve her utility by unilaterally deviating. Our main result is a sample-efficient algorithm
+    for selfish agents that aims to minimize their Nash regret under both semi-bandit and bandit
+    feedback, implying approximately Nash stable outcomes. Under both feedback settings, our
+    algorithm enjoys Nash regret and sample complexity bounds that are optimal up to logarithmic
+    factors.
+
+# ── 2024 ─────────────────────────────────────────────────────────────────────
+
+- id: online-friends-partitioning-under-uncertainty
+  title: Online Friends Partitioning under Uncertainty
+  authors: [Saar Cohen, Noa Agmon]
+  type: conference
+  year: 2024
+  date: 2024-10-19
+  venue:
+    short: ECAI 2024
+    name: Proceedings of the 27th European Conference on Artificial Intelligence
+    series: Frontiers in Artificial Intelligence and Applications
+  topics: [online-coalition-formation]
+  links:
+    paper: https://ebooks.iospress.nl/volumearticle/69977
+    doi: 10.3233/FAIA240882
+  aliases: [/publication/2024-Online-Friends-Partitioning]
+  abstract: >-
+    We study the friendship-based online coalition formation problem, in which agents that appear
+    one at a time should be partitioned into coalitions, and an agent’s utility for a coalition is
+    the number of her neighbors (i.e., friends) within the coalition. Unlike prior work, agents’
+    friendships may be uncertain. We analyze the desirability of the resulting partition in the
+    common term of optimality, aiming to maximize the social welfare. We design an online algorithm
+    termed Maximum Predicted Coalitional Friends (MPCF), which is enhanced with predictions of each
+    agent’s number of friends within any possible coalition. For common classes of random graphs, we
+    prove that MPCF is optimal, and, for certain graphs, provides the same guarantee as the best
+    known competitive algorithm for settings without uncertainty.
+
+- id: online-learning-partitions-additively-separable-hedonic-games
+  title: Online Learning of Partitions in Additively Separable Hedonic Games
+  authors: [Saar Cohen, Noa Agmon]
+  type: conference
+  year: 2024
+  date: 2024-08-03
+  venue:
+    short: IJCAI 2024
+    name: Proceedings of the 33rd International Joint Conference on Artificial Intelligence
+    pages: 2722–2730
+  topics: [learning-coalitions]
+  links:
+    paper: https://www.ijcai.org/proceedings/2024/301
+    doi: 10.24963/ijcai.2024/301
+  aliases: [/publication/2024-ASHG-OL]
+  abstract: >-
+    Coalition formation involves partitioning agents into disjoint coalitions based on their
+    preferences over other agents. In reality, agents may lack enough information to assess their
+    preferences before interacting with others. This motivates us to initiate the research on
+    coalition formation from the viewpoint of online learning. At each round, a possibly different
+    subset of a given set of agents arrives, that a learner then partitions into coalitions. Only
+    afterwards, the agents' preferences, which possibly change over time, are revealed. The
+    learner's goal is optimizing social cost by minimizing his (static or dynamic) regret. We show
+    that even no-static regret is hard to approximate, and constant approximation in polynomial time
+    is unattainable. Yet, for a fractional relaxation of our problem, we devise an algorithm that
+    simultaneously gives the optimal static and dynamic regret. We then present a rounding scheme
+    with an optimal dynamic regret, which converts our algorithm's output into a solution for our
+    original problem.
+
+- id: near-optimal-online-resource-allocation-random-order-extended-abstract
+  title: Near-Optimal Online Resource Allocation in the Random-Order Model
+  note: Extended Abstract
+  authors: [Saar Cohen, Noa Agmon]
+  type: conference
+  year: 2024
+  date: 2024-05-06
+  venue:
+    short: AAMAS 2024
+    name: Proceedings of the 23rd International Conference on Autonomous Agents and Multiagent Systems
+    pages: 2219–2221
+  topics: [online-allocation]
+  links:
+    pdf: https://ifmas.csc.liv.ac.uk/Proceedings/aamas2024/pdfs/p2219.pdf
+    doi: 10.65109/koyf1641
+  aliases: ["/publication/2024-online fair division"]
+  abstract: >-
+    We study the problem of allocating either divisible or indivisible items (goods or chores) among
+    a set of agents, where the items arrive online, one at a time. Each agent's non-negative value
+    for an item is set by an adversary upon the item's arrival. Our focus is on a unifying
+    algorithmic framework for finding online allocations that treats both fairness and economic
+    efficiency. For this sake, we aim to optimize the generalized means of agents' received values,
+    covering a spectrum of welfare functions including average utilitarian welfare and egalitarian
+    welfare. In the traditional adversarial model, where items arrive in an arbitrary order, no
+    algorithm can give a decent approximation to welfare in the worst case. To escape from this
+    strong lower bound, we consider the random-order model, where items arrive in a uniformly random
+    order. This model provides us with a major breakthrough: we devise algorithms that guarantee a
+    nearly-optimal competitive ratio for certain welfare functions, if the welfare obtained by the
+    optimal allocation is sufficiently large. We prove that our results are almost tight: if the
+    optimal solution's welfare is strictly below a certain threshold, then no nearly-optimal
+    algorithm exists, even in the random-order model.
+
+# ── 2023 ─────────────────────────────────────────────────────────────────────
+
+- id: online-coalitional-skill-formation
+  title: Online Coalitional Skill Formation
+  authors: [Saar Cohen, Noa Agmon]
+  type: conference
+  year: 2023
+  date: 2023-05-29
+  venue:
+    short: AAMAS 2023
+    name: Proceedings of the 22nd International Conference on Autonomous Agents and Multiagent Systems
+    pages: 494–503
+  topics: [online-coalition-formation]
+  links:
+    pdf: https://ifaamas.org/Proceedings/aamas2023/pdfs/p494.pdf
+    doi: 10.65109/krok2976
+    code: https://github.com/saarcohen30/ocsf
+  aliases: [/publication/2023-ocsf]
+  abstract: >-
+    Efficiently allocating heterogeneous tasks to agents that arrive dynamically and have diverse
+    skills is a central problem in multi-agent systems called online task allocation. In many cases,
+    a single agent does not meet the skill levels required by a particular task, which incentivizes
+    the agents to form coalitions for handling it. In this paper, we propose a new framework, termed
+    as online coalitional skill formation (OCSF), for handling online task allocation via coalition
+    formation, where tasks require different skills for being successfully fulfilled, and each agent
+    has different levels at mastering each skill. The goal of the organizer is therefore to assign
+    agents that arrive online to a coalition responsible for performing some task, so as to
+    optimally approach the desired skill levels of all tasks. Focusing on the case in which the set
+    of possible mastering levels for each skill is discrete, we suggest different assignment
+    algorithms based on the knowledge the organizer has on the arriving agents. When agents arrive
+    i.i.d. according to some unknown distribution, we propose a greedy and adaptive scheme that
+    assigns an agent to a task, proving a tight bound on the system's performance. If the
+    distribution is known, we devise a novel correlation to Constrained Markov Decision Processes
+    whose goal is maximizing the rate at which agents are assigned to each task while respecting
+    their requirements. We then construct a non-adaptive approach that terminates when all the
+    tasks' requirements are met. Finally, if the distribution is unknown, we provide two algorithms
+    that learn it online. We have fully implemented the algorithms, showing that in many cases a
+    higher diversity in skills may yield poor assignments.
+
+- id: coalition-formation-sequential-decision-making-doctoral-consortium
+  title: Coalition Formation in Sequential Decision-Making under Uncertainty
+  note: Doctoral Consortium
+  authors: [Saar Cohen]
+  type: conference
+  year: 2023
+  date: 2023-05-29
+  venue:
+    short: AAMAS 2023
+    name: Proceedings of the 22nd International Conference on Autonomous Agents and Multiagent Systems
+    pages: 2955–2957
+  topics: [online-coalition-formation]
+  links:
+    pdf: https://ifaamas.org/Proceedings/aamas2023/pdfs/p2955.pdf
+    doi: 10.65109/ibpr3809
+    code: https://github.com/saarcohen30/ocsf
+  abstract: >-
+    As real-world applications of coalition formation continuously evolve, the design of new
+    efficient algorithms that maintain a decent and consistent solution over time is required.
+    Specifically, when agents arrive one at a time, a moderator (i.e., an online algorithm) must
+    decide to which coalition the agent should be assigned, if at all. Each agent may be further
+    accompanied with relevant information (e.g., her set of capabilities, her preferences over the
+    previously disclosed agents), based on which the moderator performs its decisions. Multi-agent
+    systems further encompass uncertainties in a variety of forms: the nature of the agents'
+    participation and arrivals may be probabilistic or even unknown. Additionally, their preferences
+    might be not assured and even incomplete or strategic. This research will thus lay the
+    theoretical foundations for studying the interplay between coalition formation and online,
+    uncertain settings, while characterizing the factors which make the moderator's objective
+    susceptible. Our methods will be further tied to practical applications, specifically ones in
+    physical settings (e.g., task allocation in actual robots).
+
+- id: probabilistic-inference-random-dichotomous-hedonic-games
+  title: Complexity of Probabilistic Inference in Random Dichotomous Hedonic Games
+  authors: [Saar Cohen, Noa Agmon]
+  type: conference
+  year: 2023
+  date: 2023-02-07
+  venue:
+    short: AAAI 2023
+    name: Proceedings of the 37th AAAI Conference on Artificial Intelligence
+    volume: 37
+    number: 5
+    pages: 5573–5581
+  topics: [learning-coalitions]
+  links:
+    paper: https://ojs.aaai.org/index.php/AAAI/article/view/25692
+    pdf: https://u.cs.biu.ac.il/~agmon/CohenAAAI23.pdf
+    doi: 10.1609/aaai.v37i5.25692
+  aliases: [/publication/2023-complexity-prob]
+  abstract: >-
+    Hedonic games model cooperative games where agents desire to form coalitions, and only care
+    about the composition of the coalitions of which they are members. Focusing on various classes
+    of dichotomous hedonic games, where each agent either approves or disapproves a given coalition,
+    we propose the random extension, where players have an independent participation probability. We
+    initiate the research on the computational complexity of computing the probability that
+    coalitions and partitions are optimal or stable. While some cases admit efficient algorithms
+    (e.g., agents approve only few coalitions), they become computationally hard (#P-hard) in their
+    complementary scenario. We then investigate the distribution of coalitions in perfect partitions
+    and their performance in majority games, where an agent approves coalitions in which the agent
+    is friends with the majority of its members. When friendships independently form with a constant
+    probability, we prove that the number of coalitions of size 3 converges in distribution to a
+    Poisson random variable.
+
+# ── 2022 ─────────────────────────────────────────────────────────────────────
+
+- id: hierarchical-graph-probabilistic-recursive-reasoning
+  title: Optimizing Multi-Agent Coordination via Hierarchical Graph Probabilistic Recursive Reasoning
+  authors: [Saar Cohen, Noa Agmon]
+  type: conference
+  year: 2022
+  date: 2022-05-09
+  venue:
+    short: AAMAS 2022
+    name: Proceedings of the 21st International Conference on Autonomous Agents and Multiagent Systems
+    pages: 290–299
+  topics: [graph-learning]
+  links:
+    pdf: https://www.ifaamas.org/Proceedings/aamas2022/pdfs/p290.pdf
+    doi: 10.65109/tfia2193
+    code:
+      - { label: Code (GrPR2-A), url: "https://github.com/saarcohen30/GrPR2-A" }
+      - { label: Code (GrPR2-CH), url: "https://github.com/saarcohen30/GrPR2-CH" }
+  aliases: [/publication/2022-grpr]
+  abstract: >-
+    Multi-agent reinforcement learning (MARL) requires coordination by some means of interaction
+    between agents to efficiently solve tasks. Interaction graphs allow reasoning about joint
+    actions based on the local structure of interactions, but they disregard the potential impact of
+    an agent's action on its neighbors' behaviors, which could rapidly alter in dynamic settings. In
+    this paper, we thus present a novel perspective on opponent modeling in domains with only local
+    interactions using (level-1) Graph Probabilistic Recursive Reasoning (GrPR2). Unlike previous
+    work on recursive reasoning, each agent iteratively best-responds to other agents' policies over
+    all possible local interactions. Agents' policies are approximated via a variational Bayes
+    scheme for capturing their uncertainties, and we prove that an induced variant of Q-learning
+    converges under self-play when there exists only one Nash equilibrium. In cooperative settings,
+    we further devise a variational lower bound on the likelihood of each agent's optimality.
+    Opposed to other models, optimizing the resulting objective prevents each agent from attaining
+    an unrealistic modelling of others, and yields an exact tabular Q-iteration method that holds
+    convergence guarantees. Then, we deepen the recursion to level-k via Cognitive Hierarchy GrPR2
+    (GrPR2-CH), which lets each level-k player best-respond to a mixture of strictly lower levels in
+    the hierarchy. We prove that: (1) level-3 reasoning is the optimal hierarchical level,
+    maximizing each agent's expected return; and (2) the weak spot of the classical CH models is
+    that 0-level is uniformly distributed, as it may introduce policy bias. Finally, we propose a
+    practical actor-critic scheme, and illustrate that GrPR2-CH outperforms strong MARL baselines in
+    the particle environment.
+
+# ── 2021 ─────────────────────────────────────────────────────────────────────
+
+- id: convexified-graph-neural-networks-robotic-swarms
+  title: Convexified Graph Neural Networks for Distributed Control in Robotic Swarms
+  authors: [Saar Cohen, Noa Agmon]
+  type: conference
+  year: 2021
+  date: 2021-08-19
+  venue:
+    short: IJCAI 2021
+    name: Proceedings of the 30th International Joint Conference on Artificial Intelligence
+    pages: 2307–2313
+  topics: [graph-learning]
+  links:
+    paper: https://www.ijcai.org/proceedings/2021/318
+    doi: 10.24963/ijcai.2021/318
+    code: https://github.com/saarcohen30/convexified-gnn
+  aliases: [/publication/2021-cxgnn]
+  abstract: >-
+    A network of robots can be viewed as a signal graph, describing the underlying network topology
+    with naturally distributed architectures, whose nodes are assigned to data values associated
+    with each robot. Graph neural networks (GNNs) learn representations from signal graphs, thus
+    making them well-suited candidates for learning distributed controllers. Oftentimes, existing
+    GNN architectures assume ideal scenarios, while ignoring the possibility that this distributed
+    graph may change along time due to link failures or topology variations, which can be found in
+    dynamic settings. A mismatch between the graphs on which GNNs were trained and the ones on which
+    they are tested is thus formed. Utilizing online learning, GNNs can be retrained at testing
+    time, overcoming this issue. However, most online algorithms are centralized and work on convex
+    problems (which GNNs scarcely lead to). This paper introduces novel architectures which solve
+    the convexity restriction and can be easily updated in a distributed, online manner. Finally, we
+    provide experiments, showing how these models can be applied to optimizing formation control in
+    a swarm of flocking robots.
+
+- id: leading-swarm-desired-consensus
+  title: On the (Im)possibility of Leading a Swarm to a Desired Consensus in Static and Dynamic Settings
+  authors: [Saar Cohen, Noa Agmon]
+  type: conference
+  year: 2021
+  date: 2021-06-04
+  venue:
+    short: DARS/SWARM 2021
+    name: Proceedings of the 4th International Symposium on Swarm Behavior and Bio-Inspired Robotics
+  topics: [graph-learning]
+  links:
+    code: https://github.com/saarcohen30/spatial-consensus-prevention
+  versions:
+    # The previous site linked this arXiv record, which carries a different title.
+    - label: arXiv preprint
+      title: Converging to a Desired Orientation in a Flock of Agents
+      arxiv: 2010.04686
+  aliases: [/publication/2021-impossibility]
+
+- id: spatial-consensus-prevention-robotic-swarms
+  title: Spatial Consensus-Prevention in Robotic Swarms
+  authors: [Saar Cohen, Noa Agmon]
+  type: conference
+  year: 2021
+  date: 2021-05-03
+  venue:
+    short: AAMAS 2021
+    name: Proceedings of the 20th International Conference on Autonomous Agents and Multiagent Systems
+    pages: 359–367
+  topics: [graph-learning]
+  links:
+    paper: https://dl.acm.org/doi/10.5555/3463952.3463999
+    doi: 10.65109/uvid2381
+    code: https://github.com/saarcohen30/spatial-consensus-prevention
+  aliases: [/publication/2021-ConsensusPrevention]
+  abstract: >-
+    In this work, we define the consensus-prevention problem, which examines the canonical swarm
+    robotic consensus problem from an adversarial point of view: how (if at all) is it possible to
+    lead a swarm into a disagreement, that is, prevent them from reaching an agreement. We focus on
+    consensus-prevention in physically grounded tasks, concentrating on influencing the direction of
+    movement of a flocking swarm and guaranteeing that the swarm will never converge to the same
+    direction by the use of external, predefined agents, referred to as diverting agents. We
+    formally define the notion of disagreement within a flock, and propose a way of measuring it. We
+    show a correlation between the consensus-prevention problem and the coalition formation problem,
+    whose players aim at maximizing the disagreement measure. While the general problem of
+    optimizing disagreement between flocking agents is NP-hard, we focus on a case which is solvable
+    in polynomial time, using a variant of the graph clustering problem where the clusters
+    constitute the desired coalitions. This allows us to determine both the number of coalitions
+    that optimize disagreement, and the behavior of the diverting agents for a given number of
+    coalitions that will lead to optimal disagreement. Finally, we demonstrate in simulation the
+    impact of the number of diverting agents on the disagreement measure in different scenarios, and
+    discuss the limitations of the diverting agents in dynamic settings.
+
+- id: recent-advances-formations-multiple-robots
+  title: Recent Advances in Formations of Multiple Robots
+  authors: [Saar Cohen, Noa Agmon]
+  type: [survey, journal]
+  year: 2021
+  date: 2021-04-15
+  venue:
+    short: Curr. Robot. Rep.
+    name: Current Robotics Reports
+    volume: 2
+    pages: 159–175
+    publisher: Springer
+  topics: [graph-learning]
+  links:
+    paper: https://link.springer.com/article/10.1007/s43154-021-00049-2
+    doi: 10.1007/s43154-021-00049-2
+  aliases: [/publication/2021-recent-advances]

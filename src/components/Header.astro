@@ -1,0 +1,209 @@
+---
+import Mark from './Mark.astro';
+import Icon from './Icon.astro';
+import { profile } from '../lib/site';
+
+interface Props {
+  stage?: boolean;
+}
+const { stage = false } = Astro.props;
+const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const items = [
+  { href: '/', label: 'About', match: (p: string) => p === '/' },
+  { href: '/publications/', label: 'Publications', match: (p: string) => p.startsWith('/publications') },
+  { href: '/cv/', label: 'CV', match: (p: string) => p.startsWith('/cv') },
+];
+---
+
+<header class="site-header" data-stage={stage ? '' : undefined}>
+  <div class="bar wrap">
+    <a class="brand" href="/" aria-label={`${profile.name} — home`}>
+      <Mark size={26} />
+      <span class="brand-name">{profile.name}</span>
+    </a>
+    <nav aria-label="Main">
+      <ul role="list">
+        {
+          items.map((item) => {
+            const current = item.match(path);
+            return (
+              <li>
+                <a href={item.href} aria-current={current ? 'page' : undefined}>
+                  {item.label}
+                  {current && <span class="dot" aria-hidden="true" />}
+                </a>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </nav>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Colour theme: system" title="Colour theme">
+      <Icon name="auto" class="t-auto" size={18} />
+      <Icon name="sun" class="t-light" size={18} />
+      <Icon name="moon" class="t-dark" size={18} />
+    </button>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--header-h);
+    view-transition-name: site-header;
+    color: var(--ink);
+    transition:
+      color var(--dur-2),
+      background-color var(--dur-2),
+      border-color var(--dur-2);
+    border-bottom: 1px solid transparent;
+  }
+  .site-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: color-mix(in oklab, var(--bg) 90%, transparent);
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    opacity: 1;
+    transition: opacity var(--dur-2);
+  }
+  .site-header.is-scrolled {
+    border-bottom-color: var(--line);
+  }
+  /* Over the dark hero: transparent bar, light ink. */
+  .site-header[data-stage] {
+    margin-bottom: calc(-1 * var(--header-h));
+  }
+  .site-header[data-stage].over-stage {
+    color: var(--stage-ink);
+    border-bottom-color: transparent;
+  }
+  .site-header[data-stage].over-stage::before {
+    opacity: 0;
+  }
+  .site-header[data-stage].over-stage :focus-visible {
+    outline-color: #b9c9ff;
+  }
+
+  .bar {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-right: auto;
+    text-decoration: none;
+    font-size: 1.12rem;
+    letter-spacing: -0.01em;
+    min-height: 44px;
+  }
+  .brand :global(.mark) {
+    --mark-accent: var(--c-conference);
+  }
+  .brand :global(.mark-n) {
+    transition: transform 520ms var(--ease-out);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .brand:hover :global(.n4) {
+      transform: translate(-3.5px, 4px);
+    }
+    .brand:hover :global(.n2) {
+      transform: translateY(-1px);
+    }
+  }
+  .over-stage .brand :global(.mark) {
+    --mark-accent: #a9bbff;
+  }
+
+  nav ul {
+    display: flex;
+    gap: clamp(0.25rem, 1.5vw, 1.25rem);
+  }
+  nav a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-inline: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    color: color-mix(in oklab, currentColor 72%, transparent);
+    transition: color var(--dur-1);
+  }
+  nav a:hover,
+  nav a[aria-current] {
+    color: currentColor;
+  }
+  .dot {
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    width: 5px;
+    height: 5px;
+    margin-left: -2.5px;
+    border-radius: 50%;
+    background: var(--accent);
+    view-transition-name: nav-dot;
+  }
+  .over-stage .dot {
+    background: #a9bbff;
+  }
+
+  .theme-toggle {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-right: -10px;
+    border-radius: 50%;
+    color: color-mix(in oklab, currentColor 80%, transparent);
+    transition:
+      color var(--dur-1),
+      background-color var(--dur-1);
+  }
+  .theme-toggle:hover {
+    color: currentColor;
+    background: color-mix(in oklab, currentColor 8%, transparent);
+  }
+  .theme-toggle :global(svg) {
+    grid-area: 1 / 1;
+    transition:
+      opacity var(--dur-2),
+      transform var(--dur-3) var(--ease-out);
+  }
+  .theme-toggle :global(.t-light),
+  .theme-toggle :global(.t-dark) {
+    opacity: 0;
+    transform: rotate(-60deg) scale(0.6);
+  }
+  :global(:root[data-theme='light']) .theme-toggle :global(.t-light),
+  :global(:root[data-theme='dark']) .theme-toggle :global(.t-dark) {
+    opacity: 1;
+    transform: none;
+  }
+  :global(:root[data-theme]) .theme-toggle :global(.t-auto) {
+    opacity: 0;
+    transform: rotate(60deg) scale(0.6);
+  }
+
+  @media (max-width: 34rem) {
+    .brand-name {
+      display: none;
+    }
+    nav ul {
+      gap: 0;
+    }
+  }
+</style>

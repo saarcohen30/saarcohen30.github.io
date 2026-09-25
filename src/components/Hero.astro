@@ -1,0 +1,402 @@
+---
+import Icon from './Icon.astro';
+import SocialLinks from './SocialLinks.astro';
+import { profile } from '../lib/site';
+import { createSim, COALITION_COLOURS } from '../lib/coalition-sim';
+
+// Build-time render of the settled field: shown without JavaScript and to visitors who
+// prefer reduced motion (no canvas, no animation loop is loaded for them).
+const SW = 1600;
+const SH = 1000;
+const still = createSim({ width: SW, height: SH, count: 64, layout: 'side', seed: 30 });
+still.finish();
+const f = (n: number) => n.toFixed(1);
+const edges = still.agents
+  .filter((a) => a.parent >= 0)
+  .map((a) => ({ a, p: still.agents[a.parent], c: COALITION_COLOURS[a.coalition % COALITION_COLOURS.length] }));
+---
+
+<section class="hero stage" data-stage-root aria-labelledby="hero-name">
+  <div class="lattice" aria-hidden="true"></div>
+  <svg class="still" viewBox={`0 0 ${SW} ${SH}`} preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false">
+    <defs>
+      {
+        still.coalitions.map((c) => (
+          <radialGradient id={`halo${c.id}`}>
+            <stop offset="0" stop-color={COALITION_COLOURS[c.id]} stop-opacity="0.12" />
+            <stop offset="1" stop-color={COALITION_COLOURS[c.id]} stop-opacity="0" />
+          </radialGradient>
+        ))
+      }
+    </defs>
+    {still.coalitions.map((c) => <circle cx={f(c.x)} cy={f(c.y)} r={f(still.unit * (2.4 + Math.sqrt(c.members.length) * 1.5))} fill={`url(#halo${c.id})`} />)}
+    <g stroke-width="1.2" stroke-linecap="round" opacity="0.4">
+      {edges.map(({ a, p, c }) => <line x1={f(a.x)} y1={f(a.y)} x2={f(p.x)} y2={f(p.y)} stroke={c} />)}
+    </g>
+    <g>
+      {still.agents.map((a) => <circle cx={f(a.x)} cy={f(a.y)} r="3" fill={COALITION_COLOURS[a.coalition % COALITION_COLOURS.length]} />)}
+    </g>
+  </svg>
+  <canvas data-field aria-hidden="true"></canvas>
+
+  <div class="inner wrap" data-hero-text>
+    <p class="caption mono" data-seq="0">
+      <span class="fig">Fig. 1</span>
+      <span class="cap-text">Online coalition formation. Agents arrive one at a time; each is irrevocably assigned to the coalition it values most.</span>
+      <span class="counter" data-counter aria-hidden="true"></span>
+    </p>
+    <p class="eyebrow role" data-seq="1">{profile.role} · {profile.affiliation_short}</p>
+    <h1 id="hero-name" class="name">
+      {
+        profile.name.split(' ').map((word: string, i: number) => (
+          <span class="word">
+            <span style={`--w:${i}`}>{word}</span>
+          </span>
+        ))
+      }
+    </h1>
+    <p class="tagline" data-seq="3">{profile.tagline}</p>
+    <div class="cta" data-seq="4">
+      <a class="btn btn--light" href="/publications/">
+        Publications <Icon name="arrow-right" class="arrow" />
+      </a>
+      <a class="btn btn--ghost" href={profile.cv_pdf}>
+        <Icon name="download" /> CV <span class="visually-hidden">(PDF)</span>
+      </a>
+      <a class="btn btn--ghost" href={`mailto:${profile.email}`}>
+        <Icon name="mail" /> Email
+      </a>
+      <SocialLinks iconOnly class="hero-social" />
+    </div>
+  </div>
+
+  <button class="skip mono" type="button" data-skip hidden>Skip intro <span aria-hidden="true">→</span></button>
+  <a class="cue mono" href="#about" aria-label="Scroll to About">
+    <span class="cue-line" aria-hidden="true"><span></span></span>
+  </a>
+</section>
+
+<script>
+  // Only load the animated field if motion is welcome; otherwise the static SVG stays.
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) import('../scripts/hero');
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-items: end;
+    min-height: max(34rem, 100svh);
+    padding-top: var(--header-h);
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 70% 60% at 72% 42%, rgba(80, 100, 170, 0.14), transparent 70%),
+      var(--stage-bg);
+    color: var(--stage-ink);
+    color-scheme: dark;
+  }
+  .lattice {
+    position: absolute;
+    inset: 0;
+    z-index: -3;
+    background-image: radial-gradient(circle at 1px 1px, rgba(238, 235, 228, 0.09) 1px, transparent 1.3px);
+    background-size: 28px 28px;
+    mask-image: radial-gradient(ellipse 65% 70% at 70% 45%, #000 10%, transparent 75%);
+  }
+  .still,
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    pointer-events: none;
+  }
+  canvas {
+    opacity: 0;
+    transition: opacity 900ms ease;
+  }
+  :global(.js) .hero canvas:global(.ready) {
+    opacity: 1;
+  }
+  /* When the canvas runs, it replaces the still. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .still {
+      display: none;
+    }
+  }
+
+  .inner {
+    position: relative;
+    display: grid;
+    justify-items: start;
+    gap: var(--space-4);
+    padding-block: var(--space-7) clamp(4.5rem, 11vh, 8rem);
+  }
+  .name {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0.24em;
+    font-size: var(--step-4);
+    font-weight: 330;
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    font-variation-settings: 'opsz' 72;
+    margin-block: var(--space-2) var(--space-1);
+  }
+  .word {
+    display: inline-block;
+    overflow: clip;
+    overflow-clip-margin: 0.12em;
+    padding-bottom: 0.08em;
+  }
+  .word > span {
+    display: inline-block;
+  }
+  .role {
+    color: var(--stage-ink-2);
+  }
+  .tagline {
+    max-width: 34ch;
+    font-size: var(--step-1);
+    line-height: 1.4;
+    color: var(--stage-ink-2);
+    font-weight: 380;
+  }
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: var(--space-4);
+  }
+  .btn--light {
+    --btn-bg: var(--stage-ink);
+    --btn-ink: var(--stage-bg);
+    --btn-line: var(--stage-ink);
+  }
+  .btn--light:hover {
+    --btn-bg: #fff;
+  }
+  .btn--ghost {
+    --btn-ink: var(--stage-ink);
+    --btn-line: rgba(238, 235, 228, 0.28);
+  }
+  .btn--ghost:hover {
+    --btn-line: var(--stage-ink);
+  }
+  .cta :global(.hero-social) {
+    margin-left: 0.25rem;
+  }
+
+  .caption {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.15rem 0.8rem;
+    max-width: 30rem;
+    margin-bottom: var(--space-5);
+    font-size: var(--step--2);
+    line-height: 1.5;
+    color: var(--stage-ink-3);
+  }
+  .fig {
+    color: var(--stage-ink-2);
+  }
+  .counter {
+    grid-column: 2;
+    color: var(--stage-ink-2);
+    min-height: 1.5em;
+  }
+  .counter:empty {
+    display: none;
+  }
+
+  /* Wide screens: the caption sits under the field, like a real figure caption. */
+  @media (min-width: 860px) {
+    .caption {
+      position: absolute;
+      right: max(var(--gutter), calc((100% - var(--page)) / 2));
+      bottom: clamp(2rem, 6vh, 3.5rem);
+      max-width: 23rem;
+      margin: 0;
+    }
+    .hero {
+      align-items: center;
+    }
+    .inner {
+      grid-template-columns: minmax(0, 56%) 1fr;
+      padding-block: var(--space-7);
+    }
+    .inner > :not(.caption) {
+      grid-column: 1;
+    }
+    .name {
+      flex-wrap: nowrap;
+    }
+  }
+  /* Phones: the field occupies the upper part; keep the text block legible below it. */
+  @media (max-width: 859px) {
+    .hero {
+      background:
+        radial-gradient(ellipse 90% 45% at 50% 25%, rgba(80, 100, 170, 0.16), transparent 70%),
+        var(--stage-bg);
+    }
+    .lattice {
+      mask-image: radial-gradient(ellipse 90% 45% at 50% 28%, #000 10%, transparent 75%);
+    }
+    .still {
+      opacity: 0.55;
+    }
+    .caption {
+      margin-bottom: var(--space-3);
+    }
+    /* Reserve the upper part of the stage for the field. */
+    .inner {
+      padding-top: clamp(12rem, 36svh, 20rem);
+      padding-bottom: var(--space-7);
+    }
+  }
+
+  .skip {
+    position: absolute;
+    right: var(--gutter);
+    top: calc(var(--header-h) + 0.75rem);
+    min-height: 44px;
+    padding: 0 0.9rem;
+    border-radius: 999px;
+    font-size: var(--step--2);
+    color: var(--stage-ink-2);
+    border: 1px solid var(--stage-line);
+    background: rgba(6, 7, 10, 0.5);
+    transition:
+      color var(--dur-1),
+      border-color var(--dur-1);
+  }
+  .skip:hover {
+    color: var(--stage-ink);
+    border-color: var(--stage-ink-2);
+  }
+
+  .cue {
+    position: absolute;
+    left: 50%;
+    bottom: 0.75rem;
+    translate: -50% 0;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 56px;
+    color: var(--stage-ink-3);
+  }
+  .cue-line {
+    position: relative;
+    width: 1px;
+    height: 36px;
+    background: var(--stage-line);
+    overflow: hidden;
+  }
+  .cue-line span {
+    position: absolute;
+    left: -2px;
+    top: 0;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--stage-ink-2);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .cue-line span {
+      animation: cue 2.4s var(--ease-in-out) infinite;
+    }
+  }
+  @keyframes cue {
+    0% {
+      transform: translateY(-6px);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(36px);
+      opacity: 0;
+    }
+  }
+  @media (max-width: 859px) {
+    .cue {
+      display: none;
+    }
+  }
+
+  /* ---------------- The entrance sequence (first visit only; `intro` is set in <head>). */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.intro) .hero [data-seq] {
+      animation: seq-in 1100ms var(--ease-out) both;
+      animation-delay: calc(var(--d, 0) * 1ms);
+    }
+    :global(.intro) .caption {
+      --d: 150;
+    }
+    :global(.intro) .role {
+      --d: 350;
+    }
+    :global(.intro) .tagline {
+      --d: 1250;
+    }
+    :global(.intro) .cta {
+      --d: 1550;
+    }
+    :global(.intro) .word > span {
+      animation: word-rise 1300ms var(--ease-out) both;
+      animation-delay: calc(500ms + var(--w) * 140ms);
+    }
+    :global(.intro) :global(.site-header) {
+      animation: seq-in 900ms var(--ease-out) 1800ms both;
+    }
+    :global(.intro-skip) .hero *,
+    :global(.intro-skip) :global(.site-header) {
+      animation: none !important;
+    }
+    /* Scroll-linked: the hero content drifts up and fades as you leave it. */
+    @supports (animation-timeline: view()) {
+      .inner,
+      .caption {
+        animation: hero-exit linear both;
+        animation-timeline: view();
+        animation-range: exit 0% exit 80%;
+      }
+      canvas {
+        animation: field-exit linear both;
+        animation-timeline: view();
+        animation-range: exit 0% exit 100%;
+      }
+    }
+  }
+  @keyframes seq-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+      filter: blur(6px);
+    }
+  }
+  @keyframes word-rise {
+    from {
+      transform: translateY(105%);
+    }
+  }
+  @keyframes hero-exit {
+    to {
+      opacity: 0.1;
+      transform: translateY(-8vh);
+    }
+  }
+  @keyframes field-exit {
+    to {
+      opacity: 0.25;
+    }
+  }
+</style>

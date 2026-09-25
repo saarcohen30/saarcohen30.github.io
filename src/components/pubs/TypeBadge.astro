@@ -1,0 +1,60 @@
+---
+import { TYPE_META } from '../../lib/site';
+
+interface Props {
+  type: keyof typeof TYPE_META;
+  count?: number;
+}
+const { type } = Astro.props;
+const meta = TYPE_META[type];
+---
+
+<span class="badge" data-type={type}>
+  <svg class="glyph" viewBox="0 0 10 10" aria-hidden="true">
+    {meta.glyph === 'ring' && <circle cx="5" cy="5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.4 1.4" />}
+    {meta.glyph === 'diamond' && <path d="M5 .8 9.2 5 5 9.2.8 5z" fill="currentColor" />}
+    {meta.glyph === 'square' && <rect x="1.4" y="1.4" width="7.2" height="7.2" rx="0.8" fill="currentColor" />}
+    {meta.glyph === 'triangle' && <path d="M5 1 9.3 8.8H.7z" fill="currentColor" />}
+  </svg>
+  {meta.label}
+</span>
+
+<style>
+  .badge {
+    --c: var(--ink-2);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.15em 0.55em 0.15em 0.45em;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 550;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+    white-space: nowrap;
+    color: var(--c);
+    background: color-mix(in oklab, var(--c) 9%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c) 22%, transparent);
+  }
+  .badge[data-type='working-paper'] {
+    --c: var(--c-working-paper);
+    box-shadow: none;
+    outline: 1px dashed color-mix(in oklab, var(--c) 55%, transparent);
+    outline-offset: -1px;
+  }
+  .badge[data-type='conference'] {
+    --c: var(--c-conference);
+  }
+  .badge[data-type='journal'] {
+    --c: var(--c-journal);
+  }
+  .badge[data-type='survey'] {
+    --c: var(--c-survey);
+  }
+  .glyph {
+    width: 0.8em;
+    height: 0.8em;
+    flex: none;
+  }
+</style>

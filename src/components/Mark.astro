@@ -1,0 +1,20 @@
+---
+// The site mark: three agents in one coalition, one arriving. Also used for the favicon.
+interface Props {
+  size?: number;
+  class?: string;
+}
+const { size = 26, class: className } = Astro.props;
+---
+
+<svg class:list={['mark', className]} width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <g class="mark-edges" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.55">
+    <path d="M9 21.5 15.5 9.5M15.5 9.5l6.5 12M9 21.5h13" />
+  </g>
+  <g fill="currentColor">
+    <circle class="mark-n n1" cx="9" cy="21.5" r="3" />
+    <circle class="mark-n n2" cx="15.5" cy="9.5" r="3" />
+    <circle class="mark-n n3" cx="22" cy="21.5" r="3" />
+  </g>
+  <circle class="mark-n n4" cx="27.5" cy="6" r="2.2" fill="var(--mark-accent, currentColor)" />
+</svg>

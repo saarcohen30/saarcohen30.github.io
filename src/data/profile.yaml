@@ -1,0 +1,86 @@
+# Everything about *you* that is not a publication. Sources: the previous About page and the CV.
+# Edit freely; the home page and CV page are generated from this file.
+
+name: Saar Cohen
+role: Postdoctoral Research Associate
+affiliation: Department of Computer Science, University of Oxford
+affiliation_short: University of Oxford
+host: { name: Prof. Michael Wooldridge }
+email: saar30@gmail.com
+cv_pdf: /files/pdf/CV - Saar Cohen.pdf
+
+# One sentence shown under the name in the hero.
+tagline: I study how self-interested agents form coalitions when they arrive one at a time and the future is uncertain.
+
+# Short paragraphs for the About section (Markdown links allowed: [text](url)).
+bio:
+  - I am a Postdoctoral Research Associate in the Department of Computer Science at the University of Oxford, hosted by Prof. Michael Wooldridge.
+  - My research focuses on coalition formation that continuously evolves over time. My doctoral work gave a theoretical analysis of online coalition formation in its most general form, under online and uncertain settings where agents arrive one at a time. Online algorithms must decide which coalition an arriving agent should join, if any, while keeping a good solution over time, both theoretically and empirically.
+  - Because the problem is interdisciplinary, I build on machine learning, reinforcement learning, graph theory and algorithmic game theory.
+
+# Research themes. `id` is referenced by `topics:` in publications.yaml.
+themes:
+  - id: online-coalition-formation
+    title: Online coalition formation
+    summary: Agents arrive one at a time and must be assigned to coalitions irrevocably, without knowing who comes next. Which guarantees on welfare, fairness and stability can an online algorithm still offer?
+  - id: learning-coalitions
+    title: Learning coalition structures
+    summary: When agents' preferences are initially unknown, stable and fair partitions must be learned from feedback, whether online, offline, or by decentralized selfish agents.
+  - id: online-allocation
+    title: Online allocation & clustering
+    summary: Allocating items and clustering elements that arrive over time, under random-order and stochastic arrival models.
+  - id: graph-learning
+    title: Graphs, learning & multi-agent systems
+    summary: Convexified graph neural networks, multi-agent reinforcement learning, and coordination and control in robotic swarms.
+
+# Profiles. Only verified URLs; leave a key out rather than guessing.
+links:
+  - { kind: scholar, label: Google Scholar, url: "https://scholar.google.co.il/citations?user=WYESfoUAAAAJ" }
+  - { kind: orcid, label: ORCID, url: "https://orcid.org/0000-0001-8262-405X" }
+  - { kind: github, label: GitHub, url: "https://github.com/saarcohen30" }
+  - { kind: researchgate, label: ResearchGate, url: "https://www.researchgate.net/scientific-contributions/Saar-Cohen-2181465917" }
+  # - { kind: dblp, label: DBLP, url: "https://dblp.org/pid/..." }        # add once confirmed
+  # - { kind: linkedin, label: LinkedIn, url: "https://www.linkedin.com/in/..." }
+
+positions:
+  - { period: 2026 – present, title: Postdoctoral Research Associate, org: "Department of Computer Science, University of Oxford", detail: Hosted by Prof. Michael Wooldridge. }
+
+education:
+  - period: 2021 – 2025
+    title: Ph.D. in Computer Science
+    org: Bar-Ilan University
+    detail: "Thesis: “Coalition Formation in Sequential Decision-Making under Uncertainty”. Advisor: [Prof. Noa Agmon](https://u.cs.biu.ac.il/~agmon/). Member of the SMART research group."
+  - period: 2018 – 2021
+    title: M.Sc. in Computer Science
+    org: Bar-Ilan University
+    detail: "Thesis: “Spatial Consensus Prevention in Robotic Swarms”, on influencing flocking agents by inserting diverting agents into the swarm to bring them to disagreement. Advisor: Prof. Noa Agmon."
+  - period: 2013 – 2017
+    title: B.Sc. in Mathematics
+    org: Tel Aviv University
+    detail: With a specialization in Computer Science.
+
+awards:
+  - { year: 2025, title: IAAI Best PhD Thesis Award }
+  - { year: 2024, title: CS@BIU Nadav Scholarship for Excellent PhD Students }
+  - { year: 2023, title: The President’s Scholarship Program for Outstanding Doctoral Students, detail: On behalf of the president of Bar-Ilan University }
+  - { year: 2022, title: CS@BIU Nadav Scholarship for Excellent M.Sc. Students }
+
+service:
+  organization:
+    - { year: 2026, title: "Organizer, 3rd Workshop on Social Choice and Learning Algorithms (SCaLA’26)", detail: "Held at IJCAI’26, Bremen, Germany" }
+  reviewing:
+    - { year: 2026, role: Program Committee, venues: "AAAI’26, AAMAS’26" }
+    - { year: 2025, role: Program Committee, venues: "AAAI’25, AAMAS’25 (Distinguished), IJCAI’25, ECAI’25" }
+    - { year: 2024, role: Program Committee, venues: "AAAI’24, IJCAI’24" }
+    - { year: 2024, role: Reviewer, venues: "ECAI’24" }
+    - { year: 2023, role: Program Committee, venues: "AAAI’23, IJCAI’23 (Distinguished)" }
+    - { year: 2023, role: Reviewer, venues: "ICRA’23, ECAI’23" }
+    - { year: 2022, role: Reviewer, venues: "AAMAS’22, IEEE Transactions on Robotics (T-RO)" }
+
+teaching:
+  - period: 2023 – 2025
+    title: Teaching Assistant
+    org: Department of Computer Science, Bar-Ilan University
+    items:
+      - "Discrete Structures (Fall 2023, Fall 2024); lead TA in Fall 2024; prepared the presentations for all recitations"
+      - "Machine Learning (Spring 2024, Spring 2025); lead TA in Spring 2025"

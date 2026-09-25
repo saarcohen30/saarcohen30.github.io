@@ -1,0 +1,72 @@
+---
+import Icon from './Icon.astro';
+import { profile } from '../lib/site';
+
+interface Props {
+  compact?: boolean;
+  /** Icon-only buttons (visible tooltip + accessible name). */
+  iconOnly?: boolean;
+  class?: string;
+}
+const { compact = false, iconOnly = false, class: className } = Astro.props;
+const links: { kind: string; label: string; url: string }[] = profile.links;
+---
+
+<ul role="list" class:list={['social', { compact, 'icon-only': iconOnly }, className]}>
+  {
+    links.map((l) => (
+      <li>
+        <a href={l.url} rel="me noopener" aria-label={iconOnly ? l.label : undefined} data-tip={iconOnly ? l.label : undefined}>
+          <Icon name={l.kind} size={iconOnly ? 20 : 17} />
+          {!iconOnly && <span>{l.label}</span>}
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+  }
+  .social.compact {
+    display: grid;
+    gap: 0.2rem;
+  }
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    text-decoration: none;
+    color: inherit;
+    opacity: 0.85;
+    transition: opacity var(--dur-1);
+  }
+  a:hover {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+  .icon-only {
+    gap: 0.25rem;
+  }
+  .icon-only a {
+    position: relative;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    opacity: 0.8;
+  }
+  .icon-only a:hover,
+  .icon-only a:focus-visible {
+    opacity: 1;
+    background: color-mix(in oklab, currentColor 10%, transparent);
+    text-decoration: none;
+  }
+</style>

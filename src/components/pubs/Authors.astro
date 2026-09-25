@@ -1,0 +1,52 @@
+---
+import { isMe, type Publication } from '../../lib/site';
+
+interface Props {
+  pub: Publication;
+  class?: string;
+}
+const { pub, class: className } = Astro.props;
+const n = pub.authors.length;
+---
+
+<p class:list={['authors', className]}>
+  {
+    pub.authors.map((a, i) => (
+      <Fragment>
+        <span class:list={{ me: isMe(a.name) }}>{a.name}</span>
+        {a.equal && (
+          <sup class="eq" title="Equal contribution">
+            *
+          </sup>
+        )}
+        {i < n - 2 ? ', ' : i === n - 2 ? (n > 2 ? ', and ' : ' and ') : ''}
+      </Fragment>
+    ))
+  }
+  {pub.hasEqualContribution && <span class="eq-note">(* equal contribution)</span>}
+</p>
+
+<style>
+  .authors {
+    color: var(--ink-2);
+  }
+  .me {
+    color: var(--ink);
+    font-weight: 560;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--accent) 45%, transparent);
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.22em;
+  }
+  .eq {
+    font-family: var(--font-mono);
+    font-size: 0.7em;
+    color: var(--ink-3);
+  }
+  .eq-note {
+    margin-left: 0.5em;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-3);
+  }
+</style>

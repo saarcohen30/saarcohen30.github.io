@@ -1,6 +1,5 @@
-_site/
-images/posts/*.tex
-images/posts/*.pdf
-images/posts/*.sty
-_source/*_cache
-.Rproj.user
+node_modules/
+dist/
+.astro/
+.DS_Store
+*.log
