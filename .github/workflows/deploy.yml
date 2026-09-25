@@ -27,8 +27,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Validate publications.yaml
-        run: npm run check
+      - name: Validate publications.yaml and schema rules
+        run: npm test
       - run: npm run build
       - uses: actions/upload-pages-artifact@v4
         with:

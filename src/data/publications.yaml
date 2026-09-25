@@ -14,43 +14,167 @@
 #    title: My New Paper
 #    authors: [Saar Cohen, Noa Agmon] # append * for equal contribution: "Saar Cohen*"
 #    type: conference                 # conference | journal | survey | working-paper (or a list)
+#    status: to-appear                # omit once published; working papers have no status
 #    year: 2027
-#    venue: { short: AAMAS 2027, name: Proceedings of the 26th International Conference on Autonomous Agents and Multiagent Systems }
+#    venue: { name: Proceedings of the 26th International Conference on Autonomous Agents and Multiagent Systems, acronym: AAMAS }
 #    links: { arxiv: 2701.12345, code: https://github.com/saarcohen30/repo }
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Working papers ───────────────────────────────────────────────────────────
-# Source: "Under Review / Revision" section of the CV (files/pdf/CV - Saar Cohen.pdf).
+# Public preprints that are neither under review (as far as is publicly known) nor accepted.
+
+- id: online-house-allocation-subsidy
+  title: Online House Allocation with Subsidy
+  authors: [Nicholas Teh, Saar Cohen, Karen Frilya Celine, Benjamin Yu, Michael J. Wooldridge]
+  type: working-paper
+  date: 2026-08-31
+  topics: [fair-division, online-algorithms, computational-social-choice, learning-augmented]
+  links:
+    arxiv: "2609.29691"
+  abstract: >-
+    House allocation is a fundamental problem in which each agent is assigned exactly one house.
+    While the classical model assumes that all houses are available before the allocation is
+    computed, many practical settings require decisions to be made as houses become available over
+    time. We introduce the online house allocation problem, where houses arrive sequentially and the
+    algorithm must maintain an allocation without knowledge of future arrivals. Unlike online fair
+    division, the one-house-per-agent constraint makes recourse an inherent part of the problem, as
+    accepting a newly arrived house may require reassigning previously allocated houses. We study
+    online house allocation under subsidy-based fairness, where monetary subsidies eliminate envy
+    among agents. We show that envy-freeability can always be maintained online using bounded
+    recourse and that reassignment chains of length linear in the number of agents are unavoidable
+    in the worst case. In contrast, minimizing the total subsidy is fundamentally harder: no
+    deterministic online algorithm against an adaptive adversary, and no randomized online algorithm
+    against a non-adaptive adversary, admits a bounded competitive ratio, even for two agents and
+    four houses. We complement these impossibilities by showing that exact online subsidy
+    minimization is possible whenever there is at most one extra house beyond the number of agents,
+    and that this guarantee is best possible with respect to the number of extra houses. Finally, we
+    develop learning-augmented algorithms that recover the offline optimum under accurate
+    predictions while providing explicit robustness guarantees when predictions are inaccurate.
+
+- id: online-fair-division-oblivious-adversary
+  title: Online Fair Division Against an Oblivious Adversary
+  authors: [Saar Cohen, Nicholas Teh, Michael Wooldridge]
+  type: working-paper
+  date: 2026-09-23
+  topics: [fair-division, online-algorithms, computational-social-choice]
+  links:
+    arxiv: "2609.28333"
+  abstract: >-
+    We study the online allocation of indivisible goods among n agents, where each good must be
+    allocated immediately and irrevocably upon arrival. Against an adaptive adversary, Neoh and Teh
+    [2026] proved that no algorithm can guarantee a positive approximation to proportionality up to
+    one good (PROP1) that is independent of the number of goods, and the same holds for
+    proportionality up to k goods (PROPk) for any fixed k. We instead consider an oblivious
+    adversary, which fixes the input in advance. Choo et al. [2026] showed that the uniformly random
+    allocation returns a Θ(1/log(n/δ))-PROP1 allocation with probability at least 1−δ. We improve
+    this to Ω(1/log log(n/δ)); our algorithm does not take δ as input, so the same algorithm
+    achieves this bound for every δ ∈ (0,1). Moreover, with the same probability, a variant of our
+    algorithm gives every agent almost her bundle, and even without adding any good when no single
+    good is too valuable relative to this share. In contrast, for envy-freeness up to one good
+    (EF1), we show that, for every α ∈ (0,1], every randomized algorithm has an input on which its
+    probability of returning an α-EF1 allocation is at most e^(−Ω(n)). For envy-freeness up to any
+    good (EFX), this probability is at most 1/n! with only n+1 goods, a bound that is optimal within
+    a factor of (n+1)/2. For the maximin share (MMS), this probability is at most 5/6, however small
+    α is. Allowing more removals gives a positive envy-freeness guarantee: allocating each good to a
+    uniformly random agent among those with positive values achieves, with high probability, an
+    approximation factor arbitrarily close to one for envy-freeness up to logarithmically many
+    goods, and logarithmically many goods are necessary for this rule.
+
+- id: online-fair-division-budget-constraints
+  title: Online Fair Division with Budget Constraints
+  authors: [Saar Cohen, Nicholas Teh, Paul W. Goldberg, Michael J. Wooldridge]
+  type: working-paper
+  date: 2026-07-25
+  topics: [fair-division, online-algorithms, computational-social-choice, learning-augmented]
+  links:
+    arxiv: "2607.23310"
+  abstract: >-
+    We study an online variant of discrete fair division under generalized assignment budget
+    constraints. Goods arrive one at a time and must be assigned irrevocably to a feasible agent or
+    to charity, which holds all unallocated goods, while fairness is evaluated only against
+    budget-feasible subsets of every recipient's bundle. We first show that, without additional
+    structure, no deterministic online algorithm can guarantee any fixed approximation to feasible
+    envy-freeness, even in highly symmetric instances. We then identify bounded density spread as a
+    structural condition that restores meaningful guarantees, obtaining approximation algorithms for
+    arbitrary item sizes and showing that, under common valuations and sufficiently small goods,
+    these guarantees can be strengthened to an optimal deterministic frontier. We further study
+    resource augmentation, where the online algorithm is allowed slightly larger budgets than the
+    fairness benchmark, and characterize the resulting improvement in the achievable guarantees.
+    Finally, we develop a learning-augmented framework based on predicting joint value-size types,
+    proving consistency under perfect predictions, robustness to prediction error, and showing that
+    separate predictions of value and size marginals are insufficient to recover strong fairness
+    guarantees.
+
+# ── Under review / revision ──────────────────────────────────────────────────
+# Source: "Under Review / Revision" section of the public CV (files/pdf/CV - Saar Cohen.pdf).
+# Not publicly available, so: no type, no venue, no links. They are NOT working papers.
 
 - id: fairness-efficiency-online-coalition-formation-partial-information
   title: Fairness and Efficiency in Online Coalition Formation with Partial Information
   authors: [Saar Cohen, Noa Agmon]
-  type: working-paper
   status: under-revision
-  topics: [online-coalition-formation]
+  topics: [coalition-formation, online-algorithms, computational-social-choice]
 
 - id: near-optimal-online-resource-allocation-random-order
   title: Near-Optimal Online Resource Allocation in the Random-Order Model
   authors: [Saar Cohen, Noa Agmon]
-  type: working-paper
   status: under-review
-  topics: [online-allocation]
+  topics: [fair-division, online-algorithms, computational-social-choice]
+  versions:
+    # Same title and authors as the AAMAS 2024 extended abstract; the CV lists this full paper separately.
+    - label: Extended abstract (AAMAS 2024)
+      doi: 10.65109/koyf1641
 
 - id: egalitarian-welfare-maximization-online-coalition-formation
   title: Egalitarian Welfare Maximization in Online Coalition Formation
   authors: [Saar Cohen, Noa Agmon]
-  type: working-paper
   status: under-review
-  topics: [online-coalition-formation]
+  topics: [coalition-formation, online-algorithms, computational-social-choice]
 
 - id: stability-accuracy-tradeoffs-decentralized-online-learning
   title: Stability-Accuracy Tradeoffs in Decentralized Online Learning of Coalition Structures by Selfish Agents
   authors: [Saar Cohen, Noa Agmon]
-  type: working-paper
   status: under-review
-  topics: [learning-coalitions]
+  topics: [coalition-formation, multi-agent-learning, online-learning, game-theory]
 
 # ── 2026 ─────────────────────────────────────────────────────────────────────
+
+- id: attacker-in-the-mirror-anchored-bipolicy-self-play
+  title: "The Attacker in the Mirror: Breaking Self-Consistency in Safety via Anchored Bipolicy Self-Play"
+  authors: [Gabriele La Malfa, Emanuele La Malfa, Saar Cohen, Jie M. Zhang, Michael Luck, Michael Wooldridge, Elizabeth Black]
+  type: conference
+  status: to-appear
+  presentation: oral   # acceptance and Oral per the author (Sept 2026); official NeurIPS pages not yet public
+  year: 2026
+  date: 2026-12
+  venue:
+    name: Proceedings of the 40th Annual Conference on Neural Information Processing Systems
+    acronym: NeurIPS
+  topics: [ai-safety, large-language-models, game-theory, machine-learning]
+  links:
+    arxiv: "2605.08427"
+    code: https://github.com/EmanueleLM/AnchoredBipolicySelf-Play
+    data:
+      - { label: LoRA checkpoints, url: "https://huggingface.co/EmanueleLaMalfa/AnchoredBipolicySelf-Play" }
+  abstract: >-
+    Self-play red team is an established approach to improving AI safety in which different
+    instances of the same model play attacker and defender roles in a zero-sum game, i.e., where the
+    attacker tries to jailbreak the defender; if self-play converges to a Nash equilibrium, the
+    model is guaranteed to respond safely within the settings of the game. Although the parameter
+    sharing enforced by the use of the same model for the two roles improves stability and
+    performance, it introduces fundamental theoretical and architectural limitations. We show that
+    the set of Nash equilibria that can be reached corresponds to a broad class of behaviours that
+    includes trivial always refuse strategies and oracle-like defenders, thus limiting practical
+    applicability. We then show that when attacker and defender share and update the same base
+    model, the dynamics collapse to self-consistency, so that attacks do not enforce adversarial
+    pressure on the defender. In response, we propose Anchored Bipolicy Self-Play, which trains
+    distinct role-specific LoRA adapters on top of a frozen base model, thereby maintaining stable
+    optimisation while preserving adversarial pressure through explicit role separation. In relation
+    to standard self-play, we show up to 100x greater parameter efficiency than finetuning and
+    consistent improvements in safety compared to self-play fine-tuned models. We evaluate on
+    Qwen2.5-{3B, 7B,14B}-IT models across widely used safety benchmarks, showing improved robustness
+    without loss of reasoning ability. Cross-play experiments further show that our attacker and
+    defender models are superior to self-play in terms of adversarial defence and safety.
 
 - id: offline-learning-nash-stable-overlapping-coalitions
   title: Offline Learning of Nash Stable Coalition Structures with Possibly Overlapping Coalitions
@@ -59,9 +183,9 @@
   year: 2026
   date: 2026-05-29
   venue:
-    short: AAMAS 2026
+    acronym: AAMAS
     name: Proceedings of the 25th International Conference on Autonomous Agents and Multiagent Systems
-  topics: [learning-coalitions]
+  topics: [coalition-formation, multi-agent-learning, game-theory]
   links:
     pdf: https://ifaamas.org/Proceedings/aamas2026/pdfs/ZZZS1209.pdf
     doi: 10.65109/zzzs1209
@@ -98,9 +222,9 @@
   year: 2026
   date: 2026-05-29
   venue:
-    short: AAMAS 2026
+    acronym: AAMAS
     name: Proceedings of the 25th International Conference on Autonomous Agents and Multiagent Systems
-  topics: [online-allocation]
+  topics: [clustering, online-algorithms]
   links:
     pdf: https://ifaamas.org/Proceedings/aamas2026/pdfs/AVAR7513.pdf
     doi: 10.65109/avar7513
@@ -133,14 +257,16 @@
   year: 2026
   date: 2026-05-02
   venue:
-    short: AISTATS 2026
+    acronym: AISTATS
     name: Proceedings of the 29th International Conference on Artificial Intelligence and Statistics
     pages: 676–684
     series: Proceedings of Machine Learning Research
     volume: 300
-  topics: [graph-learning]
+  presentation: poster   # virtual.aistats.org/virtual/2026/poster/13693
+  topics: [graph-learning, machine-learning]
   links:
     paper: https://proceedings.mlr.press/v300/cohen26a.html
+    openreview: https://openreview.net/forum?id=IrQumNXKy5
     pdf: https://raw.githubusercontent.com/mlresearch/v300/main/assets/cohen26a/cohen26a.pdf
     arxiv: 2505.18289
     code: https://github.com/saarcohen30/cgcn
@@ -173,10 +299,10 @@
   year: 2025
   date: 2025-10-25
   venue:
-    short: ECAI 2025
+    acronym: ECAI
     name: Proceedings of the 28th European Conference on Artificial Intelligence
     series: Frontiers in Artificial Intelligence and Applications
-  topics: [learning-coalitions]
+  topics: [coalition-formation, multi-agent-learning, online-learning, computational-social-choice]
   links:
     paper: https://ebooks.iospress.nl/volumearticle/76341
     doi: 10.3233/FAIA251405
@@ -202,10 +328,10 @@
   year: 2025
   date: 2025-08-16
   venue:
-    short: IJCAI 2025
+    acronym: IJCAI
     name: Proceedings of the 34th International Joint Conference on Artificial Intelligence
     pages: 3796–3804
-  topics: [learning-coalitions]
+  topics: [coalition-formation, multi-agent-learning, online-learning, game-theory]
   links:
     paper: https://www.ijcai.org/proceedings/2025/422
     doi: 10.24963/ijcai.2025/422
@@ -233,10 +359,11 @@
   year: 2025
   date: 2025-05-19
   venue:
-    short: AAMAS 2025
+    acronym: AAMAS
     name: Proceedings of the 24th International Conference on Autonomous Agents and Multiagent Systems
     pages: 2475–2477
-  topics: [online-coalition-formation]
+  presentation: poster   # AAMAS 2025 poster schedule (Poster Session 6)
+  topics: [coalition-formation, online-algorithms, computational-social-choice]
   links:
     pdf: https://www.ifaamas.org/Proceedings/aamas2025/pdfs/p2475.pdf
     doi: 10.65109/glkn7757
@@ -262,12 +389,13 @@
   year: 2025
   date: 2025-02-25
   venue:
-    short: AAAI 2025
+    acronym: AAAI
     name: Proceedings of the 39th AAAI Conference on Artificial Intelligence
     volume: 39
     number: 13
     pages: 13709–13717
-  topics: [learning-coalitions]
+  presentation: oral   # AAAI-25 Main Track Oral Talks Schedule (aaai.org, Feb 2025)
+  topics: [coalition-formation, multi-agent-learning, online-learning, game-theory]
   links:
     paper: https://ojs.aaai.org/index.php/AAAI/article/view/33498
     doi: 10.1609/aaai.v39i13.33498
@@ -298,10 +426,10 @@
   year: 2024
   date: 2024-10-19
   venue:
-    short: ECAI 2024
+    acronym: ECAI
     name: Proceedings of the 27th European Conference on Artificial Intelligence
     series: Frontiers in Artificial Intelligence and Applications
-  topics: [online-coalition-formation]
+  topics: [coalition-formation, online-algorithms]
   links:
     paper: https://ebooks.iospress.nl/volumearticle/69977
     doi: 10.3233/FAIA240882
@@ -324,10 +452,10 @@
   year: 2024
   date: 2024-08-03
   venue:
-    short: IJCAI 2024
+    acronym: IJCAI
     name: Proceedings of the 33rd International Joint Conference on Artificial Intelligence
     pages: 2722–2730
-  topics: [learning-coalitions]
+  topics: [coalition-formation, multi-agent-learning, online-learning]
   links:
     paper: https://www.ijcai.org/proceedings/2024/301
     doi: 10.24963/ijcai.2024/301
@@ -354,10 +482,11 @@
   year: 2024
   date: 2024-05-06
   venue:
-    short: AAMAS 2024
+    acronym: AAMAS
     name: Proceedings of the 23rd International Conference on Autonomous Agents and Multiagent Systems
     pages: 2219–2221
-  topics: [online-allocation]
+  presentation: poster   # AAMAS 2024 poster schedule for extended abstracts
+  topics: [fair-division, online-algorithms, computational-social-choice]
   links:
     pdf: https://ifmas.csc.liv.ac.uk/Proceedings/aamas2024/pdfs/p2219.pdf
     doi: 10.65109/koyf1641
@@ -387,10 +516,10 @@
   year: 2023
   date: 2023-05-29
   venue:
-    short: AAMAS 2023
+    acronym: AAMAS
     name: Proceedings of the 22nd International Conference on Autonomous Agents and Multiagent Systems
     pages: 494–503
-  topics: [online-coalition-formation]
+  topics: [coalition-formation, online-algorithms, multi-agent-systems]
   links:
     pdf: https://ifaamas.org/Proceedings/aamas2023/pdfs/p494.pdf
     doi: 10.65109/krok2976
@@ -425,10 +554,10 @@
   year: 2023
   date: 2023-05-29
   venue:
-    short: AAMAS 2023
+    acronym: AAMAS
     name: Proceedings of the 22nd International Conference on Autonomous Agents and Multiagent Systems
     pages: 2955–2957
-  topics: [online-coalition-formation]
+  topics: [coalition-formation, online-algorithms]
   links:
     pdf: https://ifaamas.org/Proceedings/aamas2023/pdfs/p2955.pdf
     doi: 10.65109/ibpr3809
@@ -455,12 +584,13 @@
   year: 2023
   date: 2023-02-07
   venue:
-    short: AAAI 2023
+    acronym: AAAI
     name: Proceedings of the 37th AAAI Conference on Artificial Intelligence
     volume: 37
     number: 5
     pages: 5573–5581
-  topics: [learning-coalitions]
+  presentation: poster   # AAAI-23 Thursday poster session; not in the oral technical schedule
+  topics: [coalition-formation, game-theory]
   links:
     paper: https://ojs.aaai.org/index.php/AAAI/article/view/25692
     pdf: https://u.cs.biu.ac.il/~agmon/CohenAAAI23.pdf
@@ -489,10 +619,10 @@
   year: 2022
   date: 2022-05-09
   venue:
-    short: AAMAS 2022
+    acronym: AAMAS
     name: Proceedings of the 21st International Conference on Autonomous Agents and Multiagent Systems
     pages: 290–299
-  topics: [graph-learning]
+  topics: [multi-agent-learning, reinforcement-learning, graph-learning, multi-agent-systems]
   links:
     pdf: https://www.ifaamas.org/Proceedings/aamas2022/pdfs/p290.pdf
     doi: 10.65109/tfia2193
@@ -531,10 +661,10 @@
   year: 2021
   date: 2021-08-19
   venue:
-    short: IJCAI 2021
+    acronym: IJCAI
     name: Proceedings of the 30th International Joint Conference on Artificial Intelligence
     pages: 2307–2313
-  topics: [graph-learning]
+  topics: [graph-learning, multi-robot-systems]
   links:
     paper: https://www.ijcai.org/proceedings/2021/318
     doi: 10.24963/ijcai.2021/318
@@ -562,9 +692,9 @@
   year: 2021
   date: 2021-06-04
   venue:
-    short: DARS/SWARM 2021
+    acronym: DARS/SWARM
     name: Proceedings of the 4th International Symposium on Swarm Behavior and Bio-Inspired Robotics
-  topics: [graph-learning]
+  topics: [multi-robot-systems, multi-agent-systems]
   links:
     code: https://github.com/saarcohen30/spatial-consensus-prevention
   versions:
@@ -581,10 +711,10 @@
   year: 2021
   date: 2021-05-03
   venue:
-    short: AAMAS 2021
+    acronym: AAMAS
     name: Proceedings of the 20th International Conference on Autonomous Agents and Multiagent Systems
     pages: 359–367
-  topics: [graph-learning]
+  topics: [multi-robot-systems, multi-agent-systems]
   links:
     paper: https://dl.acm.org/doi/10.5555/3463952.3463999
     doi: 10.65109/uvid2381
@@ -615,12 +745,11 @@
   year: 2021
   date: 2021-04-15
   venue:
-    short: Curr. Robot. Rep.
     name: Current Robotics Reports
     volume: 2
     pages: 159–175
     publisher: Springer
-  topics: [graph-learning]
+  topics: [multi-robot-systems]
   links:
     paper: https://link.springer.com/article/10.1007/s43154-021-00049-2
     doi: 10.1007/s43154-021-00049-2

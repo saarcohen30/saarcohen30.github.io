@@ -4,18 +4,14 @@
 import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
 import Authors from '../components/pubs/Authors.astro';
-import { profile, publications, inlineMd, STATUS_META, TYPE_META } from '../lib/site';
+import { profile, publications, inlineMd, TYPE_META } from '../lib/site';
 
 const sections = [
-  { key: 'working-paper', title: 'Under review / revision' },
-  { key: 'conference', title: 'Conference papers' },
-  { key: 'journal', title: 'Journal articles & surveys' },
-].map((s) => ({
-  ...s,
-  items: publications.filter((p) =>
-    s.key === 'journal' ? p.types.includes('journal') || (p.types.includes('survey') && !p.types.includes('conference')) : p.primaryType === s.key,
-  ),
-}));
+  { title: 'Conference papers', test: (p) => p.isAccepted && p.types.includes('conference') },
+  { title: 'Journal articles & surveys', test: (p) => p.isAccepted && !p.types.includes('conference') },
+  { title: 'Working papers', test: (p) => p.isWorkingPaper },
+  { title: 'Under review / revision', test: (p) => p.isUnderReview },
+].map((s) => ({ ...s, items: publications.filter(s.test) }));
 // Every paper must land in exactly one CV section.
 const placed = new Set(sections.flatMap((s) => s.items.map((p) => p.id)));
 const orphans = publications.filter((p) => !placed.has(p.id));
@@ -97,11 +93,15 @@ type Entry = { period: string; title: string; org: string; detail?: string; item
                     <span class="cv-venue">
                       {p.venue ? (
                         <Fragment>
-                          <i>{p.venue.short}</i>
+                          <i>{p.venueLabel}</i>
+                          {p.status === 'to-appear' && ' (to appear)'}
+                          {p.presentationLabel && ` · ${p.presentationLabel}`}
                           {p.types.includes('survey') && ` · ${TYPE_META.survey.label}`}
                         </Fragment>
+                      ) : p.isWorkingPaper ? (
+                        `arXiv ${p.links.find((l) => l.kind === 'arxiv')?.title.replace('arXiv:', '') ?? ''}`
                       ) : (
-                        STATUS_META[p.status].label
+                        p.statusLabel
                       )}
                     </span>
                   </li>

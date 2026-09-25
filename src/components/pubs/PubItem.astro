@@ -2,8 +2,10 @@
 import TypeBadge from './TypeBadge.astro';
 import Authors from './Authors.astro';
 import PubLinks from './PubLinks.astro';
+import VenueLine from './VenueLine.astro';
+import Presentation from './Presentation.astro';
 import Icon from '../Icon.astro';
-import { STATUS_META, bibtex, citationText, type Publication } from '../../lib/site';
+import { bibtex, citationText, type Publication } from '../../lib/site';
 
 interface Props {
   pub: Publication;
@@ -15,8 +17,7 @@ interface Props {
 const { pub, level = 3, compact = false } = Astro.props;
 const H = `h${level}` as 'h2' | 'h3' | 'h4';
 const href = `/publications/${pub.id}/`;
-const status = pub.status !== 'published' ? STATUS_META[pub.status].label : null;
-const searchText = [pub.title, pub.note, pub.authors.map((a) => a.name).join(' '), pub.venue?.short, pub.venue?.name, pub.year, pub.abstract]
+const searchText = [pub.title, pub.note, pub.authors.map((a) => a.name).join(' '), pub.venue?.acronym, pub.venue?.name, pub.year, pub.statusLabel, pub.presentationLabel, pub.abstract]
   .filter(Boolean)
   .join(' ')
   .toLowerCase();
@@ -30,19 +31,31 @@ const uid = `${pub.id}${compact ? '-c' : ''}`;
   data-types={pub.types.join(' ')}
   data-year={pub.year ?? ''}
   data-search={compact ? undefined : searchText}
-  data-type={pub.primaryType}
+  data-type={pub.primaryType ?? 'none'}
+  data-stage={pub.stage}
 >
   <p class="kicker">
     {pub.types.map((t) => <TypeBadge type={t} />)}
-    {pub.venue && <span class="venue-short">{pub.venue.short}</span>}
+    {
+      pub.isUnderReview && (
+        <span class="review-tag">
+          <svg viewBox="0 0 10 10" aria-hidden="true">
+            <path d="M5 1.2a3.8 3.8 0 1 0 0 7.6" fill="none" stroke="currentColor" stroke-width="1.3" />
+            <path d="M5 1.2a3.8 3.8 0 0 1 0 7.6" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="1.2 1.4" />
+          </svg>
+          {pub.statusLabel}
+        </span>
+      )
+    }
+    <Presentation pub={pub} />
     {pub.note && <span class="note">{pub.note}</span>}
-    {status && <span class="status">{status}</span>}
+    {pub.isWorkingPaper && pub.date && <span class="note posted">{`arXiv ${pub.date.slice(0, 7)}`}</span>}
   </p>
   <H class="title">
     <a href={href} style={`view-transition-name: pub-${pub.id}; view-transition-class: pub-title`}>{pub.title}</a>
   </H>
   <Authors pub={pub} class="pub-authors" />
-  {!compact && pub.venue && <p class="venue">{pub.venue.name}</p>}
+  <VenueLine pub={pub} short={compact} />
 
   {
     !compact && (
@@ -110,6 +123,9 @@ const uid = `${pub.id}${compact ? '-c' : ''}`;
   .pub[data-type='survey'] {
     --c: var(--c-survey);
   }
+  .pub[data-type='none'] {
+    --c: var(--ink-3);
+  }
   /* A thin edge in the paper's type colour grows on hover/focus: the "coalition" it belongs to. */
   .pub::before {
     content: '';
@@ -141,17 +157,27 @@ const uid = `${pub.id}${compact ? '-c' : ''}`;
     color: var(--ink-3);
     letter-spacing: 0.01em;
   }
-  .venue-short {
-    color: var(--ink);
+  .review-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.15em 0.55em 0.15em 0.45em;
+    border-radius: 4px;
+    border: 1px dotted var(--line-2);
+    color: var(--ink-2);
     font-weight: 550;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
   }
-  .note,
-  .status {
+  .review-tag svg {
+    width: 0.8em;
+    height: 0.8em;
+  }
+  .note {
     position: relative;
     padding-left: 0.8rem;
   }
-  .note::before,
-  .status::before {
+  .note::before {
     content: '';
     position: absolute;
     left: 0;
@@ -160,9 +186,6 @@ const uid = `${pub.id}${compact ? '-c' : ''}`;
     height: 3px;
     border-radius: 50%;
     background: currentColor;
-  }
-  .status {
-    color: var(--c-working-paper);
   }
 
   .title {
@@ -188,13 +211,6 @@ const uid = `${pub.id}${compact ? '-c' : ''}`;
   .pub-authors {
     font-size: var(--step--1);
     line-height: 1.5;
-  }
-  .venue {
-    font-style: italic;
-    font-size: var(--step--1);
-    color: var(--ink-3);
-    line-height: 1.4;
-    max-width: 70ch;
   }
 
   .actions {

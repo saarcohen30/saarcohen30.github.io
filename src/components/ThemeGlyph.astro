@@ -9,7 +9,7 @@ const { theme } = Astro.props;
 
 <svg class="tg" data-theme-glyph={theme} viewBox="0 0 132 56" aria-hidden="true" focusable="false">
   {
-    theme === 'online-coalition-formation' && (
+    theme === 'collective-decisions' && (
       <Fragment>
         <path class="axis" d="M4 46h58" />
         <circle class="q q1" cx="12" cy="46" r="2.6" />
@@ -34,7 +34,7 @@ const { theme } = Astro.props;
     )
   }
   {
-    theme === 'learning-coalitions' && (
+    theme === 'multiagent-learning' && (
       <Fragment>
         <g class="c ca">
           <path class="e learn" d="M14 16 32 12 28 32 12 34z M14 16 28 32" />
@@ -61,7 +61,7 @@ const { theme } = Astro.props;
     )
   }
   {
-    theme === 'online-allocation' && (
+    theme === 'fair-allocation' && (
       <Fragment>
         <path class="axis" d="M4 14h124" />
         <rect class="item i1" x="10" y="10" width="8" height="8" rx="1.5" />
@@ -79,21 +79,25 @@ const { theme } = Astro.props;
     )
   }
   {
-    theme === 'graph-learning' && (
+    theme === 'safe-principled-ai' && (
       <Fragment>
-        <path class="e net" d="M14 30 36 12 60 26 36 44z M60 26 86 14 110 24 98 44 70 44z M86 14 98 44 M36 12 36 44 M110 24 124 38" />
+        <path class="axis" d="M66 4v48" />
         <g class="c ca">
-          <circle cx="14" cy="30" r="3" />
-          <circle cx="36" cy="12" r="3" />
-          <circle cx="36" cy="44" r="3" />
-          <circle cx="60" cy="26" r="3.6" class="hub" />
-          <circle cx="86" cy="14" r="3" />
-          <circle cx="110" cy="24" r="3" />
-          <circle cx="98" cy="44" r="3" />
-          <circle cx="70" cy="44" r="3" />
-          <circle cx="124" cy="38" r="3" />
+          <path class="e" d="M18 16 36 22 22 38z M36 22 50 30" />
+          <circle cx="18" cy="16" r="3" />
+          <circle cx="36" cy="22" r="3" />
+          <circle cx="22" cy="38" r="3" />
+          <circle cx="50" cy="30" r="3.4" class="hub" />
         </g>
-        <path class="pulse" d="M14 30 36 12 60 26 86 14 110 24 124 38" />
+        <g class="c cd">
+          <path class="e" d="M114 16 96 22 110 38z M96 22 82 30" />
+          <circle cx="114" cy="16" r="3" />
+          <circle cx="96" cy="22" r="3" />
+          <circle cx="110" cy="38" r="3" />
+          <circle cx="82" cy="30" r="3.4" class="hub" />
+        </g>
+        <path class="probe" d="M50 30C58 22 74 22 82 30M50 30C58 38 74 38 82 30" />
+        <circle class="token" cx="50" cy="30" r="2" />
       </Fragment>
     )
   }
@@ -136,6 +140,13 @@ const { theme } = Astro.props;
   .cc circle {
     fill: var(--c-survey);
   }
+  .cd circle {
+    fill: var(--c-working-paper);
+  }
+  .token {
+    fill: var(--ink);
+    opacity: 0;
+  }
   .e {
     fill: none;
     stroke: currentColor;
@@ -176,14 +187,14 @@ const { theme } = Astro.props;
     :global(.theme:hover) .item {
       transform: translateX(24px);
     }
-    :global(.theme:hover) .pulse {
-      opacity: 0.9;
-      animation: pulse 1.6s var(--ease-in-out) infinite;
+    :global(.theme:hover) .token {
+      opacity: 1;
+      animation: exchange 1.8s var(--ease-in-out) infinite alternate;
     }
   }
-  @keyframes pulse {
+  @keyframes exchange {
     to {
-      stroke-dashoffset: -150;
+      transform: translateX(32px);
     }
   }
 </style>

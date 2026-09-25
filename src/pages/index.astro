@@ -6,15 +6,26 @@ import PubItem from '../components/pubs/PubItem.astro';
 import ThemeGlyph from '../components/ThemeGlyph.astro';
 import Icon from '../components/Icon.astro';
 import portrait from '../assets/portrait.jpg';
-import { profile, publications, inlineMd, pubsForTopic, SITE_URL } from '../lib/site';
+import { SCENES } from '../lib/field/scenes';
+import { profile, publications, themes, pubsForTheme, inlineMd, SITE_URL, type Publication } from '../lib/site';
 
-const published = publications.filter((p) => !p.isWorkingPaper);
+const accepted = publications.filter((p) => p.isAccepted);
 const working = publications.filter((p) => p.isWorkingPaper);
+const review = publications.filter((p) => p.isUnderReview);
 const featured = publications.filter((p) => p.featured);
-// "Selected" only when explicitly marked; otherwise simply the most recent.
-const highlight = featured.length ? featured : published.slice(0, 5);
 
-const description = `${profile.name} is a ${profile.role} at the ${profile.affiliation}, working on online coalition formation, multi-agent systems, algorithmic game theory and machine learning.`;
+// Current work: the newest public paper from each research theme, so the list shows breadth
+// rather than whatever happened to be published last. Explicit `featured: true` overrides it.
+const byTheme: { theme: string; pub: Publication }[] = [];
+for (const t of themes) {
+  const pick = pubsForTheme(t)
+    .filter((p) => !p.isUnderReview && !byTheme.some((x) => x.pub.id === p.id))
+    .sort((a, b) => (a.sortKey < b.sortKey ? 1 : -1))[0];
+  if (pick) byTheme.push({ theme: t.title, pub: pick });
+}
+const highlight = featured.length ? featured.map((pub) => ({ theme: null, pub })) : byTheme;
+
+const description = `${profile.name} is a ${profile.role} at the ${profile.affiliation}, working on ${profile.areas.slice(0, -1).join(', ').toLowerCase()} and ${profile.areas.at(-1).toLowerCase()}: strategic interaction, collective decisions, fair allocation, learning and AI safety.`;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -51,17 +62,30 @@ const facts = [
 ---
 
 <Base description={description} stageHeader jsonLd={jsonLd} ogType="profile">
-  <script is:inline slot="head">
-    // Decide before first paint whether this visit gets the full entrance.
-    (function () {
-      var d = document.documentElement;
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      var seen = 0;
-      try {
-        seen = +localStorage.getItem('intro-seen') || 0;
-      } catch (e) {}
-      if (Date.now() - seen > 12 * 3600e3) d.classList.add('intro');
-    })();
+  <script is:inline slot="head" define:vars={{ sceneCount: SCENES.length, replayMs: 12 * 3600e3 }}>
+    // Before first paint: pick the hero scene and decide whether this visit gets the entrance.
+    // A visit that is eligible for the full entrance (first visit, or 12 h since the last one)
+    // advances to the next scene; otherwise the current scene is shown already settled.
+    var d = document.documentElement;
+    var scene = 0;
+    try {
+      var raw = localStorage.getItem('scene');
+      var last = raw === null ? -1 : +raw;
+      var seen = +localStorage.getItem('intro-seen') || 0;
+      scene = last >= 0 && last < sceneCount ? last : 0;
+      if (Date.now() - seen > replayMs) {
+        scene = (last + 1) % sceneCount;
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          d.classList.add('intro');
+          localStorage.setItem('intro-seen', String(Date.now()));
+          localStorage.setItem('scene', String(scene));
+        }
+      }
+    } catch (e) {
+      // Storage unavailable: first scene, and the entrance (it is short and skippable).
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('intro');
+    }
+    d.dataset.scene = String(scene);
   </script>
 
   <Hero />
@@ -111,12 +135,13 @@ const facts = [
       </header>
       <ol class="themes" role="list">
         {
-          profile.themes.map((t: { id: string; title: string; summary: string }, i: number) => {
-            const tp = pubsForTopic(t.id);
+          themes.map((t, i) => {
+            const tp = pubsForTheme(t);
             return (
               <li class="theme" data-reveal style={`--reveal-i:${i}`}>
                 <ThemeGlyph theme={t.id} />
                 <h3>{t.title}</h3>
+                <p class="theme-areas mono">{t.areas.join(' · ')}</p>
                 <p class="theme-summary">{t.summary}</p>
                 {tp.length > 0 && (
                   <div class="theme-papers">
@@ -127,7 +152,7 @@ const facts = [
                       {tp.slice(0, 2).map((p) => (
                         <li>
                           <a href={`/publications/${p.id}/`}>{p.title}</a>
-                          <span class="mono">{p.venue?.short ?? 'Working paper'}</span>
+                          <span class="mono">{p.venueLabel ?? (p.isWorkingPaper ? 'Working paper' : p.statusLabel)}</span>
                         </li>
                       ))}
                     </ul>
@@ -146,15 +171,22 @@ const facts = [
     <div class="wrap pubs-grid">
       <header class="section-head" data-reveal>
         <p class="eyebrow"><span class="n">03</span> — Publications</p>
-        <h2 id="pubs-h">{featured.length ? 'Selected work' : 'Recent work'}</h2>
+        <h2 id="pubs-h">{featured.length ? 'Selected work' : 'Current work'}</h2>
         <p class="section-sub">
-          {published.length} published papers
-          {working.length > 0 && <Fragment> and {working.length} working papers</Fragment>}.
+          {!featured.length && <Fragment>One recent paper from each research theme. </Fragment>}
+          {accepted.length} published or accepted papers, {working.length} working papers and {review.length} under review.
         </p>
         <a class="btn" href="/publications/">All publications <Icon name="arrow-right" class="arrow" /></a>
       </header>
       <div class="pubs-list" data-reveal>
-        {highlight.map((p) => <PubItem pub={p} compact />)}
+        {
+          highlight.map(({ theme, pub }) => (
+            <div class="highlight">
+              {theme && <p class="eyebrow highlight-theme">{theme}</p>}
+              <PubItem pub={pub} compact />
+            </div>
+          ))
+        }
       </div>
     </div>
   </section>
@@ -344,6 +376,12 @@ const facts = [
     font-size: var(--step-2);
     margin-top: var(--space-3);
   }
+  .theme-areas {
+    font-size: var(--step--2);
+    color: var(--accent);
+    letter-spacing: 0.01em;
+    margin-top: calc(-1 * var(--space-1));
+  }
   .theme-summary {
     color: var(--ink-2);
     font-size: var(--step--1);
@@ -399,6 +437,20 @@ const facts = [
   }
   .pubs-list {
     border-bottom: 1px solid var(--line);
+  }
+  .highlight {
+    position: relative;
+    border-top: 1px solid var(--line);
+  }
+  .highlight :global(.pub) {
+    border-top: 0;
+    padding-top: 0.35rem;
+  }
+  .highlight :global(.pub)::before {
+    top: 0.45rem;
+  }
+  .highlight-theme {
+    padding: 1.1rem 0 0 1.25rem;
   }
 
   /* Recognition */

@@ -5,8 +5,10 @@ import Base from '../../layouts/Base.astro';
 import TypeBadge from '../../components/pubs/TypeBadge.astro';
 import Authors from '../../components/pubs/Authors.astro';
 import PubLinks from '../../components/pubs/PubLinks.astro';
+import VenueLine from '../../components/pubs/VenueLine.astro';
+import Presentation from '../../components/pubs/Presentation.astro';
 import Icon from '../../components/Icon.astro';
-import { profile, publications, STATUS_META, bibtex, citationText, SITE_URL, type Publication } from '../../lib/site';
+import { profile, publications, relatedTo, bibtex, citationText, SITE_URL, type Publication } from '../../lib/site';
 
 export function getStaticPaths() {
   return publications.map((pub, i) => ({
@@ -25,17 +27,18 @@ const url = `${SITE_URL}/publications/${pub.id}/`;
 const doi = pub.links.find((l) => l.kind === 'doi')?.title.replace('DOI: ', '');
 const arxiv = pub.links.find((l) => l.kind === 'arxiv')?.title.replace('arXiv:', '');
 const pdf = pub.links.find((l) => l.kind === 'pdf')?.href;
-const status = STATUS_META[pub.status].label;
+const status = pub.statusLabel ?? 'Working paper';
 const isJournal = pub.types.includes('journal');
 const [firstPage, lastPage] = (pub.venue?.pages ?? '').split(/[–—-]+/);
-const date = pub.date ?? (pub.year ? String(pub.year) : undefined);
-const related = publications.filter((p) => p.id !== pub.id && p.topics.some((t) => pub.topics.includes(t))).slice(0, 3);
+// Scholar wants the publication date: for accepted work that is not yet out, just the year.
+const date = pub.isAccepted ? (pub.status === 'to-appear' ? String(pub.year) : (pub.date ?? String(pub.year))) : pub.date;
+const related = relatedTo(pub);
 
 const description = pub.abstract
   ? pub.abstract.length > 200
     ? pub.abstract.slice(0, pub.abstract.lastIndexOf(' ', 197)) + '…'
     : pub.abstract
-  : `${pub.authors.map((a) => a.name).join(', ')}. ${pub.title}${pub.venue ? `. ${pub.venue.short}` : ` (${status.toLowerCase()})`}.`;
+  : `${pub.authors.map((a) => a.name).join(', ')}. ${pub.title}${pub.venueLabel ? `. ${pub.venueLabel}${pub.status === 'to-appear' ? ' (to appear)' : ''}` : ` (${status.toLowerCase()})`}.`;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -46,7 +49,8 @@ const jsonLd = {
   author: pub.authors.map((a) =>
     a.name === profile.name ? { '@type': 'Person', '@id': `${SITE_URL}/#person`, name: a.name } : { '@type': 'Person', name: a.name },
   ),
-  ...(pub.year && { datePublished: date }),
+  ...(pub.isAccepted && pub.status === 'published' && date && { datePublished: date }),
+  ...(!pub.isAccepted && pub.date && { dateCreated: pub.date }),
   ...(pub.abstract && { abstract: pub.abstract }),
   ...(pub.venue && {
     isPartOf: isJournal
@@ -55,14 +59,14 @@ const jsonLd = {
   }),
   ...(pub.venue?.pages && { pagination: pub.venue.pages }),
   ...(doi && { sameAs: `https://doi.org/${doi}`, identifier: { '@type': 'PropertyValue', propertyID: 'DOI', value: doi } }),
-  ...(pub.isWorkingPaper && { creativeWorkStatus: status }),
+  ...(pub.status !== 'published' && { creativeWorkStatus: status }),
 };
 ---
 
 <Base title={pub.title} description={description} ogType="article" jsonLd={jsonLd}>
-  {/* Google Scholar (Highwire) tags only for published work: a working paper page has no date or full text. */}
+  {/* Google Scholar (Highwire) tags only for accepted work, not for preprints or papers under review. */}
   <Fragment slot="head">
-    {!pub.isWorkingPaper && (
+    {pub.isAccepted && (
     <Fragment>
     <meta name="citation_title" content={pub.title} />
     {pub.authors.map((a) => <meta name="citation_author" content={a.name} />)}
@@ -92,24 +96,13 @@ const jsonLd = {
     <header class="head">
       <p class="kicker">
         {pub.types.map((t) => <TypeBadge type={t} />)}
-        {pub.venue && <span class="venue-short mono">{pub.venue.short}</span>}
+        <Presentation pub={pub} />
         {pub.note && <span class="mono muted">{pub.note}</span>}
-        {pub.status !== 'published' && <span class="mono status">{status}</span>}
+        {!pub.isAccepted && <span class="mono status">{status}</span>}
       </p>
       <h1 style={`view-transition-name: pub-${pub.id}; view-transition-class: pub-title`}>{pub.title}</h1>
       <Authors pub={pub} class="authors-lg" />
-      {
-        pub.venue && (
-          <p class="venue">
-            <i>{pub.venue.name}</i>
-            {pub.venue.series && <span>, {pub.venue.series}</span>}
-            {pub.venue.volume && <span>, vol. {pub.venue.volume}</span>}
-            {pub.venue.number && <span>({pub.venue.number})</span>}
-            {pub.venue.pages && <span>, pp. {pub.venue.pages}</span>}
-            {pub.year && <span>, {pub.year}</span>}.
-          </p>
-        )
-      }
+      <VenueLine pub={pub} full class="venue-lg" />
       <PubLinks pub={pub} size="md" />
     </header>
 
@@ -164,7 +157,7 @@ const jsonLd = {
             {related.map((p) => (
               <li>
                 <a href={`/publications/${p.id}/`}>{p.title}</a>
-                <span class="mono muted">{p.venue?.short ?? STATUS_META[p.status].label}</span>
+                <span class="mono muted">{p.venueLabel ? `${p.venueLabel}${p.status === 'to-appear' ? ' · to appear' : ''}` : (p.statusLabel ?? 'Working paper')}</span>
               </li>
             ))}
           </ul>
@@ -235,9 +228,6 @@ const jsonLd = {
     gap: 0.4rem 0.8rem;
     font-size: var(--step--2);
   }
-  .venue-short {
-    font-weight: 550;
-  }
   .muted {
     color: var(--ink-3);
   }
@@ -254,9 +244,9 @@ const jsonLd = {
   .head :global(.authors-lg) {
     font-size: var(--step-1);
   }
-  .venue {
-    color: var(--ink-2);
+  .head :global(.venue-lg) {
     font-size: var(--step--1);
+    color: var(--ink-2);
   }
   .head :global(.links) {
     margin-top: var(--space-2);

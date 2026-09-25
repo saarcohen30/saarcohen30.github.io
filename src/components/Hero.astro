@@ -2,49 +2,26 @@
 import Icon from './Icon.astro';
 import SocialLinks from './SocialLinks.astro';
 import { profile } from '../lib/site';
-import { createSim, COALITION_COLOURS } from '../lib/coalition-sim';
+import { createAdapt } from '../lib/field/scenes/adapt';
+import { svgPainter } from '../lib/field/svg';
 
-// Build-time render of the settled field: shown without JavaScript and to visitors who
-// prefer reduced motion (no canvas, no animation loop is loaded for them).
+// Build-time still of a settled scene: shown without JavaScript and to visitors who prefer
+// reduced motion (no canvas and no animation code is loaded for them). The learning network
+// is the most general image of the family: many agents, emergent groups, information exchange.
 const SW = 1600;
 const SH = 1000;
-const still = createSim({ width: SW, height: SH, count: 64, layout: 'side', seed: 30, field: { x0: 880, x1: 1480, y0: 170, y1: 560 } });
+const still = createAdapt({ width: SW, height: SH, field: { x0: 900, x1: 1480, y0: 170, y1: 800 }, density: 80, layout: 'side', seed: 30 });
 still.finish();
-const f = (n: number) => n.toFixed(1);
-const edges = still.agents
-  .filter((a) => a.parent >= 0)
-  .map((a) => ({ a, p: still.agents[a.parent], c: COALITION_COLOURS[a.coalition % COALITION_COLOURS.length] }));
+const svg = svgPainter();
+still.draw(svg.painter, -1);
 ---
 
 <section class="hero stage" data-stage-root aria-labelledby="hero-name">
   <div class="lattice" aria-hidden="true"></div>
-  <svg class="still" viewBox={`0 0 ${SW} ${SH}`} preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false">
-    <defs>
-      {
-        still.coalitions.map((c) => (
-          <radialGradient id={`halo${c.id}`}>
-            <stop offset="0" stop-color={COALITION_COLOURS[c.id]} stop-opacity="0.12" />
-            <stop offset="1" stop-color={COALITION_COLOURS[c.id]} stop-opacity="0" />
-          </radialGradient>
-        ))
-      }
-    </defs>
-    {still.coalitions.map((c) => <circle cx={f(c.x)} cy={f(c.y)} r={f(still.unit * (2.4 + Math.sqrt(c.members.length) * 1.5))} fill={`url(#halo${c.id})`} />)}
-    <g stroke-width="1.2" stroke-linecap="round" opacity="0.4">
-      {edges.map(({ a, p, c }) => <line x1={f(a.x)} y1={f(a.y)} x2={f(p.x)} y2={f(p.y)} stroke={c} />)}
-    </g>
-    <g>
-      {still.agents.map((a) => <circle cx={f(a.x)} cy={f(a.y)} r="3" fill={COALITION_COLOURS[a.coalition % COALITION_COLOURS.length]} />)}
-    </g>
-  </svg>
+  <svg class="still" viewBox={`0 0 ${SW} ${SH}`} preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false" set:html={svg.toString()} />
   <canvas data-field aria-hidden="true"></canvas>
 
   <div class="inner wrap" data-hero-text>
-    <p class="caption mono" data-seq="0">
-      <span class="fig">Fig. 1</span>
-      <span class="cap-text">Online coalition formation. Agents arrive one at a time; each is irrevocably assigned to the coalition it values most.</span>
-      <span class="counter" data-counter aria-hidden="true"></span>
-    </p>
     <p class="eyebrow role" data-seq="1">{profile.role} · {profile.affiliation_short}</p>
     <h1 id="hero-name" class="name">
       {
@@ -56,6 +33,9 @@ const edges = still.agents
       }
     </h1>
     <p class="tagline" data-seq="3">{profile.tagline}</p>
+    <p class="areas mono" data-seq="3">
+      {profile.areas.map((a: string, i: number) => <span>{a}</span>)}
+    </p>
     <div class="cta" data-seq="4">
       <a class="btn btn--light" href="/publications/">
         Publications <Icon name="arrow-right" class="arrow" />
@@ -158,11 +138,25 @@ const edges = still.agents
     color: var(--stage-ink-2);
   }
   .tagline {
-    max-width: 34ch;
+    max-width: 40ch;
     font-size: var(--step-1);
     line-height: 1.4;
     color: var(--stage-ink-2);
     font-weight: 380;
+  }
+  .areas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0;
+    max-width: 62ch;
+    font-size: var(--step--2);
+    letter-spacing: 0.02em;
+    color: var(--stage-ink-3);
+  }
+  .areas span:not(:last-child)::after {
+    content: '·';
+    margin-inline: 0.55em;
+    opacity: 0.6;
   }
   .cta {
     display: flex;
@@ -190,37 +184,8 @@ const edges = still.agents
     margin-left: 0.25rem;
   }
 
-  .caption {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.15rem 0.8rem;
-    max-width: 30rem;
-    margin-bottom: var(--space-5);
-    font-size: var(--step--2);
-    line-height: 1.5;
-    color: var(--stage-ink-3);
-  }
-  .fig {
-    color: var(--stage-ink-2);
-  }
-  .counter {
-    grid-column: 2;
-    color: var(--stage-ink-2);
-    min-height: 1.5em;
-  }
-  .counter:empty {
-    display: none;
-  }
 
-  /* Wide screens: the caption sits under the field, like a real figure caption. */
   @media (min-width: 860px) {
-    .caption {
-      position: absolute;
-      right: max(var(--gutter), calc((100% - var(--page)) / 2));
-      bottom: clamp(2rem, 6vh, 3.5rem);
-      max-width: 23rem;
-      margin: 0;
-    }
     .hero {
       align-items: center;
     }
@@ -228,7 +193,7 @@ const edges = still.agents
       grid-template-columns: minmax(0, 56%) 1fr;
       padding-block: var(--space-7);
     }
-    .inner > :not(.caption) {
+    .inner > * {
       grid-column: 1;
     }
     .name {
@@ -247,9 +212,6 @@ const edges = still.agents
     }
     .still {
       opacity: 0.55;
-    }
-    .caption {
-      margin-bottom: var(--space-3);
     }
     /* Reserve the upper part of the stage for the field. */
     .inner {
@@ -338,17 +300,17 @@ const edges = still.agents
       animation: seq-in 1100ms var(--ease-out) both;
       animation-delay: calc(var(--d, 0) * 1ms);
     }
-    :global(.intro) .caption {
-      --d: 150;
-    }
     :global(.intro) .role {
       --d: 350;
     }
     :global(.intro) .tagline {
       --d: 1250;
     }
+    :global(.intro) .areas {
+      --d: 1400;
+    }
     :global(.intro) .cta {
-      --d: 1550;
+      --d: 1600;
     }
     :global(.intro) .word > span {
       animation: word-rise 1300ms var(--ease-out) both;
@@ -363,8 +325,7 @@ const edges = still.agents
     }
     /* Scroll-linked: the hero content drifts up and fades as you leave it. */
     @supports (animation-timeline: view()) {
-      .inner,
-      .caption {
+      .inner {
         animation: hero-exit linear both;
         animation-timeline: view();
         animation-range: exit 0% exit 80%;

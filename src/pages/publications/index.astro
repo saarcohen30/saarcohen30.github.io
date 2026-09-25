@@ -6,13 +6,16 @@ import Icon from '../../components/Icon.astro';
 import { profile, publications, groupByYear, yearsOf, typeCounts, SITE_URL } from '../../lib/site';
 
 const working = publications.filter((p) => p.isWorkingPaper);
+const review = publications.filter((p) => p.isUnderReview);
+const accepted = publications.filter((p) => p.isAccepted);
 const years = groupByYear(publications);
 const types = typeCounts(publications);
 const yearList = yearsOf(publications);
-const publishedCount = publications.length - working.length;
+const publishedCount = accepted.length;
+const toAppear = accepted.filter((p) => p.status === 'to-appear').length;
 const scholar = profile.links.find((l: { kind: string }) => l.kind === 'scholar');
 
-const description = `All ${publications.length} papers by ${profile.name} — ${publishedCount} published (${yearList.at(-1)}–${yearList[0]}) and ${working.length} working papers — on online coalition formation, hedonic games, multi-agent learning and graph neural networks. Filter by type and year; copy BibTeX.`;
+const description = `All ${publications.length} papers by ${profile.name}: ${publishedCount} published or accepted (${yearList.at(-1)}–${yearList[0]}), ${working.length} working papers and ${review.length} under review, on game theory, computational social choice, fair division, multi-agent learning and AI safety. Filter by type and year; copy BibTeX.`;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -20,8 +23,7 @@ const jsonLd = {
   name: `Publications — ${profile.name}`,
   url: `${SITE_URL}/publications/`,
   author: { '@id': `${SITE_URL}/#person` },
-  hasPart: publications
-    .filter((p) => !p.isWorkingPaper)
+  hasPart: accepted
     .map((p) => ({ '@type': 'ScholarlyArticle', headline: p.title, url: `${SITE_URL}/publications/${p.id}/`, datePublished: String(p.year) })),
 };
 ---
@@ -31,8 +33,8 @@ const jsonLd = {
     <p class="eyebrow">Research output</p>
     <h1>Publications</h1>
     <p class="summary">
-      <span class="mono">{publishedCount}</span> published papers from {yearList.at(-1)} to {yearList[0]}, and{' '}
-      <span class="mono">{working.length}</span> working papers. Each paper has its own page with the abstract, all versions and a citation.
+      <span class="mono">{publishedCount}</span> published and accepted papers from {yearList.at(-1)} to {yearList[0]}{toAppear > 0 && ` (${toAppear} to appear)`},{' '}
+      <span class="mono">{working.length}</span> working papers and <span class="mono">{review.length}</span> under review. Each paper has its own page with the abstract, all versions and a citation.
     </p>
     <p class="head-links">
       {
@@ -101,7 +103,7 @@ const jsonLd = {
           <section class="group" aria-labelledby="wp-h" data-group>
             <header class="group-head">
               <h2 id="wp-h">Working papers</h2>
-              <p class="group-note">Under review or revision. Titles and details may change.</p>
+              <p class="group-note">Public preprints, not yet under review or accepted.</p>
             </header>
             <div class="items">
               {working.map((p) => (
@@ -112,9 +114,26 @@ const jsonLd = {
         )
       }
 
+      {
+        review.length > 0 && (
+          <section class="group" aria-labelledby="ur-h" data-group>
+            <header class="group-head">
+              <h2 id="ur-h">Under review</h2>
+              <p class="group-note">Submitted work; details appear here once it is public.</p>
+            </header>
+            <div class="items">
+              {review.map((p) => (
+                <PubItem pub={p} level={3} />
+              ))}
+            </div>
+          </section>
+        )
+      }
+
       <section class="group" aria-labelledby="pub-h" data-group>
         <header class="group-head">
-          <h2 id="pub-h">Published</h2>
+          <h2 id="pub-h">Publications</h2>
+          <p class="group-note">Published and accepted, newest first.</p>
         </header>
         {
           years.map(({ year, items }) => (

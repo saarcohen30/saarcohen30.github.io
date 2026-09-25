@@ -9,11 +9,12 @@ const profile = parse(readFileSync(new URL('src/data/profile.yaml', root), 'utf8
 
 try {
   const pubs = loadPublications(readFileSync(new URL('src/data/publications.yaml', root), 'utf8'), {
-    topics: profile.themes.map((t) => t.id),
+    topics: Object.keys(profile.topics),
   });
   pubs.forEach(bibtex); // make sure every entry can produce BibTeX
   const types = typeCounts(pubs).map((t) => `${t.count} ${t.label.toLowerCase()}`).join(', ');
-  console.log(`✔ ${pubs.length} publications OK (${types}; years ${yearsOf(pubs).join(', ')})`);
+  const review = pubs.filter((p) => p.isUnderReview).length;
+  console.log(`✔ ${pubs.length} publications OK (${types}; ${review} under review; years ${yearsOf(pubs).join(', ')})`);
   if (process.argv.includes('--bibtex')) console.log('\n' + pubs.map(bibtex).join('\n\n'));
 } catch (e) {
   if (e instanceof PublicationDataError) {

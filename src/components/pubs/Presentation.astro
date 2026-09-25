@@ -1,0 +1,48 @@
+---
+// Presentation distinction (Oral, Spotlight, …): deliberately quieter than the type badge.
+import type { Publication } from '../../lib/site';
+interface Props {
+  pub: Publication;
+}
+const { pub } = Astro.props;
+---
+
+{
+  pub.presentationLabel && (
+    <span class="pres" data-presentation={pub.presentation}>
+      <svg viewBox="0 0 10 10" aria-hidden="true">
+        <circle cx="5" cy="5" r="3.9" fill="none" stroke="currentColor" stroke-width="1.2" />
+        <circle cx="5" cy="5" r="1.7" fill="currentColor" />
+      </svg>
+      {pub.presentationLabel}
+    </span>
+  )
+}
+
+<style>
+  .pres {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .pres svg {
+    width: 0.75em;
+    height: 0.75em;
+    color: var(--accent);
+  }
+  /* Only the rarer distinctions get the accent underline. */
+  .pres:not([data-presentation='poster']) {
+    padding-bottom: 1px;
+    box-shadow: inset 0 -1.5px 0 color-mix(in oklab, var(--accent) 55%, transparent);
+  }
+  .pres[data-presentation='poster'] {
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+</style>

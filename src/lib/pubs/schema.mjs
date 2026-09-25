@@ -1,6 +1,15 @@
 // Schema for src/data/publications.yaml.
 // Shared by the Astro build (src/lib/pubs/index.mjs) and the CLI scripts in /scripts,
 // so a malformed record fails identically in `npm run check`, `npm run dev` and CI.
+//
+// Four independent dimensions — never collapse them into one field:
+//   type          what the work IS:            conference | journal | survey | working-paper
+//   status        where it is in review:       under-review | under-revision | to-appear | published
+//   presentation  how it was presented:        oral | spotlight | poster | contributed-talk
+//   links/versions where it can be read:       arXiv, DOI, proceedings, code, …
+//
+// A working paper is a PUBLIC preprint that is neither under review nor accepted.
+// It therefore has no `status`. An arXiv link never determines the type.
 import { z } from 'astro/zod';
 
 /** Publication types, in display order. `glyph` gives each type a non-colour cue. */
@@ -11,17 +20,22 @@ export const TYPE_META = {
   survey: { label: 'Survey', plural: 'Surveys', glyph: 'triangle' },
 };
 
+/** Review / publication states. `stage` groups them on the publications page. */
 export const STATUS_META = {
-  published: { label: 'Published' },
-  'to-appear': { label: 'To appear' },
-  'under-review': { label: 'Under review' },
-  'under-revision': { label: 'Under revision' },
-  'in-preparation': { label: 'In preparation' },
-  preprint: { label: 'Preprint' },
+  'under-review': { label: 'Under review', stage: 'review' },
+  'under-revision': { label: 'Under revision', stage: 'review' },
+  'to-appear': { label: 'To appear', stage: 'accepted' },
+  published: { label: 'Published', stage: 'accepted' },
 };
+export const REVIEW_STATUSES = Object.keys(STATUS_META).filter((s) => STATUS_META[s].stage === 'review');
 
-/** Statuses that make sense for an unpublished working paper. */
-export const WORKING_STATUSES = ['under-review', 'under-revision', 'in-preparation', 'preprint'];
+/** Official presentation categories. Only record what the venue's own programme states. */
+export const PRESENTATION_META = {
+  oral: { label: 'Oral' },
+  spotlight: { label: 'Spotlight' },
+  'contributed-talk': { label: 'Contributed talk' },
+  poster: { label: 'Poster' },
+};
 
 /** Link kinds, in display order. `doi` and `arxiv` take bare identifiers; the rest take URLs. */
 export const LINK_META = {
@@ -29,6 +43,7 @@ export const LINK_META = {
   pdf: { label: 'PDF', title: 'PDF' },
   arxiv: { label: 'arXiv', title: 'arXiv preprint' },
   doi: { label: 'DOI', title: 'Digital Object Identifier' },
+  openreview: { label: 'OpenReview', title: 'OpenReview forum' },
   code: { label: 'Code', title: 'Source code' },
   project: { label: 'Project', title: 'Project page' },
   data: { label: 'Data', title: 'Dataset' },
@@ -53,19 +68,7 @@ const linkList = z.union([
 ]);
 
 const linksSchema = z
-  .object({
-    paper: linkList,
-    pdf: linkList,
-    arxiv,
-    doi,
-    code: linkList,
-    project: linkList,
-    data: linkList,
-    slides: linkList,
-    poster: linkList,
-    video: linkList,
-    supplement: linkList,
-  })
+  .object(Object.fromEntries(Object.keys(LINK_META).map((k) => [k, k === 'doi' ? doi : k === 'arxiv' ? arxiv : linkList])))
   .partial()
   .strict();
 
@@ -92,17 +95,18 @@ export const publicationSchema = z
       .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'must be lower-case-kebab-case (it becomes the URL /publications/<id>/)'),
     title: z.string().min(3).refine((t) => !/\n/.test(t), 'title must be on one line'),
     authors: z.array(z.string().min(2)).min(1),
-    type: z.union([typeEnum, z.array(typeEnum).min(1)]),
-    status: z.enum(Object.keys(STATUS_META)).default('published'),
+    type: z.union([typeEnum, z.array(typeEnum).min(1)]).optional(),
+    status: z.enum(Object.keys(STATUS_META)).optional(),
+    presentation: z.enum(Object.keys(PRESENTATION_META)).optional(),
     year: z.number().int().min(1990).max(2100).optional(),
     date: z
       .union([z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/, 'must be YYYY-MM or YYYY-MM-DD'), z.date()])
       .optional()
-      .describe('Only used to order papers within a year'),
+      .describe('Orders papers within a year; for working papers, the date first posted'),
     venue: z
       .object({
-        short: z.string().min(2).describe('Abbreviation shown on cards, e.g. "AAMAS 2026"'),
-        name: z.string().min(2).describe('Full proceedings / journal name'),
+        name: z.string().min(2).describe('Full proceedings or journal name'),
+        acronym: z.string().min(2).optional().describe('e.g. "NeurIPS" — shown in bold after the name, and on cards'),
         volume: z.union([z.string(), z.number()]).optional(),
         number: z.union([z.string(), z.number()]).optional(),
         pages: z.string().optional(),
@@ -123,18 +127,42 @@ export const publicationSchema = z
   })
   .strict()
   .superRefine((p, ctx) => {
-    const types = [p.type].flat();
-    if (new Set(types).size !== types.length) ctx.addIssue({ code: 'custom', path: ['type'], message: 'duplicate type' });
-    if (types.includes('working-paper')) {
-      if (types.length > 1)
-        ctx.addIssue({ code: 'custom', path: ['type'], message: 'a working paper cannot also be conference/journal/survey — change the type once it is published' });
-      if (!WORKING_STATUSES.includes(p.status))
-        ctx.addIssue({ code: 'custom', path: ['status'], message: `working papers need status: ${WORKING_STATUSES.join(' | ')}` });
+    const issue = (path, message) => ctx.addIssue({ code: 'custom', path: [path], message });
+    const types = p.type ? [p.type].flat() : [];
+    const has = (t) => types.includes(t);
+    const accepted = has('conference') || has('journal');
+    const inReview = REVIEW_STATUSES.includes(p.status);
+    const publicCopy = p.links.arxiv || p.links.paper || p.links.pdf || p.links.openreview;
+
+    if (new Set(types).size !== types.length) issue('type', 'duplicate type');
+
+    if (has('working-paper')) {
+      if (accepted) issue('type', 'a working paper cannot also be conference/journal — once accepted, replace working-paper with the venue type');
+      if (p.status)
+        issue(
+          'status',
+          inReview
+            ? `a paper that is ${p.status} is not a working paper: remove "type: working-paper" and keep "status: ${p.status}"`
+            : `a working paper is neither accepted nor published: remove "status: ${p.status}" or change the type to conference/journal`,
+        );
+      if (p.venue) issue('venue', 'working papers have no venue — add one when the paper is accepted');
+      if (!publicCopy) issue('links', 'a working paper must be publicly readable: add links.arxiv (or paper/pdf)');
+    } else if (inReview) {
+      if (accepted) issue('type', `status "${p.status}" contradicts type "${types.join(', ')}": a conference/journal type means the paper was accepted`);
+      if (p.venue) issue('venue', 'do not list a venue for a paper under review (it is not public) — add it on acceptance');
+    } else if (!p.type) {
+      issue('type', 'type is required (conference, journal, survey or working-paper) unless status is under-review or under-revision');
+    } else if (!accepted) {
+      // e.g. a survey that is only on arXiv
+      if (!has('working-paper')) issue('type', 'a survey must also be "journal"/"conference" (where it appeared) or "working-paper" (preprint only), e.g. type: [survey, journal]');
     } else {
-      if (!p.year) ctx.addIssue({ code: 'custom', path: ['year'], message: 'published papers need a year' });
-      if (!p.venue) ctx.addIssue({ code: 'custom', path: ['venue'], message: 'published papers need venue.short and venue.name' });
-      if (WORKING_STATUSES.includes(p.status) && p.status !== 'preprint')
-        ctx.addIssue({ code: 'custom', path: ['status'], message: `status "${p.status}" only makes sense with type: working-paper` });
+      if (!p.year) issue('year', 'accepted and published papers need a year');
+      if (!p.venue) issue('venue', 'accepted and published papers need venue.name (and usually venue.acronym)');
+    }
+
+    if (p.presentation) {
+      if (!has('conference')) issue('presentation', 'presentation (oral, poster, …) only applies to conference papers');
+      else if (inReview) issue('presentation', 'presentation is only known once a paper is accepted');
     }
   });
 
