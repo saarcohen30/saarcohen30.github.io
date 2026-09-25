@@ -1,6 +1,7 @@
 {
   "name": "saarcohen30-site",
   "private": true,
+  "engines": { "node": ">=22" },
   "type": "module",
   "version": "2.0.0",
   "scripts": {

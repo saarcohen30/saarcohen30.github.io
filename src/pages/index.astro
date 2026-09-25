@@ -6,7 +6,7 @@ import PubItem from '../components/pubs/PubItem.astro';
 import ThemeGlyph from '../components/ThemeGlyph.astro';
 import Icon from '../components/Icon.astro';
 import portrait from '../assets/portrait.jpg';
-import { profile, publications, inlineMd, stripMd, pubsForTopic, SITE_URL } from '../lib/site';
+import { profile, publications, inlineMd, pubsForTopic, SITE_URL } from '../lib/site';
 
 const published = publications.filter((p) => !p.isWorkingPaper);
 const working = publications.filter((p) => p.isWorkingPaper);

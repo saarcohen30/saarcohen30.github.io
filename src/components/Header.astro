@@ -78,12 +78,20 @@ const items = [
   .site-header[data-stage] {
     margin-bottom: calc(-1 * var(--header-h));
   }
-  .site-header[data-stage].over-stage {
+  .site-header[data-stage].over-stage,
+  :global(html:not(.js)) .site-header[data-stage] {
     color: var(--stage-ink);
     border-bottom-color: transparent;
   }
-  .site-header[data-stage].over-stage::before {
+  .site-header[data-stage].over-stage::before,
+  :global(html:not(.js)) .site-header[data-stage]::before {
     opacity: 0;
+  }
+  /* Without JS nothing can switch the bar back to paper, so it scrolls away with the stage. */
+  :global(html:not(.js)) .site-header[data-stage] {
+    position: absolute;
+    left: 0;
+    right: 0;
   }
   .site-header[data-stage].over-stage :focus-visible {
     outline-color: #b9c9ff;

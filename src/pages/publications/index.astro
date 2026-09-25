@@ -336,8 +336,10 @@ const jsonLd = {
     background: var(--bg-elev);
     box-shadow: inset 0 0 0 1px var(--ink);
   }
-  .fchip[data-zero] {
-    opacity: 0.45;
+  /* No matches with the current filters: still readable (contrast), visibly "empty". */
+  .fchip[data-zero]:not([aria-pressed='true']) {
+    border-style: dashed;
+    background: transparent;
   }
   .count {
     font-size: var(--step--2);

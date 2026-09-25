@@ -8,7 +8,7 @@ import { createSim, COALITION_COLOURS } from '../lib/coalition-sim';
 // prefer reduced motion (no canvas, no animation loop is loaded for them).
 const SW = 1600;
 const SH = 1000;
-const still = createSim({ width: SW, height: SH, count: 64, layout: 'side', seed: 30 });
+const still = createSim({ width: SW, height: SH, count: 64, layout: 'side', seed: 30, field: { x0: 880, x1: 1480, y0: 170, y1: 560 } });
 still.finish();
 const f = (n: number) => n.toFixed(1);
 const edges = still.agents

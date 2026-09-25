@@ -39,7 +39,7 @@ const uid = `${pub.id}${compact ? '-c' : ''}`;
     {status && <span class="status">{status}</span>}
   </p>
   <H class="title">
-    <a href={href} style={`view-transition-name: pub-${pub.id}`}>{pub.title}</a>
+    <a href={href} style={`view-transition-name: pub-${pub.id}; view-transition-class: pub-title`}>{pub.title}</a>
   </H>
   <Authors pub={pub} class="pub-authors" />
   {!compact && pub.venue && <p class="venue">{pub.venue.name}</p>}

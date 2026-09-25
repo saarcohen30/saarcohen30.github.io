@@ -100,7 +100,7 @@
   /* Publication types. Each also has a glyph, so colour is never the only cue. */
   --c-working-paper: #9a2d8c;
   --c-conference: #2a4fc6;
-  --c-journal: #0d7556;
+  --c-journal: #0a6a4d;
   --c-survey: #955500;
   --shadow: 0 1px 0 rgba(20, 22, 27, 0.04), 0 8px 24px -12px rgba(20, 22, 27, 0.18);
 }
@@ -431,6 +431,16 @@ main {
     animation: none !important;
   }
 }
+/* Paper titles morph between list and page: anchor snapshots top-left and drop the old one quickly. */
+::view-transition-old(*.pub-title),
+::view-transition-new(*.pub-title) {
+  height: 100%;
+  object-fit: none;
+  object-position: left top;
+}
+::view-transition-old(*.pub-title) {
+  animation-duration: 140ms;
+}
 ::view-transition-old(site-header),
 ::view-transition-new(site-header) {
   animation: none;
@@ -450,7 +460,16 @@ main {
 
 /* ---------------------------------------------------------------- print */
 @media print {
-  :root {
+  /* The id-free :not(#_) raises specificity above the dark-theme rules: paper is always light. */
+  :root:not(#_),
+  :root[data-theme]:not(#_) {
+    color-scheme: light;
+    --bg-sunk: #f4f4f4;
+    --accent: #1d3aa8;
+    --c-working-paper: #7d1f71;
+    --c-conference: #1d3aa8;
+    --c-journal: #0a6a4d;
+    --c-survey: #7a4600;
     --bg: #fff;
     --bg-elev: #fff;
     --ink: #000;

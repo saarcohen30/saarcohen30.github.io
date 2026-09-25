@@ -60,7 +60,10 @@ const jsonLd = {
 ---
 
 <Base title={pub.title} description={description} ogType="article" jsonLd={jsonLd}>
+  {/* Google Scholar (Highwire) tags only for published work: a working paper page has no date or full text. */}
   <Fragment slot="head">
+    {!pub.isWorkingPaper && (
+    <Fragment>
     <meta name="citation_title" content={pub.title} />
     {pub.authors.map((a) => <meta name="citation_author" content={a.name} />)}
     {date && <meta name="citation_publication_date" content={date.replace(/-/g, '/')} />}
@@ -75,6 +78,8 @@ const jsonLd = {
     {arxiv && <meta name="citation_arxiv_id" content={arxiv} />}
     {pdf && <meta name="citation_pdf_url" content={pdf} />}
     <meta name="citation_abstract_html_url" content={url} />
+    </Fragment>
+    )}
   </Fragment>
 
   <article class="paper wrap wrap--narrow" data-pub data-type={pub.primaryType}>
@@ -91,7 +96,7 @@ const jsonLd = {
         {pub.note && <span class="mono muted">{pub.note}</span>}
         {pub.status !== 'published' && <span class="mono status">{status}</span>}
       </p>
-      <h1 style={`view-transition-name: pub-${pub.id}`}>{pub.title}</h1>
+      <h1 style={`view-transition-name: pub-${pub.id}; view-transition-class: pub-title`}>{pub.title}</h1>
       <Authors pub={pub} class="authors-lg" />
       {
         pub.venue && (

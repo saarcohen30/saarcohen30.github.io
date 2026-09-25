@@ -21,8 +21,6 @@ export function inlineMd(text: string): string {
     .replace(/\*([^*]+)\*/g, '<em>$1</em>');
 }
 
-export const stripMd = (text: string) => text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\*/g, '');
-
 /** True for the site owner, so their name can be highlighted in author lists. */
 export const isMe = (name: string) => name === profile.name;
 
@@ -30,9 +28,4 @@ export const isMe = (name: string) => name === profile.name;
 export const pubsForTopic = (topic: string) => {
   const on = publications.filter((p) => p.topics.includes(topic));
   return [...on.filter((p) => !p.isWorkingPaper), ...on.filter((p) => p.isWorkingPaper)];
-};
-
-export const yearRange = () => {
-  const years = publications.filter((p) => p.year).map((p) => p.year as number);
-  return [Math.min(...years), Math.max(...years)];
 };
