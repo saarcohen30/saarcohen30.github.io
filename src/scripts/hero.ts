@@ -69,6 +69,10 @@ function start(hero: HTMLElement, canvas: HTMLCanvasElement, factory: SceneFacto
   function draw() {
     ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx!.clearRect(0, 0, W, H);
+    if (scene.render) {
+      scene.render(ctx!);
+      return;
+    }
     // Which group is the pointer "considering"? (nearest node within reach)
     let hot = -1;
     let tether: { x: number; y: number; group: number } | null = null;
@@ -139,6 +143,8 @@ function start(hero: HTMLElement, canvas: HTMLCanvasElement, factory: SceneFacto
   }
 
   build(intro);
+  // Elemental scenes draw their own material; the dot lattice belongs to the research scenes.
+  hero.classList.toggle('elemental', !!scene.render);
   draw();
   canvas.classList.add('ready');
   schedule();
@@ -159,6 +165,7 @@ function start(hero: HTMLElement, canvas: HTMLCanvasElement, factory: SceneFacto
       pointer.x = e.clientX - r.left;
       pointer.y = e.clientY - r.top;
       pointer.active = true;
+      scene.pointer?.(pointer.x, pointer.y);
     });
     hero.addEventListener('pointerleave', () => (pointer.active = false));
   }

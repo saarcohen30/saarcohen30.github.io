@@ -335,6 +335,9 @@ main {
 .section-head .eyebrow .n {
   color: var(--accent);
 }
+.eyebrow .n {
+  margin-right: 0.9em;
+}
 
 /* ---------------------------------------------------------------- buttons */
 .btn {

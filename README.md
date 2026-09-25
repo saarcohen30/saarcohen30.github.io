@@ -63,6 +63,21 @@ change what normal visits see. They also work on the live site.
 | Share | `/?scene=share&intro=1` | `/?scene=share` |
 | Gather | `/?scene=gather&intro=1` | `/?scene=gather` |
 
+**Experimental elemental scenes** can be previewed the same way but are **not** in the normal rotation.
+`ROTATION_IDS` in `src/lib/field/scenes/meta.ts` decides what normal visitors see.
+
+| Scene | With the entrance | Settled |
+|---|---|---|
+| Water | `/?scene=water&intro=1` | `/?scene=water` |
+| Earth | `/?scene=earth&intro=1` | `/?scene=earth` |
+| Fire | `/?scene=fire&intro=1` | `/?scene=fire` |
+| Air | `/?scene=air&intro=1` | `/?scene=air` |
+| Convergence | `/?scene=convergence&intro=1` | `/?scene=convergence` |
+
+The elemental scenes live in `src/lib/field/elements/`, with one layer per element plus a small toolkit (`kit.ts`:
+gradient noise, curl noise, easing). They draw with their own primitives through the scene's optional `render()`
+hook, and Convergence composes the four layers.
+
 Reload to replay. An unknown scene name is ignored, and the page behaves normally. With *reduce motion* enabled
 in the operating system, the entrance never plays and the static still is shown: accessibility wins over
 `intro=1`. Only the requested scene's code is downloaded.
@@ -79,7 +94,7 @@ public/files/pdf/            CV PDF (URL unchanged from the old site)
 src/pages/                   routes: /, /publications/, /publications/<id>/, /cv/, 404, /publications.bib
 src/components/              Hero, Header/Footer, publication components (pubs/)
 src/lib/pubs/                publication schema, validation, sorting, BibTeX/citation generation
-src/lib/field/               the hero: one engine (core, canvas/SVG painters) + scenes/ (meta.ts = names, index.ts = lazy loaders)
+src/lib/field/               the hero: one engine (core, canvas/SVG painters) + scenes/ (meta.ts = names and rotation, index.ts = lazy loaders) + elements/ (experimental)
 src/scripts/                 small client scripts: hero canvas, publication filters, theme/disclosure/copy
 src/styles/global.css        design tokens (colour, type scale, motion) and base styles
 scripts/                     add-publication and validate-publications CLIs

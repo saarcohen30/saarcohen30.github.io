@@ -11,18 +11,19 @@ cv_pdf: /files/pdf/CV - Saar Cohen.pdf
 
 # One or two sentences under the name in the hero: the kinds of questions, not the thesis title.
 tagline: >-
-  I study how intelligent agents decide together — forming groups, sharing resources and
-  learning from one another as information arrives over time — and design algorithms that
-  keep such systems, from agent coalitions to large language models, fair, stable and safe.
+  I study how agents make decisions and learn when they interact strategically, drawing on
+  game theory, computational social choice and machine learning. My work ranges from
+  coalition formation and fair allocation to large language models and AI safety.
 
-# The fields the work belongs to (shown quietly under the tagline).
+# The fields the work belongs to (used in page descriptions).
 areas: [Game theory, Computational social choice, Multi-agent systems, Machine learning, Online learning, Large language models]
 
 # Short paragraphs for the About section (Markdown links allowed: [text](url)).
 bio:
-  - I am a Postdoctoral Research Associate in the Department of Computer Science at the University of Oxford, hosted by Prof. Michael Wooldridge.
-  - My research sits where game theory and computational social choice meet multi-agent systems and machine learning. I ask what guarantees are still possible when self-interested agents interact, share resources or learn under uncertainty, often when decisions must be made online, before the future is known.
-  - My doctoral work at Bar-Ilan University, with [Prof. Noa Agmon](https://u.cs.biu.ac.il/~agmon/), developed a theory of online coalition formation. My current work extends to online fair division and allocation, learning in strategic environments, principled graph learning, and game-theoretic approaches to the safety of large language models.
+  - "I am a Postdoctoral Research Associate in the Department of Computer Science at the University of Oxford, hosted by Prof. Michael Wooldridge."
+  - "My research is about multi-agent systems, in which several agents with their own goals make decisions that affect one another. I approach them mainly through game theory and computational social choice, and through machine learning. Many of the problems I study are sequential; agents or resources arrive over time, and decisions have to be made before the future is known."
+  - "One strand of my work concerns how agents form coalitions and how goods and resources can be allocated fairly, often in these online settings. Another concerns learning: how agents can learn their preferences and stable outcomes from feedback, and how learning models such as graph neural networks can be given provable guarantees. Most recently, I have been working on the safety of large language models, studying self-play red teaming as a game between an attacker and a defender."
+  - "I completed my Ph.D. at Bar-Ilan University with [Prof. Noa Agmon](https://u.cs.biu.ac.il/~agmon/), with a thesis on coalition formation in sequential decision-making under uncertainty."
 
 # Research themes on the home page. A paper belongs to a theme when it carries one of the
 # theme's `topics`. `areas` are the fields each theme draws on.
@@ -46,7 +47,7 @@ themes:
     title: Principled & safe AI
     areas: [Machine learning, Large language models, AI safety]
     topics: [graph-learning, ai-safety]
-    summary: Learning architectures with provable guarantees, such as convexified graph neural networks, and game-theoretic methods that make large language models safer.
+    summary: Learning architectures with provable guarantees, such as convexified graph neural networks, and game-theoretic approaches to the safety of large language models.
 
 # Controlled vocabulary for `topics:` in publications.yaml (used for themes and related work).
 topics:

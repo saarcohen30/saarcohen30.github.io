@@ -127,7 +127,7 @@ const jsonLd = {
             {pub.versions.map((v) => (
               <li>
                 <a href={v.href}>{v.label}</a>
-                {v.title && <span class="muted"> — “{v.title}”</span>}
+                {v.title && <span class="muted">: “{v.title}”</span>}
                 {v.venue && <span class="muted">, {v.venue}</span>}
                 {v.year && <span class="muted">, {v.year}</span>}
               </li>

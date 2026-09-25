@@ -33,9 +33,6 @@ still.draw(svg.painter, -1);
       }
     </h1>
     <p class="tagline" data-seq="3">{profile.tagline}</p>
-    <p class="areas mono" data-seq="3">
-      {profile.areas.map((a: string, i: number) => <span>{a}</span>)}
-    </p>
     <div class="cta" data-seq="4">
       <a class="btn btn--light" href="/publications/">
         Publications <Icon name="arrow-right" class="arrow" />
@@ -83,6 +80,10 @@ still.draw(svg.painter, -1);
     background-image: radial-gradient(circle at 1px 1px, rgba(238, 235, 228, 0.09) 1px, transparent 1.3px);
     background-size: 28px 28px;
     mask-image: radial-gradient(ellipse 65% 70% at 70% 45%, #000 10%, transparent 75%);
+  }
+  :global(.elemental) .lattice {
+    opacity: 0;
+    transition: opacity 600ms ease;
   }
   .still,
   canvas {
@@ -138,25 +139,11 @@ still.draw(svg.painter, -1);
     color: var(--stage-ink-2);
   }
   .tagline {
-    max-width: 40ch;
+    max-width: 38ch;
     font-size: var(--step-1);
     line-height: 1.4;
     color: var(--stage-ink-2);
     font-weight: 380;
-  }
-  .areas {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.2rem 0;
-    max-width: 62ch;
-    font-size: var(--step--2);
-    letter-spacing: 0.02em;
-    color: var(--stage-ink-3);
-  }
-  .areas span:not(:last-child)::after {
-    content: '·';
-    margin-inline: 0.55em;
-    opacity: 0.6;
   }
   .cta {
     display: flex;
@@ -284,9 +271,6 @@ still.draw(svg.painter, -1);
     }
     :global(.intro) .tagline {
       --d: 1250;
-    }
-    :global(.intro) .areas {
-      --d: 1400;
     }
     :global(.intro) .cta {
       --d: 1600;

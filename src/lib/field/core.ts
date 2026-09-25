@@ -50,6 +50,10 @@ export interface Scene {
   /** Ambient life after the intro; called every few seconds. */
   churn(): void;
   draw(p: Painter, hot: number): void;
+  /** Optional direct renderer (elemental scenes): used instead of `draw` when present. */
+  render?(ctx: CanvasRenderingContext2D): void;
+  /** Optional pointer response (e.g. a ripple or a gust); replaces the default tether. */
+  pointer?(x: number, y: number): void;
   /** Nodes the pointer can "consider" joining. */
   hoverables(): Hoverable[];
   readonly introMs: number;
