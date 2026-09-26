@@ -24,6 +24,11 @@ accepts('C. accepted conference with arXiv', { type: 'conference', status: 'to-a
   assert.equal(p.stage, 'accepted');
   assert.equal(p.primaryType, 'conference');
 });
+accepts('structured presentation with mode', { type: 'conference', presentation: { type: 'oral', mode: 'online' }, year: 2021, venue }, (p) => {
+  assert.equal(p.presentationType, 'oral');
+  assert.equal(p.presentationModeLabel, 'Online');
+});
+rejects('unknown presentation mode', { type: 'conference', presentation: { type: 'oral', mode: 'hybrid' }, year: 2021, venue }, /mode: in-person \| online/);
 accepts('D. published (status defaults)', { type: 'conference', year: 2026, venue }, (p) => assert.equal(p.status, 'published'));
 accepts('journal survey', { type: ['survey', 'journal'], year: 2021, venue: { name: 'Current Robotics Reports' } });
 

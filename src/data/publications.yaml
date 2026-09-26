@@ -116,12 +116,12 @@
   topics: [coalition-formation, online-algorithms, computational-social-choice]
 
 - id: near-optimal-online-resource-allocation-random-order
+  # Same title and authors as the AAMAS 2024 extended abstract; the CV lists this full paper separately.
   title: Near-Optimal Online Resource Allocation in the Random-Order Model
   authors: [Saar Cohen, Noa Agmon]
   status: under-review
   topics: [fair-division, online-algorithms, computational-social-choice]
   versions:
-    # Same title and authors as the AAMAS 2024 extended abstract; the CV lists this full paper separately.
     - label: Extended abstract (AAMAS 2024)
       doi: 10.65109/koyf1641
 
@@ -180,16 +180,17 @@
   title: Offline Learning of Nash Stable Coalition Structures with Possibly Overlapping Coalitions
   authors: [Saar Cohen]
   type: conference
+  presentation: oral   # owner-confirmed
   year: 2026
   date: 2026-05-29
   venue:
-    acronym: AAMAS
     name: Proceedings of the 25th International Conference on Autonomous Agents and Multiagent Systems
+    acronym: AAMAS
   topics: [coalition-formation, multi-agent-learning, game-theory]
   links:
     pdf: https://ifaamas.org/Proceedings/aamas2026/pdfs/ZZZS1209.pdf
+    arxiv: "2602.14321"
     doi: 10.65109/zzzs1209
-    arxiv: 2602.14321
     code: https://github.com/saarcohen30/pocf
   aliases: [/publication/2026-offline]
   abstract: >-
@@ -219,16 +220,17 @@
   title: Delayed Assignments in Online Non-Centroid Clustering with Stochastic Arrivals
   authors: [Saar Cohen]
   type: conference
+  presentation: oral   # owner-confirmed
   year: 2026
   date: 2026-05-29
   venue:
-    acronym: AAMAS
     name: Proceedings of the 25th International Conference on Autonomous Agents and Multiagent Systems
+    acronym: AAMAS
   topics: [clustering, online-algorithms]
   links:
     pdf: https://ifaamas.org/Proceedings/aamas2026/pdfs/AVAR7513.pdf
+    arxiv: "2601.16091"
     doi: 10.65109/avar7513
-    arxiv: 2601.16091
   aliases: [/publication/2026-delays]
   abstract: >-
     Clustering is a fundamental problem, aiming to partition a set of elements, like agents or data
@@ -254,21 +256,21 @@
   title: Convexified Message-Passing Graph Neural Networks
   authors: [Saar Cohen, Noa Agmon, Uri Shaham]
   type: conference
+  presentation: poster   # virtual.aistats.org/virtual/2026/poster/13693
   year: 2026
   date: 2026-05-02
   venue:
-    acronym: AISTATS
     name: Proceedings of the 29th International Conference on Artificial Intelligence and Statistics
+    acronym: AISTATS
+    volume: 300
     pages: 676–684
     series: Proceedings of Machine Learning Research
-    volume: 300
-  presentation: poster   # virtual.aistats.org/virtual/2026/poster/13693
   topics: [graph-learning, machine-learning]
   links:
     paper: https://proceedings.mlr.press/v300/cohen26a.html
-    openreview: https://openreview.net/forum?id=IrQumNXKy5
     pdf: https://raw.githubusercontent.com/mlresearch/v300/main/assets/cohen26a/cohen26a.pdf
-    arxiv: 2505.18289
+    arxiv: "2505.18289"
+    openreview: https://openreview.net/forum?id=IrQumNXKy5
     code: https://github.com/saarcohen30/cgcn
   aliases: [/publication/2026-CGNN]
   abstract: >-
@@ -296,11 +298,12 @@
   title: Online Learning of Fair Coalition Structures
   authors: [Saar Cohen, Noa Agmon]
   type: conference
+  presentation: oral   # owner-confirmed (ECAI 2025 programme: "M9240 (talk)")
   year: 2025
   date: 2025-10-25
   venue:
-    acronym: ECAI
     name: Proceedings of the 28th European Conference on Artificial Intelligence
+    acronym: ECAI
     series: Frontiers in Artificial Intelligence and Applications
   topics: [coalition-formation, multi-agent-learning, online-learning, computational-social-choice]
   links:
@@ -325,11 +328,12 @@
   title: Decentralized Online Learning by Selfish Agents in Coalition Formation
   authors: [Saar Cohen, Noa Agmon]
   type: conference
+  presentation: oral   # owner-confirmed
   year: 2025
   date: 2025-08-16
   venue:
-    acronym: IJCAI
     name: Proceedings of the 34th International Joint Conference on Artificial Intelligence
+    acronym: IJCAI
     pages: 3796–3804
   topics: [coalition-formation, multi-agent-learning, online-learning, game-theory]
   links:
@@ -356,13 +360,13 @@
   note: Extended Abstract
   authors: [Saar Cohen, Noa Agmon]
   type: conference
+  presentation: poster   # AAMAS 2025 poster schedule (Poster Session 6)
   year: 2025
   date: 2025-05-19
   venue:
-    acronym: AAMAS
     name: Proceedings of the 24th International Conference on Autonomous Agents and Multiagent Systems
+    acronym: AAMAS
     pages: 2475–2477
-  presentation: poster   # AAMAS 2025 poster schedule (Poster Session 6)
   topics: [coalition-formation, online-algorithms, computational-social-choice]
   links:
     pdf: https://www.ifaamas.org/Proceedings/aamas2025/pdfs/p2475.pdf
@@ -386,15 +390,15 @@
   title: Online Learning of Coalition Structures by Selfish Agents
   authors: [Saar Cohen, Noa Agmon]
   type: conference
+  presentation: oral   # AAAI-25 Main Track Oral Talks Schedule (aaai.org, Feb 2025)
   year: 2025
   date: 2025-02-25
   venue:
-    acronym: AAAI
     name: Proceedings of the 39th AAAI Conference on Artificial Intelligence
+    acronym: AAAI
     volume: 39
     number: 13
     pages: 13709–13717
-  presentation: oral   # AAAI-25 Main Track Oral Talks Schedule (aaai.org, Feb 2025)
   topics: [coalition-formation, multi-agent-learning, online-learning, game-theory]
   links:
     paper: https://ojs.aaai.org/index.php/AAAI/article/view/33498
@@ -423,11 +427,12 @@
   title: Online Friends Partitioning under Uncertainty
   authors: [Saar Cohen, Noa Agmon]
   type: conference
+  presentation: spotlight   # ECAI 2024 official agenda: "M815 (spotlight)"; owner-confirmed
   year: 2024
   date: 2024-10-19
   venue:
-    acronym: ECAI
     name: Proceedings of the 27th European Conference on Artificial Intelligence
+    acronym: ECAI
     series: Frontiers in Artificial Intelligence and Applications
   topics: [coalition-formation, online-algorithms]
   links:
@@ -449,11 +454,12 @@
   title: Online Learning of Partitions in Additively Separable Hedonic Games
   authors: [Saar Cohen, Noa Agmon]
   type: conference
+  presentation: oral   # owner-confirmed (IJCAI 2024 programme: 12-min talk)
   year: 2024
   date: 2024-08-03
   venue:
-    acronym: IJCAI
     name: Proceedings of the 33rd International Joint Conference on Artificial Intelligence
+    acronym: IJCAI
     pages: 2722–2730
   topics: [coalition-formation, multi-agent-learning, online-learning]
   links:
@@ -479,13 +485,13 @@
   note: Extended Abstract
   authors: [Saar Cohen, Noa Agmon]
   type: conference
+  presentation: poster   # AAMAS 2024 poster schedule for extended abstracts
   year: 2024
   date: 2024-05-06
   venue:
-    acronym: AAMAS
     name: Proceedings of the 23rd International Conference on Autonomous Agents and Multiagent Systems
+    acronym: AAMAS
     pages: 2219–2221
-  presentation: poster   # AAMAS 2024 poster schedule for extended abstracts
   topics: [fair-division, online-algorithms, computational-social-choice]
   links:
     pdf: https://ifmas.csc.liv.ac.uk/Proceedings/aamas2024/pdfs/p2219.pdf
@@ -513,11 +519,12 @@
   title: Online Coalitional Skill Formation
   authors: [Saar Cohen, Noa Agmon]
   type: conference
+  presentation: oral   # owner-confirmed
   year: 2023
   date: 2023-05-29
   venue:
-    acronym: AAMAS
     name: Proceedings of the 22nd International Conference on Autonomous Agents and Multiagent Systems
+    acronym: AAMAS
     pages: 494–503
   topics: [coalition-formation, online-algorithms, multi-agent-systems]
   links:
@@ -554,8 +561,8 @@
   year: 2023
   date: 2023-05-29
   venue:
-    acronym: AAMAS
     name: Proceedings of the 22nd International Conference on Autonomous Agents and Multiagent Systems
+    acronym: AAMAS
     pages: 2955–2957
   topics: [coalition-formation, online-algorithms]
   links:
@@ -581,15 +588,15 @@
   title: Complexity of Probabilistic Inference in Random Dichotomous Hedonic Games
   authors: [Saar Cohen, Noa Agmon]
   type: conference
+  presentation: poster   # AAAI-23 poster schedule; owner-confirmed
   year: 2023
   date: 2023-02-07
   venue:
-    acronym: AAAI
     name: Proceedings of the 37th AAAI Conference on Artificial Intelligence
+    acronym: AAAI
     volume: 37
     number: 5
     pages: 5573–5581
-  presentation: poster   # AAAI-23 Thursday poster session; not in the oral technical schedule
   topics: [coalition-formation, game-theory]
   links:
     paper: https://ojs.aaai.org/index.php/AAAI/article/view/25692
@@ -616,11 +623,12 @@
   title: Optimizing Multi-Agent Coordination via Hierarchical Graph Probabilistic Recursive Reasoning
   authors: [Saar Cohen, Noa Agmon]
   type: conference
+  presentation: { type: oral, mode: online }   # owner-confirmed; AAMAS 2022 was virtual
   year: 2022
   date: 2022-05-09
   venue:
-    acronym: AAMAS
     name: Proceedings of the 21st International Conference on Autonomous Agents and Multiagent Systems
+    acronym: AAMAS
     pages: 290–299
   topics: [multi-agent-learning, reinforcement-learning, graph-learning, multi-agent-systems]
   links:
@@ -658,11 +666,12 @@
   title: Convexified Graph Neural Networks for Distributed Control in Robotic Swarms
   authors: [Saar Cohen, Noa Agmon]
   type: conference
+  presentation: { type: oral, mode: online }   # owner-confirmed; IJCAI 2021 was virtual
   year: 2021
   date: 2021-08-19
   venue:
-    acronym: IJCAI
     name: Proceedings of the 30th International Joint Conference on Artificial Intelligence
+    acronym: IJCAI
     pages: 2307–2313
   topics: [graph-learning, multi-robot-systems]
   links:
@@ -686,33 +695,34 @@
     a swarm of flocking robots.
 
 - id: leading-swarm-desired-consensus
+  # The previous site linked this arXiv record, which carries a different title.
   title: On the (Im)possibility of Leading a Swarm to a Desired Consensus in Static and Dynamic Settings
   authors: [Saar Cohen, Noa Agmon]
   type: conference
   year: 2021
   date: 2021-06-04
   venue:
-    acronym: DARS/SWARM
     name: Proceedings of the 4th International Symposium on Swarm Behavior and Bio-Inspired Robotics
+    acronym: DARS/SWARM
   topics: [multi-robot-systems, multi-agent-systems]
   links:
     code: https://github.com/saarcohen30/spatial-consensus-prevention
   versions:
-    # The previous site linked this arXiv record, which carries a different title.
     - label: arXiv preprint
       title: Converging to a Desired Orientation in a Flock of Agents
-      arxiv: 2010.04686
+      arxiv: "2010.04686"
   aliases: [/publication/2021-impossibility]
 
 - id: spatial-consensus-prevention-robotic-swarms
   title: Spatial Consensus-Prevention in Robotic Swarms
   authors: [Saar Cohen, Noa Agmon]
   type: conference
+  presentation: { type: oral, mode: online }   # owner-confirmed; AAMAS 2021 was virtual
   year: 2021
   date: 2021-05-03
   venue:
-    acronym: AAMAS
     name: Proceedings of the 20th International Conference on Autonomous Agents and Multiagent Systems
+    acronym: AAMAS
     pages: 359–367
   topics: [multi-robot-systems, multi-agent-systems]
   links:

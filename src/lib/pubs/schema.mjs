@@ -5,7 +5,8 @@
 // Four independent dimensions — never collapse them into one field:
 //   type          what the work IS:            conference | journal | survey | working-paper
 //   status        where it is in review:       under-review | under-revision | to-appear | published
-//   presentation  how it was presented:        oral | spotlight | poster | contributed-talk
+//   presentation  how it was presented:        { type: oral | spotlight | poster | contributed-talk,
+//                                               mode: in-person | online }  (or just "oral")
 //   links/versions where it can be read:       arXiv, DOI, proceedings, code, …
 //
 // A working paper is a PUBLIC preprint that is neither under review nor accepted.
@@ -28,6 +29,12 @@ export const STATUS_META = {
   published: { label: 'Published', stage: 'accepted' },
 };
 export const REVIEW_STATUSES = Object.keys(STATUS_META).filter((s) => STATUS_META[s].stage === 'review');
+
+/** Presentation mode, recorded only when it is known (e.g. online editions of a conference). */
+export const MODE_META = {
+  'in-person': { label: 'In person' },
+  online: { label: 'Online' },
+};
 
 /** Official presentation categories. Only record what the venue's own programme states. */
 export const PRESENTATION_META = {
@@ -97,7 +104,12 @@ export const publicationSchema = z
     authors: z.array(z.string().min(2)).min(1),
     type: z.union([typeEnum, z.array(typeEnum).min(1)]).optional(),
     status: z.enum(Object.keys(STATUS_META)).optional(),
-    presentation: z.enum(Object.keys(PRESENTATION_META)).optional(),
+    presentation: z
+      .union([
+        z.enum(Object.keys(PRESENTATION_META)),
+        z.object({ type: z.enum(Object.keys(PRESENTATION_META)), mode: z.enum(Object.keys(MODE_META)).optional() }).strict(),
+      ], { error: `must be one of ${Object.keys(PRESENTATION_META).join(' | ')}, or { type: …, mode: ${Object.keys(MODE_META).join(' | ')} }` })
+      .optional(),
     year: z.number().int().min(1990).max(2100).optional(),
     date: z
       .union([z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/, 'must be YYYY-MM or YYYY-MM-DD'), z.date()])

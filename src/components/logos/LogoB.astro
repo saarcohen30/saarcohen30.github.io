@@ -1,0 +1,10 @@
+---
+// Candidate B: flow and balance. One gentle wave, crest then trough, with a point at rest in the
+// trough: poise within motion.
+interface Props { size?: number; class?: string }
+const { size = 32, class: className } = Astro.props;
+---
+<svg class={className} width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">
+  <path d="M2.5 17c3.4 0 4.8-5.2 8.6-5.2s5.6 9.4 9.6 9.4 5.2-4.2 8.8-4.2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+  <circle cx="20.6" cy="16.3" r="2.7" fill="var(--logo-accent, currentColor)" />
+</svg>

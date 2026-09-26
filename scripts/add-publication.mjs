@@ -1,104 +1,17 @@
 #!/usr/bin/env node
-// `npm run add-pub` — add a paper to src/data/publications.yaml interactively.
+// `npm run add-pub` — add a paper to src/data/publications.yaml by answering a few questions.
 //
-//   npm run add-pub                         ask everything
-//   npm run add-pub -- 10.24963/ijcai.2025/422   prefill from a DOI (Crossref)
-//   npm run add-pub -- 2505.18289           prefill from an arXiv id
+//   npm run add-pub -- 2609.29691                    prefill from an arXiv id (or arXiv URL)
+//   npm run add-pub -- 10.24963/ijcai.2025/422       prefill from a DOI (or doi.org URL)
+//   npm run add-pub                                  ask everything
 //
-// The new record is validated with the same schema as the build before it is written.
-import { readFileSync, writeFileSync } from 'node:fs';
-import { createInterface } from 'node:readline/promises';
-import { stdin, stdout, argv, exit } from 'node:process';
-import { parse, stringify } from 'yaml';
-import { loadPublications, PublicationDataError } from '../src/lib/pubs/index.mjs';
-import { PRESENTATION_META, LINK_META } from '../src/lib/pubs/schema.mjs';
+// Nothing is written until you confirm the summary; the file is validated before and after
+// writing and restored automatically if anything goes wrong.
+import { argv, exit } from 'node:process';
+import { pathToFileURL } from 'node:url';
+import { PRESENTATION_META, MODE_META, LINK_META } from '../src/lib/pubs/schema.mjs';
+import { c, rl, ask, yes, choose, fromDoi, fromArxiv, guessAcronym, normaliseId, isDoi, readFile, records, appendRecord, safeWrite, describe, askTopics } from './lib/pubfile.mjs';
 
-const ROOT = new URL('../', import.meta.url);
-const FILE = new URL('src/data/publications.yaml', ROOT);
-const profile = parse(readFileSync(new URL('src/data/profile.yaml', ROOT), 'utf8'));
-const themes = profile.themes;
-
-const c = { dim: (s) => `\x1b[2m${s}\x1b[0m`, bold: (s) => `\x1b[1m${s}\x1b[0m`, green: (s) => `\x1b[32m${s}\x1b[0m`, red: (s) => `\x1b[31m${s}\x1b[0m` };
-const rl = createInterface({ input: stdin, output: stdout });
-async function ask(question, fallback = '') {
-  const hint = fallback ? c.dim(` [${String(fallback).length > 60 ? String(fallback).slice(0, 57) + '…' : fallback}]`) : '';
-  const answer = (await rl.question(`${question}${hint}: `)).trim();
-  return answer || String(fallback ?? '');
-}
-const yes = async (q, def = false) => {
-  const a = (await rl.question(`${q} ${c.dim(def ? '[Y/n]' : '[y/N]')}: `)).trim().toLowerCase();
-  return a ? a.startsWith('y') : def;
-};
-
-// ------------------------------------------------------------------ prefill sources
-const clean = (s) =>
-  (s ?? '')
-    .replace(/<jats:title>.*?<\/jats:title>/gs, '')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&amp;/g, '&')
-    // Simple inline maths from arXiv ($n$, $\log k$) becomes plain text.
-    .replace(/\$([^$]{1,60})\$/g, (_, m) =>
-      m.replace(/\\log/g, 'log').replace(/\\in/g, ' ∈ ').replace(/\\ge(q)?/g, '≥').replace(/\\le(q)?/g, '≤').replace(/[{}]/g, '').replace(/\s+/g, ' ').trim(),
-    )
-    .replace(/\s+/g, ' ')
-    .trim();
-
-const VENUES = [
-  [/Autonomous Agents and Multi-?[Aa]gent Systems/, 'AAMAS'],
-  [/International Joint Conference on Artificial Intelligence/, 'IJCAI'],
-  [/AAAI Conference on Artificial Intelligence/, 'AAAI'],
-  [/European Conference on Artificial Intelligence/, 'ECAI'],
-  [/Artificial Intelligence and Statistics/, 'AISTATS'],
-  [/Neural Information Processing Systems/, 'NeurIPS'],
-  [/International Conference on Machine Learning/, 'ICML'],
-  [/International Conference on Learning Representations/, 'ICLR'],
-  [/Economics and Computation/, 'EC'],
-  [/Web and Internet Economics/, 'WINE'],
-];
-const guessAcronym = (name) => VENUES.find(([re]) => re.test(name ?? ''))?.[1] ?? '';
-
-async function fromDoi(doi) {
-  const res = await fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`);
-  if (!res.ok) throw new Error(`Crossref returned ${res.status}`);
-  const m = (await res.json()).message;
-  const year = m.issued?.['date-parts']?.[0]?.[0];
-  const parts = m.issued?.['date-parts']?.[0] ?? [];
-  const venue = m['container-title']?.[0] ?? m['event']?.name ?? '';
-  return {
-    title: clean(m.title?.[0]),
-    authors: (m.author ?? []).map((a) => [a.given, a.family].filter(Boolean).join(' ')),
-    year,
-    date: parts.length >= 2 ? `${parts[0]}-${String(parts[1]).padStart(2, '0')}${parts[2] ? '-' + String(parts[2]).padStart(2, '0') : ''}` : undefined,
-    type: m.type === 'journal-article' ? 'journal' : 'conference',
-    venueName: venue,
-    venueAcronym: guessAcronym(venue),
-    pages: m.page?.replace('-', '–'),
-    volume: m.volume,
-    number: m.issue,
-    publisher: m.type === 'journal-article' ? m.publisher : undefined,
-    abstract: clean(m.abstract),
-    links: { doi, paper: m.resource?.primary?.URL },
-  };
-}
-
-async function fromArxiv(id) {
-  const xml = await (await fetch(`https://export.arxiv.org/api/query?id_list=${id}`)).text();
-  const entry = xml.split('<entry>')[1];
-  if (!entry) throw new Error('arXiv id not found');
-  const pick = (tag) => clean(entry.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`))?.[1]);
-  return {
-    title: pick('title'),
-    authors: [...entry.matchAll(/<name>(.*?)<\/name>/g)].map((m) => m[1]),
-    year: Number(pick('published').slice(0, 4)),
-    date: pick('published').slice(0, 10),
-    abstract: pick('summary'),
-    links: { arxiv: id.replace(/v\d+$/, '') },
-  };
-}
-
-// ------------------------------------------------------------------ helpers
 const slugify = (title) =>
   title
     .toLowerCase()
@@ -109,149 +22,139 @@ const slugify = (title) =>
     .slice(0, 7)
     .join('-');
 
-const scalar = (v) => stringify(v, { lineWidth: 0 }).trim();
-
-function toYaml(rec) {
-  const lines = [`- id: ${rec.id}`, `  title: ${scalar(rec.title)}`];
-  if (rec.note) lines.push(`  note: ${scalar(rec.note)}`);
-  lines.push(`  authors: [${rec.authors.map((a) => (/[,:[\]{}#&*!|>'"%@`]/.test(a) ? scalar(a) : a)).join(', ')}]`);
-  if (rec.type) lines.push(`  type: ${Array.isArray(rec.type) ? `[${rec.type.join(', ')}]` : rec.type}`);
-  if (rec.status && rec.status !== 'published') lines.push(`  status: ${rec.status}`);
-  if (rec.presentation) lines.push(`  presentation: ${rec.presentation}`);
-  if (rec.year) lines.push(`  year: ${rec.year}`);
-  if (rec.date) lines.push(`  date: ${rec.date}`);
-  if (rec.venue) {
-    lines.push('  venue:');
-    for (const [k, v] of Object.entries(rec.venue)) if (v) lines.push(`    ${k}: ${scalar(v)}`);
-  }
-  if (rec.featured) lines.push('  featured: true');
-  if (rec.topics?.length) lines.push(`  topics: [${rec.topics.join(', ')}]`);
-  const links = Object.entries(rec.links).filter(([, v]) => v);
-  if (links.length) {
-    lines.push('  links:');
-    for (const [k, v] of links) lines.push(`    ${k}: ${k === 'arxiv' ? `"${v}"` : scalar(v)}`);
-  }
-  if (rec.abstract) {
-    lines.push('  abstract: >-');
-    const words = rec.abstract.split(' ');
-    let line = '   ';
-    for (const w of words) {
-      if (line.length + w.length > 96) {
-        lines.push(line);
-        line = '   ';
-      }
-      line += ' ' + w;
-    }
-    lines.push(line);
-  }
-  return lines.join('\n');
-}
-
-// ------------------------------------------------------------------ main
-console.log(c.bold('\nAdd a publication') + c.dim('  (press Enter to accept [defaults]; Ctrl+C to abort)\n'));
-
-let pre = {};
-let source = argv[2] ?? (await ask('DOI or arXiv id to prefill from (optional)'));
-source = source.replace(/^https?:\/\/(dx\.)?doi\.org\//, '').replace(/^https?:\/\/arxiv\.org\/(abs|pdf)\//, '').replace(/^arxiv:/i, '');
-if (source) {
-  try {
-    pre = /^10\.\d{4,9}\//.test(source) ? await fromDoi(source) : await fromArxiv(source);
-    console.log(c.green(`✔ Found “${pre.title}”\n`));
-  } catch (e) {
-    console.log(c.red(`Could not prefill (${e.message}). Continuing manually.\n`));
-  }
-}
-
-const title = await ask('Title', pre.title);
-const authors = (await ask('Authors, comma-separated (append * for equal contribution)', pre.authors?.join(', ')))
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
-
-// Where is the paper in its life? This decides type and status; an arXiv link never does.
-console.log(c.dim('\nStage: 1) accepted or published  2) under review  3) under revision  4) public working paper (preprint, not under review)'));
-let stage = '';
-while (!['1', '2', '3', '4'].includes(stage)) stage = await ask('Stage', pre.links?.doi ? '1' : '');
-
-const rec = { id: '', title, authors, links: {} };
-if (stage === '4') {
-  rec.type = 'working-paper';
-  if (pre.date) rec.date = pre.date;
-} else if (stage === '2' || stage === '3') {
-  rec.status = stage === '2' ? 'under-review' : 'under-revision';
-  if (await yes('Is it a survey?', false)) rec.type = 'survey';
-} else {
-  const kind = await ask('Venue type: 1) conference  2) journal', pre.type === 'journal' ? '2' : '1');
-  const types = [kind === '2' ? 'journal' : 'conference'];
-  if (await yes('Is it a survey?', false)) types.unshift('survey');
+/** Venue, year, pages and presentation for accepted work. Exported for update-pub. */
+export async function askAccepted(rec, pre = {}) {
+  const kind = await choose('Where was it accepted?', [
+    { label: 'A conference', value: 'conference' },
+    { label: 'A journal', value: 'journal' },
+  ], pre.type === 'journal' ? 'journal' : 'conference');
+  const types = [kind];
+  if (await yes('Is it a survey paper?', [rec.type].flat().includes('survey'))) types.unshift('survey');
   rec.type = types.length === 1 ? types[0] : types;
-  rec.status = (await yes('Already published (proceedings/journal out)? No = accepted, to appear', true)) ? 'published' : 'to-appear';
-  rec.year = Number(await ask('Year', pre.year));
-  const date = await ask('Date (YYYY-MM or YYYY-MM-DD, only used for ordering; optional)', pre.date);
+  rec.status = (await yes('Is it already published (proceedings or issue out)? Answer no if it is accepted but still "to appear".', rec.status !== 'to-appear' && !!pre.links?.doi))
+    ? 'published'
+    : 'to-appear';
+  rec.year = Number(await ask('Year', rec.year ?? pre.year ?? new Date().getFullYear()));
+  const date = await ask('Date, only used to order papers within a year (YYYY-MM or YYYY-MM-DD, optional)', rec.date ?? pre.date ?? '');
   if (date) rec.date = date;
-  const name = await ask('Venue — full proceedings or journal name', pre.venueName);
-  const acronym = await ask('Venue — acronym shown in bold, e.g. "NeurIPS" (optional for journals)', pre.venueAcronym || guessAcronym(name));
-  rec.venue = { name, ...(acronym && { acronym }) };
-  const pages = await ask('Pages (optional)', pre.pages);
+  else delete rec.date;
+  const name = await ask('Full proceedings or journal name', rec.venue?.name ?? pre.venueName ?? '');
+  const acronym = await ask('Short venue name shown in bold, e.g. NeurIPS (optional for journals)', rec.venue?.acronym ?? pre.venueAcronym ?? guessAcronym(name));
+  rec.venue = { ...(rec.venue ?? {}), name, ...(acronym ? { acronym } : {}) };
+  if (!acronym) delete rec.venue.acronym;
+  const pages = await ask('Pages (optional)', rec.venue.pages ?? pre.pages ?? '');
   if (pages) rec.venue.pages = pages;
-  if (pre.volume) rec.venue.volume = pre.volume;
-  if (pre.number) rec.venue.number = pre.number;
-  if (pre.publisher) rec.venue.publisher = pre.publisher;
-  const note = await ask('Note, e.g. "Extended Abstract" (optional)');
+  for (const k of ['volume', 'number', 'publisher']) if (pre[k] && !rec.venue[k]) rec.venue[k] = pre[k];
+  const note = await ask('Qualifier such as "Extended Abstract" (optional)', rec.note ?? '');
   if (note) rec.note = note;
-  if (types.includes('conference')) {
-    const keys = Object.keys(PRESENTATION_META);
-    console.log(c.dim(`Presentation — only if the official programme says so: ${keys.map((k, i) => `${i + 1}) ${PRESENTATION_META[k].label}`).join('  ')}`));
-    const pres = keys[Number(await ask('Presentation (number, optional)')) - 1];
-    if (pres) rec.presentation = pres;
+  else delete rec.note;
+  if (types.includes('conference')) await askPresentation(rec);
+  else delete rec.presentation;
+}
+
+/** Oral / poster / … and online / in person. Only what the official programme states. */
+export async function askPresentation(rec) {
+  const cur = rec.presentation ? (typeof rec.presentation === 'string' ? { type: rec.presentation } : rec.presentation) : null;
+  console.log(c.dim('Presentation: only record what the official programme says. Leave it empty if unsure.'));
+  const type = await choose('How was it presented?', [
+    { label: 'Not known / leave empty', value: '' },
+    ...Object.entries(PRESENTATION_META).map(([k, v]) => ({ label: v.label, value: k })),
+  ], cur?.type ?? '');
+  if (!type) {
+    delete rec.presentation;
+    return;
+  }
+  const mode = await choose('Was it given online or in person?', [
+    { label: 'Not recorded', value: '' },
+    ...Object.entries(MODE_META).map(([k, v]) => ({ label: v.label, value: k })),
+  ], cur?.mode ?? '');
+  rec.presentation = mode ? { type, mode } : type;
+}
+
+export async function askLinks(rec, pre = {}) {
+  console.log(c.dim('\nLinks: paste a URL (or a bare DOI / arXiv id). Enter keeps the value shown; type "-" to remove it.'));
+  rec.links = rec.links ?? {};
+  for (const kind of ['paper', 'pdf', 'arxiv', 'doi', 'openreview', 'code', 'project', 'slides', 'video', 'poster', 'data', 'supplement']) {
+    const cur = rec.links[kind] ?? pre.links?.[kind];
+    if (Array.isArray(cur)) {
+      console.log(c.dim(`  ${LINK_META[kind].label}: several links (edit the file to change them)`));
+      continue;
+    }
+    const v = await ask(`  ${LINK_META[kind].label}`, cur ?? '');
+    if (v === '-' || !v) delete rec.links[kind];
+    else rec.links[kind] = kind === 'doi' || kind === 'arxiv' ? normaliseId(v) : v;
   }
 }
 
-console.log(c.dim('\nLinks — paste a URL or press Enter to skip. DOI and arXiv take bare ids.'));
-for (const kind of ['paper', 'pdf', 'arxiv', 'doi', 'openreview', 'code']) {
-  const v = await ask(`  ${LINK_META[kind].label}`, pre.links?.[kind]);
-  if (v) rec.links[kind] = v.replace(/^https?:\/\/(dx\.)?doi\.org\//, '').replace(/^https?:\/\/arxiv\.org\/abs\//, '');
-}
-const more = await ask(`  Other links as kind=url, space-separated (${['project', 'data', 'slides', 'poster', 'video', 'supplement'].join('/')})`);
-for (const pair of more.split(/\s+/).filter(Boolean)) {
-  const [k, ...rest] = pair.split('=');
-  if (LINK_META[k]) rec.links[k] = rest.join('=');
-}
-
-console.log(c.dim(`\nTopics: ${themes.map((t, i) => `${i + 1}) ${t.title}`).join('  ')}`));
-rec.topics = (await ask('Topics (numbers, optional)'))
-  .split(/[,\s]+/)
-  .map((n) => themes[Number(n) - 1]?.id)
-  .filter(Boolean);
-
-if (pre.abstract && (await yes('Include the abstract from the prefill source?', true))) rec.abstract = pre.abstract;
-rec.featured = await yes('Feature it on the home page?', false);
-
-const text = readFileSync(FILE, 'utf8');
-const existing = new Set((parse(text) ?? []).map((p) => p.id));
-let id = slugify(title);
-while (existing.has(id)) id += '-2';
-rec.id = await ask('\nURL id', id);
-
-const block = toYaml(rec);
-const next = `${text.trimEnd()}\n\n${block}\n`;
-console.log('\n' + c.dim('─'.repeat(60)) + '\n' + block + '\n' + c.dim('─'.repeat(60)));
-
-try {
-  loadPublications(next, { topics: themes.map((t) => t.id) });
-} catch (e) {
-  if (e instanceof PublicationDataError) {
-    console.log(c.red(e.message));
-    console.log('Nothing was written. Fix the answers above (or edit the YAML by hand) and try again.');
-    rl.close();
-    exit(1);
+async function main() {
+  console.log(c.bold('\nAdd a publication') + c.dim('   Enter accepts the value in [brackets]. Ctrl+C cancels; nothing is saved until you confirm.\n'));
+  let pre = {};
+  const source = normaliseId(argv[2] ?? (await ask('arXiv id or DOI to look up (optional; press Enter to type everything yourself)')));
+  if (source) {
+    try {
+      pre = isDoi(source) ? await fromDoi(source) : await fromArxiv(source);
+      console.log(c.green(`✔ Found “${pre.title}”`) + c.dim(` (${pre.authors.join(', ')})`));
+      if (pre.comment) console.log(c.dim(`  arXiv comment: ${pre.comment}`));
+      console.log();
+    } catch (e) {
+      console.log(c.yellow(`Could not look it up (${e.message}). Continuing by hand.\n`));
+    }
   }
-  throw e;
+
+  const rec = { id: '', title: '', authors: [], links: {} };
+  rec.title = await ask('Title', pre.title ?? '');
+  rec.authors = (await ask('Authors, comma-separated (add * after a name for equal contribution)', pre.authors?.join(', ') ?? ''))
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  // The one question that decides type and status. An arXiv link never decides it.
+  console.log();
+  const stage = await choose('Where is this paper now?', [
+    { label: 'Accepted or published at a conference or journal', value: 'accepted' },
+    { label: 'Submitted and under review', value: 'under-review' },
+    { label: 'Under revision (after reviews)', value: 'under-revision' },
+    { label: 'Public preprint only; not submitted anywhere at the moment (working paper)', value: 'working' },
+  ], pre.links?.doi ? 'accepted' : undefined);
+
+  if (stage === 'working') {
+    rec.type = 'working-paper';
+    if (pre.date) rec.date = pre.date;
+  } else if (stage === 'under-review' || stage === 'under-revision') {
+    rec.status = stage;
+    if (await yes('Is it a survey paper?', false)) rec.type = 'survey';
+  } else await askAccepted(rec, pre);
+
+  await askLinks(rec, pre);
+  rec.topics = await askTopics();
+  if (pre.abstract && (await yes('Use the abstract from the lookup?', true))) rec.abstract = pre.abstract;
+  rec.featured = await yes('Feature it on the home page?', false);
+  if (!rec.featured) delete rec.featured;
+
+  const text = readFile();
+  const existing = new Set(records(text).map((p) => p.id));
+  let id = slugify(rec.title);
+  while (existing.has(id)) id += '-2';
+  rec.id = await ask('\nWeb address id (the paper will live at /publications/<id>/)', id);
+
+  console.log('\n' + c.bold('Summary') + '\n' + describe(rec) + '\n');
+  if (!(await yes('Save this paper?', true))) {
+    console.log('Nothing was saved.');
+    return 0;
+  }
+  const res = safeWrite(appendRecord(text, rec));
+  if (!res.ok) {
+    console.log(c.red(res.message));
+    console.log('Nothing was saved. Run the command again, or edit src/data/publications.yaml by hand.');
+    return 1;
+  }
+  console.log(c.green(`\n✔ Saved and validated.`) + ` Preview: npm run dev, then open http://localhost:4321/publications/${rec.id}/`);
+  console.log(c.dim('  Publish: git add -A && git commit -m "Add paper" && git push\n'));
+  return 0;
 }
 
-if (await yes('Write this record?', true)) {
-  writeFileSync(FILE, next);
-  console.log(c.green(`\n✔ Added. Preview with \`npm run dev\` → http://localhost:4321/publications/${rec.id}/`));
-  console.log(c.dim('  Then commit and push; the site redeploys automatically.\n'));
-} else console.log('Nothing was written.');
-rl.close();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const code = await main();
+  rl.close();
+  exit(code);
+}

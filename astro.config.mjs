@@ -22,6 +22,6 @@ export default defineConfig({
   build: { format: 'directory' },
   redirects,
   prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
-  integrations: [sitemap({ filter: (page) => !page.includes('/publication/') && !/\/(about|resume)\/?$/.test(page) })],
+  integrations: [sitemap({ filter: (page) => !page.includes('/publication/') && !page.includes('/design-review/') && !/\/(about|resume)\/?$/.test(page) })],
   devToolbar: { enabled: false },
 });

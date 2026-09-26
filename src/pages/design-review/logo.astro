@@ -1,0 +1,161 @@
+---
+// Hidden review page for site-mark candidates (not linked, not in the sitemap, noindex).
+import Base from '../../layouts/Base.astro';
+import LogoA from '../../components/logos/LogoA.astro';
+import LogoB from '../../components/logos/LogoB.astro';
+import LogoC from '../../components/logos/LogoC.astro';
+import Mark from '../../components/Mark.astro';
+
+const candidates = [
+  { key: 'A', name: 'Monogram', note: 'A narrow S and an open C on one baseline, drawn with the same geometric stroke (the C in the accent). The most direct: reads as initials at every size.', C: LogoA },
+  { key: 'B', name: 'Flow & balance', note: 'One gentle wave with a point at rest in its trough: poise within motion. Personal rather than literal; echoes the Water and Air scenes.', C: LogoB },
+  { key: 'C', name: 'Typographic', note: 'Lowercase italic “sc” in the site’s serif, in a rounded tile. Ties the mark to the typography; the tile makes it a strong favicon.', C: LogoC },
+];
+const sizes = [48, 32, 24, 16];
+const surfaces = [
+  { key: 'light', label: 'Light', style: '--s-bg:#f4f2ec;--s-ink:#14161b;--logo-accent:#2742c4;--logo-on:#f4f2ec' },
+  { key: 'dark', label: 'Dark', style: '--s-bg:#0b0d11;--s-ink:#ebe8e1;--logo-accent:#93b0ff;--logo-on:#0b0d11' },
+  { key: 'mono-l', label: 'Mono on light', style: '--s-bg:#ffffff;--s-ink:#000000;--logo-accent:#000000;--logo-on:#ffffff' },
+  { key: 'mono-d', label: 'Mono on dark', style: '--s-bg:#000000;--s-ink:#ffffff;--logo-accent:#ffffff;--logo-on:#000000' },
+];
+---
+
+<Base title="Logo candidates" description="Site-mark candidates for review." noindex>
+  <div class="wrap review">
+    <p class="eyebrow">Design review · not linked from the site</p>
+    <h1>Site-mark candidates</h1>
+    <p class="intro">Three directions, shown at header size and at 48, 32, 24 and 16 px, on light, dark and monochrome surfaces. The current mark is shown last for comparison. Nothing here replaces the live mark until you choose.</p>
+
+    {
+      candidates.map(({ key, name, note, C }) => (
+        <section class="cand">
+          <header>
+            <h2>
+              <span class="k">{key}</span> {name}
+            </h2>
+            <p>{note}</p>
+          </header>
+          <div class="grid">
+            {surfaces.map((s) => (
+              <div class="surface" style={s.style}>
+                <p class="slabel">{s.label}</p>
+                <div class="header-demo">
+                  <C size={26} />
+                  <span>Saar Cohen</span>
+                </div>
+                <div class="sizes">
+                  {sizes.map((z) => (
+                    <figure>
+                      <C size={z} />
+                      <figcaption>{z}</figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))
+    }
+
+    <section class="cand">
+      <header>
+        <h2><span class="k">·</span> Current mark (for comparison)</h2>
+      </header>
+      <div class="grid">
+        {
+          surfaces.map((s) => (
+            <div class="surface" style={s.style}>
+              <p class="slabel">{s.label}</p>
+              <div class="header-demo">
+                <Mark size={26} />
+                <span>Saar Cohen</span>
+              </div>
+              <div class="sizes">
+                {sizes.map((z) => (
+                  <figure>
+                    <Mark size={z} />
+                    <figcaption>{z}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .review {
+    padding-top: var(--space-7);
+    display: grid;
+    gap: var(--space-6);
+  }
+  h1 {
+    font-size: var(--step-3);
+  }
+  .intro {
+    color: var(--ink-2);
+    max-width: 64ch;
+  }
+  .cand header {
+    margin-bottom: var(--space-4);
+  }
+  .cand h2 {
+    font-size: var(--step-2);
+  }
+  .cand header p {
+    color: var(--ink-2);
+    max-width: 70ch;
+    font-size: var(--step--1);
+  }
+  .k {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    margin-right: 0.4em;
+  }
+  .grid {
+    display: grid;
+    gap: 1px;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--line);
+  }
+  .surface {
+    background: var(--s-bg);
+    color: var(--s-ink);
+    padding: var(--space-5);
+    display: grid;
+    gap: var(--space-4);
+  }
+  .slabel {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    opacity: 0.6;
+  }
+  .header-demo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.12rem;
+  }
+  .sizes {
+    display: flex;
+    align-items: flex-end;
+    gap: 1.2rem;
+  }
+  figure {
+    display: grid;
+    justify-items: center;
+    gap: 0.35rem;
+  }
+  figcaption {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    opacity: 0.55;
+  }
+</style>

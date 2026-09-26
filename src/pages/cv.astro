@@ -95,7 +95,7 @@ type Entry = { period: string; title: string; org: string; detail?: string; item
                         <Fragment>
                           <i>{p.venueLabel}</i>
                           {p.status === 'to-appear' && ' (to appear)'}
-                          {p.presentationLabel && ` · ${p.presentationLabel}`}
+                          {p.presentationLabel && ` · ${p.presentationLabel}${p.presentationModeLabel ? ` (${p.presentationModeLabel.toLowerCase()})` : ''}`}
                           {p.types.includes('survey') && ` · ${TYPE_META.survey.label}`}
                         </Fragment>
                       ) : p.isWorkingPaper ? (

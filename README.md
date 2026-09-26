@@ -11,7 +11,8 @@ to GitHub Pages by GitHub Actions.
 |---|---|
 | `npm install` | once, after cloning (Node 22+) |
 | `npm run dev` | local preview with live reload at http://localhost:4321 |
-| `npm run add-pub` | add a publication interactively |
+| `npm run add-pub -- <arXiv id or DOI>` | add a publication (see PUBLICATIONS.md) |
+| `npm run update-pub -- <id or title words>` | change a publication's stage, venue, presentation or links |
 | `npm run check` | validate `src/data/publications.yaml` |
 | `npm test` | schema rules + data validation (also runs in CI) |
 | `npm run build` | build the static site into `dist/` |

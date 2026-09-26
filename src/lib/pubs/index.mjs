@@ -1,9 +1,9 @@
 // Parses + validates publications.yaml and derives everything the UI needs
 // (sorting, filters, link objects, BibTeX, citations). No presentation code here.
 import { parseDocument, visit, isScalar } from 'yaml';
-import { publicationsFileSchema, TYPE_META, STATUS_META, LINK_META, PRESENTATION_META } from './schema.mjs';
+import { publicationsFileSchema, TYPE_META, STATUS_META, LINK_META, PRESENTATION_META, MODE_META } from './schema.mjs';
 
-export { TYPE_META, STATUS_META, LINK_META, PRESENTATION_META };
+export { TYPE_META, STATUS_META, LINK_META, PRESENTATION_META, MODE_META };
 
 /** Order of the groups on the publications page. */
 export const STAGES = ['working', 'review', 'accepted'];
@@ -83,6 +83,8 @@ function normalize(p) {
   types.sort((a, b) => order.indexOf(a) - order.indexOf(b));
   const date = toDateString(p.date);
   const isWorkingPaper = types.includes('working-paper');
+  // Presentation is stored as { type, mode? }; the string shorthand "oral" means { type: 'oral' }.
+  const pres = p.presentation ? (typeof p.presentation === 'string' ? { type: p.presentation } : p.presentation) : null;
   // Accepted venue types default to "published"; working papers have no status.
   const status = p.status ?? (isWorkingPaper ? null : 'published');
   const stage = isWorkingPaper ? 'working' : STATUS_META[status].stage;
@@ -97,7 +99,11 @@ function normalize(p) {
     isUnderReview: stage === 'review',
     isAccepted: stage === 'accepted',
     statusLabel: status ? STATUS_META[status].label : null,
-    presentationLabel: p.presentation ? PRESENTATION_META[p.presentation].label : null,
+    presentation: pres,
+    presentationType: pres?.type ?? null,
+    presentationMode: pres?.mode ?? null,
+    presentationLabel: pres ? PRESENTATION_META[pres.type].label : null,
+    presentationModeLabel: pres?.mode ? MODE_META[pres.mode].label : null,
     venueLabel: p.venue ? (p.venue.acronym ? `${p.venue.acronym} ${p.year}` : p.venue.name) : null,
     authors: p.authors.map((name) => ({ name: name.replace(/\*$/, ''), equal: name.endsWith('*') })),
     hasEqualContribution: p.authors.some((a) => a.endsWith('*')),

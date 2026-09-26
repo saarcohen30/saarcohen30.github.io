@@ -9,12 +9,13 @@ const { pub } = Astro.props;
 
 {
   pub.presentationLabel && (
-    <span class="pres" data-presentation={pub.presentation}>
+    <span class="pres" data-presentation={pub.presentationType}>
       <svg viewBox="0 0 10 10" aria-hidden="true">
         <circle cx="5" cy="5" r="3.9" fill="none" stroke="currentColor" stroke-width="1.2" />
         <circle cx="5" cy="5" r="1.7" fill="currentColor" />
       </svg>
       <span class="visually-hidden">Presented as </span>{pub.presentationLabel}
+      {pub.presentationModeLabel && <span class="mode"><span aria-hidden="true">·</span> {pub.presentationModeLabel}</span>}
     </span>
   )
 }
@@ -40,6 +41,11 @@ const { pub } = Astro.props;
   .pres:not([data-presentation='poster']) {
     padding-bottom: 1px;
     box-shadow: inset 0 -1.5px 0 color-mix(in oklab, var(--accent) 55%, transparent);
+  }
+  .mode {
+    font-weight: 500;
+    color: var(--ink-3);
+    letter-spacing: 0.04em;
   }
   .pres[data-presentation='poster'] {
     font-weight: 500;
