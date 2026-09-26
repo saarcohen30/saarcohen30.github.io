@@ -1,0 +1,10 @@
+---
+// Flow & balance B1: two currents. One rises and runs on, the other falls and returns; they part
+// around a tilted central void and settle level at both ends. Balance through asymmetry.
+interface Props { size?: number; class?: string }
+const { size = 32, class: className } = Astro.props;
+---
+<svg class={className} width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">
+  <path d="M3.5 15.2C7 15.2 8.6 7.6 14.2 7.6C19.4 7.6 21.4 12.6 28.5 12.6" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" />
+  <path d="M3.5 19.4C10.6 19.4 12.6 24.4 17.8 24.4C23.4 24.4 25 16.8 28.5 16.8" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" />
+</svg>

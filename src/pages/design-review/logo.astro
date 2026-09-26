@@ -4,12 +4,22 @@ import Base from '../../layouts/Base.astro';
 import LogoA from '../../components/logos/LogoA.astro';
 import LogoB from '../../components/logos/LogoB.astro';
 import LogoC from '../../components/logos/LogoC.astro';
+import LogoB1 from '../../components/logos/LogoB1.astro';
+import LogoB2 from '../../components/logos/LogoB2.astro';
+import LogoB3 from '../../components/logos/LogoB3.astro';
+import LogoB4 from '../../components/logos/LogoB4.astro';
 import Mark from '../../components/Mark.astro';
 
 const candidates = [
-  { key: 'A', name: 'Monogram', note: 'A narrow S and an open C on one baseline, drawn with the same geometric stroke (the C in the accent). The most direct: reads as initials at every size.', C: LogoA },
-  { key: 'B', name: 'Flow & balance', note: 'One gentle wave with a point at rest in its trough: poise within motion. Personal rather than literal; echoes the Water and Air scenes.', C: LogoB },
-  { key: 'C', name: 'Typographic', note: 'Lowercase italic “sc” in the site’s serif, in a rounded tile. Ties the mark to the typography; the tile makes it a strong favicon.', C: LogoC },
+  { key: 'B1', name: 'Two currents', note: 'Two currents in complementary motion: one rises and runs on, the other falls and returns. They part around a tilted central void and settle level at both ends, so the balance comes from negative space and controlled asymmetry, not from a symbol.', C: LogoB1 },
+  { key: 'B2', name: 'One stroke', note: 'A single calligraphic stroke: heavy through the crest like a wave, thinning into a long glide like moving air. The most minimal; at 16 px it reads mostly as the crest.', C: LogoB2 },
+  { key: 'B3', name: 'Negative-space current', note: 'A current cut through a solid tile splits it into two interlocking forms of equal weight; the flow is the empty channel between them. The strongest favicon of the four.', C: LogoB3 },
+  { key: 'B4', name: 'S and C through flow', note: 'One stroke descends as an S and carries on into the lower arc of a C; the C’s upper arc curls back above it. The initials are there if you look, but it reads first as a current.', C: LogoB4 },
+];
+const earlier = [
+  { key: 'B', name: 'Flow & balance (first version)', note: 'The earlier wave with a point in its trough, kept for comparison.', C: LogoB },
+  { key: 'A', name: 'Monogram', note: 'Not selected.', C: LogoA },
+  { key: 'C', name: 'Typographic', note: 'Not selected.', C: LogoC },
 ];
 const sizes = [48, 32, 24, 16];
 const surfaces = [
@@ -23,11 +33,44 @@ const surfaces = [
 <Base title="Logo candidates" description="Site-mark candidates for review." noindex>
   <div class="wrap review">
     <p class="eyebrow">Design review · not linked from the site</p>
-    <h1>Site-mark candidates</h1>
-    <p class="intro">Three directions, shown at header size and at 48, 32, 24 and 16 px, on light, dark and monochrome surfaces. The current mark is shown last for comparison. Nothing here replaces the live mark until you choose.</p>
+    <h1>Site mark: Flow &amp; balance</h1>
+    <p class="intro">Four marks in the Flow &amp; balance direction, none with a decorative point, shown at header size and at 48, 32, 24 and 16 px on light, dark and monochrome surfaces. Earlier candidates and the current mark follow for comparison. Nothing here replaces the live mark until you choose.</p>
 
     {
       candidates.map(({ key, name, note, C }) => (
+        <section class="cand">
+          <header>
+            <h2>
+              <span class="k">{key}</span> {name}
+            </h2>
+            <p>{note}</p>
+          </header>
+          <div class="grid">
+            {surfaces.map((s) => (
+              <div class="surface" style={s.style}>
+                <p class="slabel">{s.label}</p>
+                <div class="header-demo">
+                  <C size={26} />
+                  <span>Saar Cohen</span>
+                </div>
+                <div class="sizes">
+                  {sizes.map((z) => (
+                    <figure>
+                      <C size={z} />
+                      <figcaption>{z}</figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))
+    }
+
+    <h2 class="group">Earlier candidates (for comparison)</h2>
+    {
+      earlier.map(({ key, name, note, C }) => (
         <section class="cand">
           <header>
             <h2>
@@ -99,6 +142,11 @@ const surfaces = [
   .intro {
     color: var(--ink-2);
     max-width: 64ch;
+  }
+  .group {
+    font-size: var(--step-1);
+    color: var(--ink-2);
+    margin-top: var(--space-6);
   }
   .cand header {
     margin-bottom: var(--space-4);

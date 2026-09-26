@@ -1,0 +1,14 @@
+---
+// Flow & balance B3: negative space. A current cut through a solid tile divides it into two
+// interlocking forms of equal weight; the current itself is the empty space between them.
+interface Props { size?: number; class?: string }
+const { size = 32, class: className } = Astro.props;
+const id = `b3-${Math.random().toString(36).slice(2, 8)}`;
+---
+<svg class={className} width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <mask id={id}>
+    <rect width="32" height="32" fill="#fff" />
+    <path d="M-2 18C4.5 18 7 11.5 12 11.5C17 11.5 15 20.5 20 20.5C25 20.5 27.5 14 34 14" stroke="#000" stroke-width="3.2" fill="none" />
+  </mask>
+  <rect x="2" y="2" width="28" height="28" rx="8" fill="currentColor" mask={`url(#${id})`} />
+</svg>
