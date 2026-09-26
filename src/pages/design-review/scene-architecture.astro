@@ -7,130 +7,112 @@ import { ENTRIES } from '../../lib/field/review/registry';
 import { profile } from '../../lib/site';
 
 const by = (id: string) => ENTRIES.find((e) => e.id === id)!;
-const research = ['r-gather', 'r-share', 'r-adapt', 'r-exchange'].map(by);
 const elements = ['water', 'air', 'earth', 'fire', 'convergence'].map(by);
-const unified = ['u-gather', 'u-share', 'u-adapt', 'u-exchange'].map(by);
-const themes = [
-  { t: 'Coalitions & collective decisions', r: 'r-gather', u: 'u-gather' },
-  { t: 'Fair allocation over time', r: 'r-share', u: 'u-share' },
-  { t: 'Learning in multi-agent systems', r: 'r-adapt', u: 'u-adapt' },
-  { t: 'Principled & safe AI', r: 'r-exchange', u: 'u-exchange' },
+const original = [
+  { e: by('r-gather'), t: 'Coalitions & collective decisions' },
+  { e: by('r-share'), t: 'Fair allocation over time' },
+  { e: by('r-adapt'), t: 'Learning in multi-agent systems' },
+  { e: by('r-exchange'), t: 'Principled & safe AI' },
 ];
-const tagline = profile.tagline.replace(/\*\*/g, '');
+const flowOnly = ['u-gather', 'u-share', 'u-adapt', 'u-exchange'].map(by);
+const d2 = ['d2-gather', 'd2-share-a', 'd2-share-b', 'd2-adapt-a', 'd2-adapt-b', 'd2-exchange'].map(by);
+// The preferred D2 study per theme, in the order of the home page's themes.
+const preferred = ['d2-gather', 'd2-share-a', 'd2-adapt-a', 'd2-exchange'];
+const themes = (profile.themes as { title: string; areas: string[]; summary: string }[]).map((t, i) => ({ ...t, e: by(preferred[i]) }));
 ---
 
 <Base title="Scene architecture" description="Which visual system should the home page use?" noindex>
   <div class="wrap review arch">
     <p class="eyebrow">Design review · not linked from the site</p>
     <h1>Scene architecture</h1>
-    <p class="intro">
-      One question: <b>what single visual system best says who you are and what you work on, without making visitors decode two design languages?</b> Four options are shown below, then a recommendation. Nothing
-      here changes the live site.
-    </p>
-    <nav class="toc" aria-label="Sections">
-      <a href="#a">A · Two families</a>
-      <a href="#b">B · Elements primary</a>
-      <a href="#c">C · Research primary</a>
-      <a href="#d">D · One language</a>
-      <a href="#rec">Recommendation</a>
-      <a href="#motion">Motion &amp; accessibility</a>
-    </nav>
 
-    <section id="a">
-      <h2>A · Two independent families in one random pool</h2>
-      <p class="intro">
-        Each visit shows one scene drawn at random from all nine. A first-time visitor may meet a network of agents; the next visit, a dune field. There is no visible relationship between the two sets, and nothing
-        tells the visitor there are two.
-      </p>
-      <h3>Research family</h3>
-      <div class="row four">{research.map((e) => <ReviewCard e={e} compact />)}</div>
-      <h3>Personal family</h3>
+    <section id="hypothesis">
+      <h2>Current hypothesis</h2>
+      <div class="rec">
+        <p><b>Elements = hero identity.</b> Water, Air, Earth, Fire and Convergence own the entrance: personality, atmosphere, memorability.</p>
+        <p><b>Research-specific scenes = contextual explanation.</b> In “What I work on”, each theme gets a scene that shows its own mechanism: agents and groups, items and bundles, agents learning from feedback, attacker and defender.</p>
+        <p><b>Shared art direction = coherence.</b> Same stage, pale marks, one warm accent, soft halos, hairlines and eased motion, not the same subject matter.</p>
+      </div>
+      <nav class="toc" aria-label="Sections">
+        <a href="#elements">Elemental identity</a>
+        <a href="#original">Original research scenes</a>
+        <a href="#rejected">Rejected flow-only experiment</a>
+        <a href="#d2">D2 studies</a>
+        <a href="#mock">What I work on mock</a>
+        <a href="#motion">Motion &amp; accessibility</a>
+      </nav>
+    </section>
+
+    <section id="elements">
+      <h2>Elemental identity</h2>
+      <p class="intro">The hero family (production scenes, unchanged).</p>
       <div class="row five">{elements.map((e) => <ReviewCard e={e} compact />)}</div>
     </section>
 
-    <section id="b">
-      <h2>B · Elements are the home-page identity; research scenes move into context</h2>
-      <p class="intro">The hero rotates only through the elemental family. The research scenes become small illustrations beside the themes in “What I work on”. Scroll this mock as a visitor would.</p>
-      <div class="mock">
-        <div class="mock-hero">
-          <div class="mock-text">
-            <p class="mock-role">{profile.role} · {profile.affiliation_short}</p>
-            <p class="mock-name">{profile.name}</p>
-            <p class="mock-tag">{tagline}</p>
-          </div>
-          <div class="mock-scene"><ReviewCard e={by('convergence')} compact /></div>
-        </div>
-        <div class="mock-work">
-          <p class="mock-h">What I work on</p>
-          <div class="row four">
-            {
-              themes.map((th) => (
-                <div class="tile">
-                  <ReviewCard e={by(th.r)} compact />
-                  <p>{th.t}</p>
-                </div>
-              ))
-            }
-          </div>
-        </div>
+    <section id="original">
+      <h2>Original research scenes</h2>
+      <p class="intro">Today’s hero rotation. Their mechanisms are the semantic foundation for D2; their node-and-edge style is what D2 brings into the shared art direction.</p>
+      <div class="row four">
+        {
+          original.map((o) => (
+            <div class="tile">
+              <ReviewCard e={o.e} compact />
+              <p>{o.t}</p>
+            </div>
+          ))
+        }
       </div>
     </section>
 
-    <section id="c">
-      <h2>C · Research scenes are the identity; elements become secondary</h2>
-      <p class="intro">
-        The reverse of B: the hero keeps Adapt, Exchange, Share and Gather (today’s live behaviour), and the elemental scenes appear elsewhere, for example on the About page. Visually this is today’s home page, so
-        it is not mocked again.
-      </p>
+    <section id="rejected" class="rejected">
+      <h2>Earlier flow-only experiment (rejected)</h2>
+      <p class="flag">Rejected because semantic distinctions became too weak: all four read as variations of the Air scene.</p>
+      <div class="row four">{flowOnly.map((e) => <ReviewCard e={e} compact />)}</div>
     </section>
 
-    <section id="d">
-      <h2>D · One visual language: the research ideas as behaviours of the flow</h2>
-      <p class="intro">
-        The elemental material language becomes the identity, and the research concepts become <i>behaviours</i> within it rather than a second style: currents that adapt, exchange, share and gather. They use
-        the same pale streamlines as Air, one warm accent, the dark stage, and the paired, splitting and merging currents of the new mark. Rough studies, not production.
-      </p>
-      <div class="row four big">{unified.map((e) => <ReviewCard e={e} />)}</div>
-      <h3>The same home-page mock, with D</h3>
-      <div class="mock">
-        <div class="mock-hero">
-          <div class="mock-text">
-            <p class="mock-role">{profile.role} · {profile.affiliation_short}</p>
-            <p class="mock-name">{profile.name}</p>
-            <p class="mock-tag">{tagline}</p>
-          </div>
-          <div class="mock-scene"><ReviewCard e={by('water')} compact /></div>
-        </div>
-        <div class="mock-work">
-          <p class="mock-h">What I work on</p>
-          <div class="row four">
-            {
-              themes.map((th) => (
-                <div class="tile">
-                  <ReviewCard e={by(th.u)} compact />
-                  <p>{th.t}</p>
-                </div>
-              ))
-            }
-          </div>
-        </div>
+    <section id="d2">
+      <h2>D2: unified art direction, research-specific mechanisms</h2>
+      <p class="intro">Semantic-design studies, not production. The labels under each card are for review only and would not appear on the site.</p>
+      <div class="row two">
+        {
+          d2.map((e) => (
+            <div class="d2">
+              <ReviewCard e={e} compact />
+              <dl class="sem">
+                <dt>Intended reading</dt>
+                <dd>{e.sem!.reading}</dd>
+                <dt>Research connection</dt>
+                <dd>{e.sem!.research}</dd>
+                <dt>What is literal</dt>
+                <dd>{e.sem!.literal}</dd>
+                <dt>What is metaphorical</dt>
+                <dd>{e.sem!.metaphor}</dd>
+              </dl>
+            </div>
+          ))
+        }
       </div>
     </section>
 
-    <section id="rec">
-      <h2>Recommendation</h2>
-      <div class="rec">
-        <p>
-          <b>D, delivered in two steps.</b> First make the elemental family the only hero family (B); then, as the flow-language studies mature, let them replace the research-scene illustrations in “What I work
-          on”, so the whole site speaks one visual language. Do not rotate the two families together (A).
-        </p>
-        <ul>
-          <li><b>Consistency:</b> one visual language at the one spot visitors judge in a fraction of a second; research ideas stay present as behaviours and in context.</li>
-          <li><b>Hierarchy:</b> the hero stays identity and atmosphere; the research meaning is carried by the name, the tagline and the themes directly beneath.</li>
-          <li><b>Repeat visits:</b> variation stays inside one grammar, so the site stays recognisable.</li>
-          <li><b>The mark:</b> counter-rotating currents are already the Exchange behaviour in miniature: the logo, the hero and the research illustrations share one geometry.</li>
-        </ul>
-        <p class="dim">The full reasoning, with sources, is in the review summary. Test it with 3–5 people before deciding (protocol in the summary).</p>
+    <section id="mock">
+      <h2>What I work on (mock)</h2>
+      <p class="intro">The four preferred D2 studies (Share A, Adapt A) placed as they would appear in the real section, with its real text.</p>
+      <div class="mock-work">
+        <p class="mock-eyebrow"><span>02</span> Research</p>
+        <p class="mock-h">What I work on</p>
+        <ol class="mock-themes">
+          {
+            themes.map((t, i) => (
+              <li>
+                <ReviewCard e={t.e} compact />
+                <p class="mock-n">{String(i + 1).padStart(2, '0')}</p>
+                <h3>{t.title}</h3>
+                <p class="mock-areas">{t.areas.join(' · ')}</p>
+                <p class="mock-sum">{t.summary}</p>
+              </li>
+            ))
+          }
+        </ol>
       </div>
     </section>
 
@@ -138,14 +120,11 @@ const tagline = profile.tagline.replace(/\*\*/g, '');
       <h2>Motion &amp; accessibility (applies whichever option wins)</h2>
       <ul class="plain">
         <li>
-          <b>WCAG 2.2.2 (Pause, Stop, Hide):</b> motion that starts automatically, lasts more than five seconds and runs alongside other content needs a way to pause, stop or hide it. Every live hero scene moves
-          continuously today, so the site needs either a small pause control, or scenes that settle within five seconds and then stay still.
+          <b>WCAG 2.2.2 (Pause, Stop, Hide):</b> motion that starts automatically, lasts more than five seconds and runs alongside other content needs a way to pause, stop or hide it. The hero scenes move
+          continuously today, and so would these illustrations: both need either a small pause control or motion that settles within five seconds.
         </li>
-        <li>
-          <b>Reduced motion:</b> honoured today. The animated hero is replaced by a static research-scene still. With B or D, that still should come from the elemental family, so the identity survives.
-        </li>
-        <li><b>Pointer motion:</b> ripples and gusts are small and local; they should be switched off under reduced motion (WCAG 2.3.3, AAA).</li>
-        <li><b>Hierarchy:</b> the scene sits in the field to the right (above the text on phones) and never behind the name or tagline.</li>
+        <li><b>Reduced motion:</b> show a single representative still of each illustration (no animation code), as the hero already does.</li>
+        <li><b>In context:</b> illustrations in “What I work on” should animate only while on screen, and more quietly than the hero.</li>
       </ul>
     </section>
   </div>
@@ -197,8 +176,73 @@ const tagline = profile.tagline.replace(/\*\*/g, '');
   .arch .row.five {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
-  .arch .row.big {
+  .arch .row.two {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+  .arch .rejected {
+    opacity: 0.75;
+  }
+  .arch .flag {
+    color: #d9895a;
+    font-size: var(--step--1);
+  }
+  .arch .sem {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.25rem 0.8rem;
+    font-size: var(--step--1);
+    margin-top: 0.4rem;
+  }
+  .arch .sem dt {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-3, var(--ink-2));
+    padding-top: 0.15rem;
+  }
+  .arch .sem dd {
+    color: var(--ink-2);
+  }
+  .arch .mock-work .ctl {
+    display: none;
+  }
+  .arch .mock-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .arch .mock-eyebrow span {
+    color: var(--accent);
+    margin-right: 0.5em;
+  }
+  .arch .mock-themes {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+    list-style: none;
+    padding: 0;
+  }
+  .arch .mock-themes h3 {
+    font-size: var(--step-0);
+    color: var(--ink);
+  }
+  .arch .mock-n {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--accent);
+    margin-top: 0.6rem;
+  }
+  .arch .mock-areas {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-2);
+  }
+  .arch .mock-sum {
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    margin-top: 0.3rem;
   }
   .arch .card {
     display: grid;
@@ -332,8 +376,8 @@ const tagline = profile.tagline.replace(/\*\*/g, '');
     .arch .row.five {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .arch .row.big,
-    .arch .mock-hero {
+    .arch .row.two,
+    .arch .mock-themes {
       grid-template-columns: 1fr;
     }
   }
