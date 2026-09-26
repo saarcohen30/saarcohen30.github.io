@@ -1,20 +1,35 @@
-// Fire: a flame front rather than a fountain. Emission along the base is modulated by moving
-// noise, so the flame gathers into separate tongues; particles rise on buoyancy and are pushed
-// sideways by a spatially coherent noise field, so neighbours lick upwards together. Pre-rendered
-// radial "heat" sprites are drawn additively and cool with age (white-gold core → orange → deep
-// red → a little smoke). Embers flicker and drift above. The entrance: ignition at one point,
-// spreading along the base.
+// Fire: a continuous flame BODY computed as a scalar field (not particles, not blurred sprites).
+//
+// For each cell of a coarse grid, in normalised coordinates (u across, v up from the base):
+//   1. warp:     an upward-scrolling fbm field bends u, more strongly towards the tips (and
+//                scrolls faster there), so tongues whip while the base stays planted;
+//   2. envelope: several tapered "tongue" envelopes, each ending in a point at its own varying
+//                height, plus a broad irregular base, merged with max();
+//   3. erosion:  turbulent noise carves the body, so tongues split, merge and leave dark gaps;
+//   4. colour:   the resulting temperature is banded with narrow transitions into nested regions
+//                (deep red edge → orange → gold → pale core).
+// The grid is written to ImageData and scaled up with bilinear filtering. Glow and embers are
+// optional extras drawn afterwards; the shape alone must read as flame.
 import { mulberry32 } from '../core';
-import { makeNoise, smooth, clamp, mix, type Layer, type LayerContext } from './kit';
+import { makeNoise2, fbm2, smooth, clamp, mix, type Layer, type LayerContext } from './kit';
 
-interface Flame {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  age: number;
-  life: number;
-  r: number;
+export interface FireOptions extends LayerContext {
+  baseY?: number;
+  baseX0?: number;
+  baseX1?: number;
+  /** Flame height as a multiple of the base width (default ≈1.5). */
+  height?: number;
+  /** Size of one field cell in CSS px (resolution/performance trade-off). */
+  cell?: number;
+  /** Draw the soft environmental glow and embers (default true). */
+  extras?: boolean;
+}
+
+interface Tongue {
+  u: number; // position across the base, -1..1
+  w: number; // half-width at the base
+  h: number; // base height (fraction of flame height)
+  phase: number;
 }
 interface Ember {
   x: number;
@@ -23,211 +38,196 @@ interface Ember {
   vy: number;
   age: number;
   life: number;
-  size: number;
-  phase: number;
 }
 
-export interface FireOptions extends LayerContext {
-  /** Base line of the fire (defaults: bottom of the field, 60% of its width). */
-  baseY?: number;
-  baseX0?: number;
-  baseX1?: number;
-  /** Overall size multiplier. */
-  scale?: number;
-  /** Extra horizontal drift (px/ms) at a point, e.g. wind in Convergence. */
-  wind?: (x: number, y: number, t: number) => number;
-  /** Where embers land (Convergence: they fall into the water). */
-  onEmberFall?: (x: number, y: number, t: number) => void;
+// Temperature → colour stops (t, r, g, b, a): nested regions with narrow transitions.
+const STOPS: [number, number, number, number, number][] = [
+  [0.0, 120, 26, 10, 0],
+  [0.06, 150, 34, 12, 0.55],
+  [0.16, 206, 64, 18, 0.82],
+  [0.3, 238, 112, 32, 0.9],
+  [0.48, 250, 164, 62, 0.95],
+  [0.66, 255, 208, 122, 0.97],
+  [0.85, 255, 236, 192, 1],
+];
+function band(t: number): [number, number, number, number] {
+  if (t <= 0) return [0, 0, 0, 0];
+  for (let i = 1; i < STOPS.length; i++) {
+    if (t <= STOPS[i][0]) {
+      const a = STOPS[i - 1];
+      const b = STOPS[i];
+      // Narrow transition near each boundary: flat-ish regions with readable contours.
+      // The outer contour (edge → first band) stays crisp; inner bands blend softly.
+      const k = i === 1 ? smooth(0.5, 1, (t - a[0]) / (b[0] - a[0])) : smooth(0.1, 1, (t - a[0]) / (b[0] - a[0]));
+      return [mix(a[1], b[1], k), mix(a[2], b[2], k), mix(a[3], b[3], k), mix(a[4], b[4], k)];
+    }
+  }
+  const s = STOPS.at(-1)!;
+  return [s[1], s[2], s[3], s[4]];
 }
-
-function sprite(stops: [number, string][], size = 64) {
-  const c = document.createElement('canvas');
-  c.width = c.height = size;
-  const g = c.getContext('2d')!;
-  const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  for (const [o, col] of stops) grad.addColorStop(o, col);
-  g.fillStyle = grad;
-  g.fillRect(0, 0, size, size);
-  return c;
-}
+// Precomputed lookup table (fast per-cell colouring). Shared with Convergence.
+export const LUT = (() => {
+  const n = 256;
+  const out = new Uint8ClampedArray(n * 4);
+  for (let i = 0; i < n; i++) {
+    const [r, g, b, a] = band(i / (n - 1));
+    out.set([r, g, b, a * 255], i * 4);
+  }
+  return out;
+})();
 
 export function createFireLayer(o: FireOptions): Layer {
   const f = o.field;
-  const rand = mulberry32(o.seed + 19);
-  const noise = makeNoise(o.seed + 23);
+  const rand = mulberry32(o.seed + 41);
+  const noise = makeNoise2(o.seed + 43);
+  const noise2 = makeNoise2(o.seed + 47);
   const delay = o.delay ?? 0;
   const W = f.x1 - f.x0;
   const H = f.y1 - f.y0;
-  const baseY = o.baseY ?? f.y1 - H * 0.06;
-  const bx0 = o.baseX0 ?? f.x0 + W * 0.2;
-  const bx1 = o.baseX1 ?? f.x1 - W * 0.2;
-  const bw = bx1 - bx0;
-  const scale = (o.scale ?? 1) * Math.min(1.25, Math.max(0.6, H / 520));
-  const ignite = { x: bx0 + bw * 0.5, at: delay + 250 };
-  const rate = (o.mobile ? 0.2 : 0.34) * clamp(bw / 420, 0.45, 1.4); // particles per ms
+  const baseY = o.baseY ?? f.y1 - H * 0.04;
+  const bx0 = o.baseX0 ?? f.x0 + W * 0.22;
+  const bx1 = o.baseX1 ?? f.x1 - W * 0.22;
+  const cx = (bx0 + bx1) / 2;
+  const half = (bx1 - bx0) / 2;
+  const flameH = Math.min(baseY - f.y0, half * 2 * (o.height ?? 1.5));
+  const extras = o.extras ?? true;
+  const plain = () => (globalThis as { __elementPlain?: boolean }).__elementPlain === true;
 
-  const CORE = sprite([[0, 'rgba(255,232,178,0.95)'], [0.35, 'rgba(255,196,110,0.55)'], [1, 'rgba(255,170,80,0)']]);
-  const HOT = sprite([[0, 'rgba(255,190,100,0.85)'], [0.45, 'rgba(255,128,40,0.35)'], [1, 'rgba(230,80,20,0)']]);
-  const COOL = sprite([[0, 'rgba(214,72,26,0.6)'], [0.5, 'rgba(150,38,18,0.22)'], [1, 'rgba(90,20,10,0)']]);
-  const SMOKE = sprite([[0, 'rgba(120,112,108,0.16)'], [1, 'rgba(80,76,74,0)']]);
-  const EMBER = sprite([[0, 'rgba(255,236,190,1)'], [0.3, 'rgba(255,170,90,0.6)'], [1, 'rgba(255,120,40,0)']], 16);
-
-  // Flames are drawn into a low-resolution buffer and scaled up: the upscale blurs the heat
-  // sprites into one continuous luminous body (and is cheaper than full-resolution drawing).
-  const maxH = Math.min(H * 0.8, bw * 1.1 + 120 * scale);
-  const pad = 90 * scale;
-  const box = { x: bx0 - pad, y: baseY - maxH - pad, w: bw + pad * 2, h: maxH + pad * 1.6 };
-  const RES = 0.34;
+  // Field box: wider than the base (tongues sway), from above the tips to just below the base.
+  const boxX = cx - half * 1.6;
+  const boxW = half * 3.2;
+  const boxY = baseY - flameH * 1.05;
+  const boxH = flameH * 1.2; // extends below the base so the soft bottom fade is never cut
+  const cell = o.cell ?? (o.mobile ? 2.4 : 2.7);
+  const cols = Math.max(24, Math.round(boxW / cell));
+  const rows = Math.max(24, Math.round(boxH / cell));
   const buffer = document.createElement('canvas');
-  buffer.width = Math.max(8, Math.round(box.w * RES));
-  buffer.height = Math.max(8, Math.round(box.h * RES));
+  buffer.width = cols;
+  buffer.height = rows;
   const bctx = buffer.getContext('2d')!;
+  const img = bctx.createImageData(cols, rows);
 
-  const flames: Flame[] = [];
-  const embers: Ember[] = [];
-  let carry = 0;
+  // Tongues across the base; the middle ones are tallest.
+  const nT = o.mobile ? 4 : 5;
+  const tongues: Tongue[] = Array.from({ length: nT }, (_, i) => {
+    const u = mix(-0.72, 0.72, nT === 1 ? 0.5 : i / (nT - 1)) + (rand() - 0.5) * 0.12;
+    return { u, w: 0.3 + rand() * 0.12, h: 0.55 + 0.4 * (1 - Math.abs(u)) + rand() * 0.08, phase: rand() * 100 };
+  });
+
+  const igniteAt = delay + 250;
   let settled = false;
+  const embers: Ember[] = [];
 
-  const spread = (t: number) => (settled ? 1e9 : Math.max(0, (t - ignite.at) * 0.32));
-  const density = (x: number, t: number) => {
-    const u = (x - bx0) / bw;
-    const hump = Math.pow(Math.sin(Math.PI * clamp(u)), 0.7);
-    const tongues = 0.25 + 0.75 * clamp(0.5 + noise(x * 0.018, t * 0.0011, 3.1) * 1.3);
-    return hump * tongues;
-  };
-
-  function emit(dt: number, t: number) {
-    carry += rate * dt * smooth(ignite.at, ignite.at + 900, t) + (settled ? rate * dt : 0) * 0;
-    while (carry >= 1) {
-      carry -= 1;
-      for (let tries = 0; tries < 4; tries++) {
-        const x = bx0 + rand() * bw;
-        if (Math.abs(x - ignite.x) > spread(t) || rand() > density(x, t)) continue;
-        flames.push({
-          x,
-          y: baseY + (rand() - 0.5) * 4,
-          vx: (rand() - 0.5) * 0.02,
-          vy: -0.02 - rand() * 0.04,
-          age: 0,
-          life: (700 + rand() * 700) * mix(0.75, 1.3, density(x, t)),
-          r: (22 + rand() * 18) * scale * mix(0.7, 1.15, density(x, t)),
-        });
-        break;
+  function computeField(t: number) {
+    // Offset time so noise is never sampled near the lattice origin (where it is flat).
+    const T = t * 0.001 + 23.7;
+    const grow = settled ? 1 : smooth(igniteAt, igniteAt + 1500, t); // flame height during ignition
+    const spreadU = settled ? 9 : clamp((t - igniteAt) / 900) * 1.6; // ignition spreads from the centre
+    const data = img.data;
+    // Per-tongue height and sway for this frame (coherent, slow).
+    const th = tongues.map((g) => g.h * (0.78 + 0.32 * noise(g.phase, T * 1.1)));
+    const scaleH = Math.max(0.05, grow); // during ignition the whole flame is smaller, not reshaped
+    const sw = tongues.map((g) => 0.1 * noise(g.phase + 7, T * 0.7));
+    for (let r = 0; r < rows; r++) {
+      const vv = (baseY - (boxY + (r + 0.5) * (boxH / rows))) / (flameH * scaleH); // 0 at base, ~1 at tip
+      for (let c = 0; c < cols; c++) {
+        const idx = (r * cols + c) * 4;
+        const u = (boxX + (c + 0.5) * (boxW / cols) - cx) / (half * (0.55 + 0.45 * scaleH)); // -1..1 over the base
+        if (vv < -0.1 || Math.abs(u) > 1.55 || Math.abs(u) > spreadU + 0.4) {
+          data[idx + 3] = 0;
+          continue;
+        }
+        // Irregular base line: it breathes a little instead of being cut flat.
+        const baseWobble = 0.06 * noise(u * 2.6, T * 0.9) + 0.03 * noise(u * 7, T * 2.1);
+        const up = Math.max(0, vv - baseWobble);
+        // 1. Warp: upward-advected noise bends u, more towards the tips. The scroll speed is
+        //    constant (a height-dependent speed would multiply time into the vertical frequency
+        //    and make the flame grow ever more jagged); tips still move faster because the warp
+        //    amplitude grows with height.
+        const scroll = T * 1.9;
+        const warp = fbm2(noise, u * 1.4, up * 2.2 - scroll, 2) * (0.16 + 0.55 * up);
+        const uw = u + warp;
+        // 2. Envelopes: tapered tongues, merged; plus a broad base.
+        let e = -1;
+        for (let k = 0; k < nT; k++) {
+          if (Math.abs(tongues[k].u) > spreadU) continue;
+          const hk = th[k];
+          if (up > hk) continue;
+          const taper = Math.pow(1 - up / hk, 0.75);
+          const width = tongues[k].w * taper;
+          const d = Math.abs(uw - tongues[k].u - sw[k] * up * 2) / (width + 1e-3);
+          e = Math.max(e, (1 - d) * (0.7 + 0.3 * (1 - up / hk)));
+        }
+        // Broad, rounded base (both factors clamped: two negatives must not make a positive).
+        const reach = Math.min(1.0, spreadU + 0.2) * (1 - 0.7 * up / 0.24);
+        const across = Math.abs(uw) / Math.max(0.05, reach);
+        const baseBand = Math.max(0, 1 - across * across) * Math.max(0, 1 - up / 0.24);
+        e = Math.max(e, baseBand * 0.9);
+        if (e < -0.22) {
+          data[idx + 3] = 0;
+          continue;
+        }
+        // 3. Erosion: turbulence carves tongues apart (stronger higher up).
+        const turb = fbm2(noise2, uw * 2.6, up * 3.2 - scroll * 1.25, 3);
+        let temp = e + turb * (0.28 + 0.3 * up) - up * 0.22;
+        // Hottest a little above the fuel, cooler and redder right at it.
+        temp += smooth(0.03, 0.14, up) * (1 - Math.min(1, up * 3)) * 0.2 * (1 - Math.abs(u));
+        temp *= mix(0.55, 1, smooth(0, 0.1, up));
+        temp = clamp(temp * 1.05, 0, 1);
+        if (vv < baseWobble) temp *= clamp(1 + (vv - baseWobble) * 9); // soft, uneven bottom edge
+        const li = (temp * 255) | 0;
+        data[idx] = LUT[li * 4];
+        data[idx + 1] = LUT[li * 4 + 1];
+        data[idx + 2] = LUT[li * 4 + 2];
+        data[idx + 3] = LUT[li * 4 + 3];
       }
     }
-    if (rand() < dt * (o.mobile ? 0.0025 : 0.004) && t > ignite.at) {
-      const x = bx0 + bw * (0.2 + rand() * 0.6);
-      if (Math.abs(x - ignite.x) < spread(t))
-        embers.push({ x, y: baseY - 10 * scale, vx: (rand() - 0.5) * 0.03, vy: -0.05 - rand() * 0.06, age: 0, life: 1800 + rand() * 2400, size: 1.2 + rand() * 1.8, phase: rand() * 6 });
-    }
+    bctx.putImageData(img, 0, 0);
   }
 
   return {
     step(dt, t) {
-      if (t < ignite.at) return;
-      emit(dt, t);
-      const time = t * 0.001;
-      for (const p of flames) {
-        p.age += dt;
-        p.vy -= 0.00085 * dt * scale; // buoyancy
-        // Coherent sideways licking: one noise field, sampled in a frame that rises with the flame.
-        const n = noise(p.x * 0.006, (p.y + t * 0.16) * 0.007, time * 0.5);
-        p.vx += n * 0.0026 * dt + ((bx0 + bw / 2 - p.x) / bw) * 0.00022 * dt;
-        if (o.wind) p.vx += o.wind(p.x, p.y, t) * 0.004 * dt * (p.age / p.life);
-        const drag = Math.pow(0.975, dt / 16);
-        p.vx *= drag;
-        p.vy *= Math.pow(0.99, dt / 16);
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
+      if (t < igniteAt || !extras) return;
+      // A few detached embers, rising from the tips and cooling.
+      if (rand() < dt * 0.0012) {
+        const x = cx + (rand() - 0.5) * half * 1.2;
+        embers.push({ x, y: baseY - flameH * (0.35 + rand() * 0.35), vx: (rand() - 0.5) * 0.02, vy: -0.03 - rand() * 0.04, age: 0, life: 1600 + rand() * 1600 });
       }
-      for (let i = flames.length - 1; i >= 0; i--) if (flames[i].age > flames[i].life || flames[i].y < baseY - maxH) flames.splice(i, 1);
       for (const e of embers) {
         e.age += dt;
-        e.vx += noise(e.x * 0.01, e.y * 0.01, time) * 0.0006 * dt;
-        if (o.wind) e.vx += o.wind(e.x, e.y, t) * 0.002 * dt;
-        e.vx *= Math.pow(0.98, dt / 16);
-        e.vy += 0.000012 * dt; // they slow, then drift down as they cool
+        e.vx += noise(e.x * 0.01, e.age * 0.001) * 0.0004 * dt;
         e.x += e.vx * dt;
         e.y += e.vy * dt;
       }
-      for (let i = embers.length - 1; i >= 0; i--) {
-        const e = embers[i];
-        if (e.age > e.life) {
-          o.onEmberFall?.(e.x, e.y, t);
-          embers.splice(i, 1);
-        }
-      }
+      for (let i = embers.length - 1; i >= 0; i--) if (embers[i].age > embers[i].life) embers.splice(i, 1);
     },
     finish() {
       settled = true;
     },
     render(ctx, t) {
-      if (t < ignite.at) return;
-      const warm = smooth(ignite.at, ignite.at + 1400, t);
+      if (t < igniteAt) return;
+      const bare = plain() || !extras;
       ctx.save();
-      // The glow the flame casts around its base.
-      const glowR = bw * 0.75 + 60 * scale;
-      const flicker = 0.85 + 0.15 * noise(t * 0.004, 0.5, 9);
-      const g = ctx.createRadialGradient(bx0 + bw / 2, baseY - 20 * scale, 0, bx0 + bw / 2, baseY - 20 * scale, glowR);
-      g.addColorStop(0, `rgba(255,140,60,${(0.13 * warm * flicker).toFixed(3)})`);
-      g.addColorStop(1, 'rgba(255,120,40,0)');
-      ctx.fillStyle = g;
-      // Fill the whole square around the gradient: a shorter rect would cut the glow in a line.
-      ctx.fillRect(bx0 + bw / 2 - glowR, baseY - 20 * scale - glowR, glowR * 2, glowR * 2);
-      // Smoke first (normal blending), then flame (additive).
-      for (const p of flames) {
-        const k = p.age / p.life;
-        if (k < 0.75) continue;
-        const r = p.r * (1 + k);
-        ctx.globalAlpha = (1 - k) * 0.35;
-        ctx.drawImage(SMOKE, p.x - r, p.y - r * 1.4, r * 2, r * 2.8);
+      if (!bare) {
+        // Secondary: a faint warm light on the surroundings.
+        const glowR = half * 2.4;
+        const flick = 0.85 + 0.15 * noise(t * 0.003, 3.3);
+        const g = ctx.createRadialGradient(cx, baseY - flameH * 0.3, 0, cx, baseY - flameH * 0.3, glowR);
+        g.addColorStop(0, `rgba(255,140,60,${(0.07 * flick * smooth(igniteAt, igniteAt + 1200, t)).toFixed(3)})`);
+        g.addColorStop(1, 'rgba(255,120,40,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(cx - glowR, baseY - flameH * 0.3 - glowR, glowR * 2, glowR * 2);
       }
-      bctx.setTransform(1, 0, 0, 1, 0, 0);
-      bctx.clearRect(0, 0, buffer.width, buffer.height);
-      bctx.globalCompositeOperation = 'lighter';
-      bctx.setTransform(RES, 0, 0, RES, -box.x * RES, -box.y * RES);
-      for (const p of flames) {
-        const k = p.age / p.life;
-        // Grows in from small, then shrinks as it cools so tongues come to points; stretched like flame.
-        const r = p.r * (0.5 + 0.5 * smooth(0, 0.18, k)) * (1 - 0.8 * k);
-        const img = k < 0.25 ? CORE : k < 0.58 ? HOT : COOL;
-        // Fade out as it approaches the top of the flame.
-        const top = 1 - smooth(0.55, 1, (baseY - p.y) / maxH);
-        bctx.globalAlpha = clamp(k < 0.08 ? k / 0.08 : 1 - Math.max(0, k - 0.5) / 0.5) * 0.34 * top;
-        bctx.drawImage(img, p.x - r, p.y - r * 1.7, r * 2, r * 3.2);
-      }
-      // Soften the buffer's edges so the flame's faint haze never shows the buffer's rectangle.
-      bctx.setTransform(1, 0, 0, 1, 0, 0);
-      bctx.globalAlpha = 1;
-      bctx.globalCompositeOperation = 'destination-in';
-      const bw2 = buffer.width / 2;
-      const bh2 = buffer.height / 2;
-      bctx.translate(bw2, bh2);
-      bctx.scale(1, bh2 / bw2);
-      const mask = bctx.createRadialGradient(0, 0, bw2 * 0.55, 0, 0, bw2);
-      mask.addColorStop(0, 'rgba(0,0,0,1)');
-      mask.addColorStop(1, 'rgba(0,0,0,0)');
-      bctx.fillStyle = mask;
-      bctx.fillRect(-bw2, -bw2, bw2 * 2, bw2 * 2);
-      bctx.setTransform(1, 0, 0, 1, 0, 0);
-      bctx.globalCompositeOperation = 'source-over';
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = 1;
+      computeField(t);
       ctx.imageSmoothingEnabled = true;
-      ctx.drawImage(buffer, box.x, box.y, box.w, box.h);
-      for (const e of embers) {
-        const k = e.age / e.life;
-        const fl = 0.55 + 0.45 * Math.sin(e.age * 0.02 + e.phase);
-        ctx.globalAlpha = clamp((1 - k) * fl);
-        const s = e.size * 3;
-        ctx.drawImage(EMBER, e.x - s, e.y - s, s * 2, s * 2);
-      }
-      // Ignition flash.
-      const since = t - ignite.at;
-      if (since < 500) {
-        const r = (20 + since * 0.12) * scale;
-        ctx.globalAlpha = 1 - since / 500;
-        ctx.drawImage(CORE, ignite.x - r, baseY - r * 0.6, r * 2, r * 2);
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(buffer, boxX, boxY, boxW, boxH);
+      if (!bare) {
+        for (const e of embers) {
+          const k = e.age / e.life;
+          ctx.fillStyle = `rgba(255,${(200 - k * 80) | 0},${(120 - k * 60) | 0},${(0.9 * (1 - k)).toFixed(3)})`;
+          ctx.fillRect(e.x, e.y, 1.6, 1.6);
+        }
       }
       ctx.restore();
     },

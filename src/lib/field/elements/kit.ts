@@ -132,3 +132,54 @@ export function sceneFromLayers(layers: Layer[], introMs: number, churnEvery = 3
     hoverables: () => [],
   };
 }
+
+/** 2D gradient noise, about [-1, 1]; cheaper than the 3D version for per-pixel fields. */
+export function makeNoise2(seed: number) {
+  const rand = mulberry32(seed);
+  const perm = new Uint8Array(512);
+  const base = Array.from({ length: 256 }, (_, i) => i);
+  for (let i = 255; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [base[i], base[j]] = [base[j], base[i]];
+  }
+  for (let i = 0; i < 512; i++) perm[i] = base[i & 255];
+  const gx = new Float32Array(256);
+  const gy = new Float32Array(256);
+  for (let i = 0; i < 256; i++) {
+    const a = rand() * Math.PI * 2;
+    gx[i] = Math.cos(a);
+    gy[i] = Math.sin(a);
+  }
+  return (x: number, y: number) => {
+    const xi = Math.floor(x);
+    const yi = Math.floor(y);
+    const xf = x - xi;
+    const yf = y - yi;
+    const X = xi & 255;
+    const Y = yi & 255;
+    const u = xf * xf * xf * (xf * (xf * 6 - 15) + 10);
+    const v = yf * yf * yf * (yf * (yf * 6 - 15) + 10);
+    const g = (h: number, dx: number, dy: number) => gx[h] * dx + gy[h] * dy;
+    const n00 = g(perm[X + perm[Y]], xf, yf);
+    const n10 = g(perm[X + 1 + perm[Y]], xf - 1, yf);
+    const n01 = g(perm[X + perm[Y + 1]], xf, yf - 1);
+    const n11 = g(perm[X + 1 + perm[Y + 1]], xf - 1, yf - 1);
+    const a = n00 + u * (n10 - n00);
+    const b = n01 + u * (n11 - n01);
+    return (a + v * (b - a)) * 1.41;
+  };
+}
+export type Noise2 = ReturnType<typeof makeNoise2>;
+
+/** Fractal (fbm) sum of `oct` octaves of 2D noise. */
+export const fbm2 = (n: Noise2, x: number, y: number, oct = 3) => {
+  let s = 0;
+  let a = 0.5;
+  let f = 1;
+  for (let i = 0; i < oct; i++) {
+    s += a * n(x * f, y * f);
+    f *= 2.03;
+    a *= 0.5;
+  }
+  return s;
+};
