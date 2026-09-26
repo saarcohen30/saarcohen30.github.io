@@ -217,9 +217,11 @@ export function createFireLayer(o: FireOptions): Layer {
       for (const fr of fronts) fr.level = fr.target;
     },
     churn() {
-      // One front dies down or reignites; the field keeps changing slowly.
+      // Gentle variation only: a region flares a little or settles a little. (Previously a random
+      // region was pushed down to 10–35% each time, which drained the fire towards half-extinguished
+      // within seconds; that looked like the pointer was putting it out.)
       const fr = fronts[Math.floor(rand() * fronts.length)];
-      fr.target = fr.target > 0.5 ? 0.1 + rand() * 0.25 : 1;
+      fr.target = 0.75 + rand() * 0.25;
     },
     render(ctx, t) {
       field(t);

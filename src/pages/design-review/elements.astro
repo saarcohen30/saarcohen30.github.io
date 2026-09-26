@@ -1,0 +1,197 @@
+---
+// Hidden art-direction review for the elemental scenes (not linked, not in the sitemap, noindex).
+// Prototypes only: nothing here is used by the live hero.
+import Base from '../../layouts/Base.astro';
+import { ENTRIES, type Entry } from '../../lib/field/review/registry';
+
+const group = (g: Entry['group']) => ENTRIES.filter((e) => e.group === g);
+const sections = [
+  { id: 'references', title: 'Approved references', intro: 'The live Water and Air scenes, unchanged. The benchmark for everything below.', items: group('ref') },
+  { id: 'fire', title: 'Fire concepts', intro: 'Three compositions. None has a shared baseline; all use one multi-temperature palette.', items: group('fire') },
+  { id: 'earth', title: 'Earth concepts', intro: 'Terrain with relief, depth and occlusion. Motion is slow and heavy.', items: group('earth') },
+  { id: 'convergence', title: 'Convergence concepts', intro: 'Composition studies, not finished scenes. The final Convergence follows once Fire and Earth are chosen.', items: group('conv') },
+];
+const stills = [
+  ['water', 'air', 'fire-A', 'fire-B', 'fire-C'],
+  ['water', 'air', 'earth-A', 'earth-B', 'earth-C'],
+];
+const label = (id: string) => ENTRIES.find((e) => e.id === id)!.label;
+---
+
+<Base title="Element concepts" description="Art-direction prototypes for the elemental scenes." noindex>
+  <div class="wrap review">
+    <p class="eyebrow">Design review · not linked from the site</p>
+    <h1>Elemental scenes: concepts</h1>
+    <p class="intro">
+      Cheap prototypes to choose an art direction; not production quality, and not tuned for phones. Each card plays its entrance on load.
+      <b>Replay</b> restarts it, <b>Reset</b> jumps to the settled state. Move the pointer over a card to try its pointer response.
+    </p>
+    <nav class="toc" aria-label="Sections">
+      {sections.map((s) => <a href={`#${s.id}`}>{s.title}</a>)}
+      <a href="#stills">Still frames</a>
+    </nav>
+
+    {
+      sections.map((s) => (
+        <section id={s.id}>
+          <h2>{s.title}</h2>
+          <p class="intro">{s.intro}</p>
+          <div class="cards">
+            {s.items.map((e) => (
+              <article class="card" data-card={e.id}>
+                <div class="stage">
+                  <canvas aria-label={`${e.label}: ${e.title}`} role="img" />
+                </div>
+                <div class="ctl">
+                  <span class="k">{e.label}</span>
+                  <span class="t">{e.title}</span>
+                  <span class="btns">
+                    <button type="button" data-act="replay">Replay</button>
+                    <button type="button" data-act="pause" aria-pressed="false">Pause</button>
+                    <button type="button" data-act="reset">Reset</button>
+                  </span>
+                </div>
+                <p class="note">{e.note}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))
+    }
+
+    <section id="stills">
+      <h2>Still frames</h2>
+      <p class="intro">Every scene at the same moment (4.5 s after it starts), side by side.</p>
+      {
+        stills.map((row) => (
+          <div class="stills" data-stills>
+            {row.map((id) => (
+              <figure data-still={id}>
+                <canvas aria-label={label(id)} role="img" />
+                <figcaption>{label(id)}</figcaption>
+              </figure>
+            ))}
+          </div>
+        ))
+      }
+    </section>
+  </div>
+</Base>
+
+<script>
+  import '../../scripts/element-review';
+</script>
+
+<style>
+  .review {
+    padding-top: var(--space-7);
+    padding-bottom: var(--space-8);
+    display: grid;
+    gap: var(--space-7);
+  }
+  h1 {
+    font-size: var(--step-3);
+  }
+  h2 {
+    font-size: var(--step-2);
+  }
+  .intro {
+    color: var(--ink-2);
+    max-width: 70ch;
+  }
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    font-size: var(--step--1);
+  }
+  section {
+    display: grid;
+    gap: var(--space-4);
+    scroll-margin-top: 5rem;
+  }
+  .cards {
+    display: grid;
+    gap: var(--space-5);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr));
+  }
+  .card {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+  }
+  .stage {
+    background: #0b0d11;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .ctl {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem 0.7rem;
+  }
+  .k {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    font-size: var(--step--1);
+  }
+  .t {
+    font-weight: 600;
+  }
+  .btns {
+    margin-left: auto;
+    display: flex;
+    gap: 0.35rem;
+  }
+  button {
+    font: inherit;
+    font-size: var(--step--2);
+    font-family: var(--font-mono);
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--bg-elev);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  button:hover {
+    border-color: var(--accent);
+  }
+  .note {
+    color: var(--ink-2);
+    font-size: var(--step--1);
+    max-width: 70ch;
+  }
+  .stills {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+  .stills figure {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .stills canvas {
+    aspect-ratio: 16 / 10;
+    height: auto;
+    background: #0b0d11;
+    border-radius: var(--radius);
+  }
+  figcaption {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-2);
+  }
+  @media (max-width: 720px) {
+    .stills {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>
