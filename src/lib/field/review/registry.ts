@@ -74,7 +74,7 @@ export interface Entry {
   note: string;
   make: ProtoFactory;
   /** Review-only semantic labels (D2 studies). */
-  sem?: { reading: string; research: string; literal: string; metaphor: string };
+  sem?: { reading: string; research: string; literal: string; metaphor: string; why?: string };
 }
 
 export const ENTRIES: Entry[] = [
@@ -102,7 +102,7 @@ export const ENTRIES: Entry[] = [
   { id: 'r-adapt', group: 'research', label: 'Adapt', title: 'Learning in multi-agent systems', note: 'A network learns from consistent feedback and regroups.', make: fromResearch(createAdapt) },
   { id: 'r-exchange', group: 'research', label: 'Exchange', title: 'Principled & safe AI', note: 'Two mirrored groups exchange messages; some are stopped at the boundary.', make: fromResearch(createExchange) },
   ...UNIFIED.map((u) => ({ id: `u-${u.key}`, group: 'unified' as const, label: u.title, title: 'in the flow language', note: u.note, make: u.make })),
-  ...D2.map((d) => ({ id: `d2-${d.key}`, group: 'd2' as const, label: 'D2', title: d.title, note: d.reading, make: d.make, sem: { reading: d.reading, research: d.research, literal: d.literal, metaphor: d.metaphor } })),
+  ...D2.map((d) => ({ id: `d2-${d.key}`, group: 'd2' as const, label: 'D2', title: d.title, note: d.reading, make: d.make, sem: { reading: d.reading, research: d.research, literal: d.literal, metaphor: d.metaphor, why: (d as { why?: string }).why } })),
   { id: 'conv-current', group: 'wind', label: 'Current wind', title: 'Dramatic Lake as reviewed', note: 'The study you selected, unchanged: independent, faint sky lines; smoke and mist not tied to them.', make: LAKE_STUDIES[1].make },
   { id: 'conv-refined', group: 'wind', label: 'Refined wind', title: 'Dramatic Lake, production', note: 'One wind field for everything (see Convergence above). A few long currents, not a sky full of lines.', make: fromScene(createConvergence) },
   ...FIRE_PROTOS.map((p) => ({ id: `fire-${p.key}`, group: 'fire-old' as const, label: `Fire ${p.key}`, title: p.title, note: p.note, make: p.make })),

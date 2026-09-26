@@ -15,9 +15,20 @@ const original = [
   { e: by('r-exchange'), t: 'Principled & safe AI' },
 ];
 const flowOnly = ['u-gather', 'u-share', 'u-adapt', 'u-exchange'].map(by);
-const d2 = ['d2-gather', 'd2-share-a', 'd2-share-b', 'd2-adapt-a', 'd2-adapt-b', 'd2-exchange'].map(by);
-// The preferred D2 study per theme, in the order of the home page's themes.
-const preferred = ['d2-gather', 'd2-share-a', 'd2-adapt-a', 'd2-exchange'];
+const sel = [
+  { e: by('d2-gather'), badge: 'Current direction', t: 'Coalitions & collective decisions' },
+  { e: by('d2-share-a'), badge: 'SELECTED', t: 'Fair allocation over time' },
+];
+const adapt = [by('d2-adapt-a'), by('d2-adapt-a1')];
+const exchange = [
+  { e: by('d2-exchange'), badge: 'REJECTED EXECUTION, CONCEPT RETAINED' },
+  { e: by('d2-exchange-a'), badge: '' },
+  { e: by('d2-exchange-b'), badge: '' },
+  { e: by('d2-exchange-c'), badge: '' },
+];
+const alternatives = [by('d2-share-b'), by('d2-adapt-b')];
+// The current picks per theme, in the order of the home page's themes (Exchange is provisional).
+const preferred = ['d2-gather', 'd2-share-a', 'd2-adapt-a1', 'd2-exchange-a'];
 const themes = (profile.themes as { title: string; areas: string[]; summary: string }[]).map((t, i) => ({ ...t, e: by(preferred[i]) }));
 ---
 
@@ -34,48 +45,43 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
         <p><b>Shared art direction = coherence.</b> Same stage, pale marks, one warm accent, soft halos, hairlines and eased motion, not the same subject matter.</p>
       </div>
       <nav class="toc" aria-label="Sections">
-        <a href="#elements">Elemental identity</a>
-        <a href="#original">Original research scenes</a>
-        <a href="#rejected">Rejected flow-only experiment</a>
-        <a href="#d2">D2 studies</a>
+        <a href="#selected">Selected</a>
+        <a href="#adapt">Learning A0 → A1</a>
+        <a href="#exchange">Safe AI exploration</a>
         <a href="#mock">What I work on mock</a>
+        <a href="#alternatives">Alternatives</a>
+        <a href="#elements">Elemental identity</a>
         <a href="#motion">Motion &amp; accessibility</a>
       </nav>
     </section>
 
-    <section id="elements">
-      <h2>Elemental identity</h2>
-      <p class="intro">The hero family (production scenes, unchanged).</p>
-      <div class="row five">{elements.map((e) => <ReviewCard e={e} compact />)}</div>
-    </section>
-
-    <section id="original">
-      <h2>Original research scenes</h2>
-      <p class="intro">Today’s hero rotation. Their mechanisms are the semantic foundation for D2; their node-and-edge style is what D2 brings into the shared art direction.</p>
-      <div class="row four">
+    <section id="selected">
+      <h2>Selected / nearly final</h2>
+      <div class="row two">
         {
-          original.map((o) => (
-            <div class="tile">
-              <ReviewCard e={o.e} compact />
-              <p>{o.t}</p>
+          sel.map(({ e, badge, t }) => (
+            <div class="d2">
+              <p class="badge">{badge}</p>
+              <ReviewCard e={e} compact />
+              <p class="theme-t">{t}</p>
+              <dl class="sem">
+                <dt>Intended reading</dt>
+                <dd>{e.sem!.reading}</dd>
+                <dt>Research connection</dt>
+                <dd>{e.sem!.research}</dd>
+              </dl>
             </div>
           ))
         }
       </div>
     </section>
 
-    <section id="rejected" class="rejected">
-      <h2>Earlier flow-only experiment (rejected)</h2>
-      <p class="flag">Rejected because semantic distinctions became too weak: all four read as variations of the Air scene.</p>
-      <div class="row four">{flowOnly.map((e) => <ReviewCard e={e} compact />)}</div>
-    </section>
-
-    <section id="d2">
-      <h2>D2: unified art direction, research-specific mechanisms</h2>
-      <p class="intro">Semantic-design studies, not production. The labels under each card are for review only and would not appear on the site.</p>
+    <section id="adapt">
+      <h2>Learning refinement: Adapt A0 → A1</h2>
+      <p class="intro">A1 keeps A0’s mechanism (local interactions, feedback, links strengthening and weakening, no central controller) and adds movement, proximity and learned groups.</p>
       <div class="row two">
         {
-          d2.map((e) => (
+          adapt.map((e) => (
             <div class="d2">
               <ReviewCard e={e} compact />
               <dl class="sem">
@@ -83,10 +89,39 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
                 <dd>{e.sem!.reading}</dd>
                 <dt>Research connection</dt>
                 <dd>{e.sem!.research}</dd>
-                <dt>What is literal</dt>
+                <dt>Literal</dt>
                 <dd>{e.sem!.literal}</dd>
-                <dt>What is metaphorical</dt>
+                <dt>Metaphorical</dt>
                 <dd>{e.sem!.metaphor}</dd>
+                {e.sem!.why && <dt>Why it differs</dt>}
+                {e.sem!.why && <dd>{e.sem!.why}</dd>}
+              </dl>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="exchange">
+      <h2>Principled &amp; safe AI: exploration</h2>
+      <p class="intro">Concept retained: adaptive attacker/defender self-play. Execution rethought: no wall, no projectiles, no base dot; the defender actively answers or transforms.</p>
+      <div class="row two">
+        {
+          exchange.map(({ e, badge }) => (
+            <div class:list={['d2', { rejected: !!badge }]}>
+              {badge && <p class="flag">{badge}</p>}
+              <ReviewCard e={e} compact />
+              <dl class="sem">
+                <dt>Intended reading</dt>
+                <dd>{e.sem!.reading}</dd>
+                <dt>Research connection</dt>
+                <dd>{e.sem!.research}</dd>
+                <dt>Literal</dt>
+                <dd>{e.sem!.literal}</dd>
+                <dt>Metaphorical</dt>
+                <dd>{e.sem!.metaphor}</dd>
+                {e.sem!.why && <dt>Why it differs</dt>}
+                {e.sem!.why && <dd>{e.sem!.why}</dd>}
               </dl>
             </div>
           ))
@@ -95,8 +130,8 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
     </section>
 
     <section id="mock">
-      <h2>What I work on (mock)</h2>
-      <p class="intro">The four preferred D2 studies (Share A, Adapt A) placed as they would appear in the real section, with its real text.</p>
+      <h2>What I work on (mock, real card size)</h2>
+      <p class="intro">The current picks (Gather, Share A, Adapt A1, and Exchange A provisionally) in the real section with its real text. No text over the animations.</p>
       <div class="mock-work">
         <p class="mock-eyebrow"><span>02</span> Research</p>
         <p class="mock-h">What I work on</p>
@@ -114,6 +149,60 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
           }
         </ol>
       </div>
+      <h3>Phone width (343 px cards)</h3>
+      <div class="phone">
+        {
+          themes.map((t) => (
+            <div>
+              <ReviewCard e={t.e} compact />
+              <p class="tile-t">{t.title}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="alternatives" class="secondary">
+      <details>
+        <summary><h2>Alternatives, not selected</h2></summary>
+        <div class="row two">
+          {
+            alternatives.map((e) => (
+              <div class="d2">
+                <ReviewCard e={e} compact />
+                <p class="note">{e.sem!.reading}</p>
+              </div>
+            ))
+          }
+        </div>
+      </details>
+    </section>
+
+    <section id="elements">
+      <h2>Elemental identity (hero)</h2>
+      <p class="intro">The hero family (production scenes, unchanged).</p>
+      <div class="row five">{elements.map((e) => <ReviewCard e={e} compact />)}</div>
+    </section>
+
+    <section id="original">
+      <h2>Original research scenes</h2>
+      <p class="intro">Today’s hero rotation; the semantic foundation of the D2 studies.</p>
+      <div class="row four">
+        {
+          original.map((o) => (
+            <div class="tile">
+              <ReviewCard e={o.e} compact />
+              <p>{o.t}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="rejected" class="rejected">
+      <h2>Earlier flow-only experiment (rejected)</h2>
+      <p class="flag">Rejected because semantic distinctions became too weak: all four read as variations of the Air scene.</p>
+      <div class="row four">{flowOnly.map((e) => <ReviewCard e={e} compact />)}</div>
     </section>
 
     <section id="motion">
@@ -182,6 +271,35 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
   }
   .arch .rejected {
     opacity: 0.75;
+  }
+  .arch .badge {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+  }
+  .arch .theme-t,
+  .arch .tile-t {
+    font-size: var(--step--1);
+    margin-top: 0.4rem;
+  }
+  .arch .phone {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 343px);
+    gap: var(--space-4);
+  }
+  .arch .secondary summary {
+    cursor: pointer;
+    list-style: none;
+  }
+  .arch .secondary summary h2 {
+    display: inline;
+    color: var(--ink-2);
+    font-size: var(--step-1);
+  }
+  .arch .secondary .row {
+    margin-top: var(--space-4);
   }
   .arch .flag {
     color: #d9895a;
