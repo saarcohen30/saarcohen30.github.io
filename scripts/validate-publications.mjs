@@ -8,7 +8,8 @@ const root = new URL('../', import.meta.url);
 const profile = parse(readFileSync(new URL('src/data/profile.yaml', root), 'utf8'));
 
 try {
-  const pubs = loadPublications(readFileSync(new URL('src/data/publications.yaml', root), 'utf8'), {
+  const file = process.env.PUBS_FILE ? process.env.PUBS_FILE : new URL('src/data/publications.yaml', root);
+  const pubs = loadPublications(readFileSync(file, 'utf8'), {
     topics: Object.keys(profile.topics),
   });
   pubs.forEach(bibtex); // make sure every entry can produce BibTeX

@@ -15,9 +15,10 @@
     "dev:status": "astro dev status",
     "dev:stop": "astro dev stop",
     "check": "node scripts/validate-publications.mjs",
+    "validate-pubs": "node scripts/validate-publications.mjs",
     "add-pub": "node scripts/add-publication.mjs",
     "update-pub": "node scripts/update-publication.mjs",
-    "test": "node scripts/test-schema.mjs && node scripts/validate-publications.mjs"
+    "test": "node scripts/test-schema.mjs && node scripts/test-cli.mjs && node scripts/validate-publications.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

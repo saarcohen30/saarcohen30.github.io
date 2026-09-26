@@ -1,116 +1,122 @@
-# I have a new paper. What do I do?
+# Publications: Quick Start
 
-You never need to edit YAML or know anything about Astro. Open Terminal and run everything from the
-website folder:
+Open Terminal, then go to the website folder:
 
 ```sh
 cd ~/Documents/saarcohen30.github.io-master
 ```
 
-(The first time only, run `npm install`.)
-
-## 1. Add it
-
-**If it is on arXiv:**
+## Add a new paper
 
 ```sh
 npm run add-pub -- 2609.29691
 ```
 
-**If it has a DOI** (a published paper):
+Use the paper's arXiv id (or its DOI, e.g. `npm run add-pub -- 10.24963/ijcai.2025/422`). No id yet? Just run
+`npm run add-pub`.
+
+## Update an existing paper
 
 ```sh
-npm run add-pub -- 10.24963/ijcai.2025/422
+npm run update-pub
 ```
 
-You can also paste the whole link, e.g. `npm run add-pub -- https://arxiv.org/abs/2609.29691`.
+Type a few words from the title, pick the paper, pick what to change.
 
-**If there is nothing to look up yet:** run `npm run add-pub` and type the details.
+## Check publication data
 
-What happens next:
+```sh
+npm run validate-pubs
+```
 
-1. It looks the paper up and fills in the title, authors, date and abstract. For a DOI it also fills in the
-   venue, year and pages.
-2. It asks **"Where is this paper now?"**. This is the one important question:
-   - *Accepted or published* → it asks for the venue (with the short name, e.g. **NeurIPS**, shown in
-     bold), the year, whether it is still "to appear", and how it was presented (oral, poster, …; online or
-     in person). Leave the presentation empty if you are not sure.
-   - *Under review* or *Under revision* → nothing else is needed; it goes in the "Under review" section.
-   - *Public preprint only, not submitted* → it becomes a **Working Paper**.
-3. It offers the links (arXiv, DOI, PDF, code, project, slides, video, …). Press Enter to keep a value it
-   found, paste a URL to add one, or type `-` to remove one.
-4. It asks for research themes and whether to feature the paper on the home page.
-5. It shows a **summary** and asks **"Save this paper?"**. Nothing is written before you say yes.
-6. It saves the paper and checks the whole file. If anything is wrong it tells you in plain words, and your
-   file is left exactly as it was.
-
-If the lookup fails (no internet, or a typo in the id), it says so and simply asks you for everything.
-
-## 2. Look at it (optional)
+## See the site on your computer
 
 ```sh
 npm run dev
 ```
 
-Open the address it prints (http://localhost:4321) and check the paper. Press **Ctrl+C** to stop.
+Open the address it prints (normally http://localhost:4321). Press **Ctrl+C** to stop.
 
-## 3. Publish it
+## Put it online
 
 ```sh
 git add -A
-git commit -m "Add paper"
+git commit -m "Update publications"
 git push
 ```
 
-The website rebuilds and goes live by itself a minute or two later.
+**That's all you normally need.** Both tools ask plain-English questions, show you exactly what will change,
+and write nothing until you say yes. If anything would be wrong, they refuse and leave your data as it was.
 
-# A paper moved on. How do I update it?
+---
 
-```sh
-npm run update-pub -- "budget constraints"                        # search by words in the title
-npm run update-pub -- online-fair-division-budget-constraints     # or give the paper's id exactly
-npm run update-pub                                                # or pick from a list
+## What the tools ask
+
+### Adding a paper (`npm run add-pub -- <arXiv id or DOI>`)
+
+1. It looks the paper up and shows the title and authors. **Is this correct?** Enter means yes.
+2. **What is the paper's current status?**
+   - **Working Paper**: public on arXiv, *not* submitted anywhere and *not* under review.
+   - **Under Review**: submitted, waiting for a decision.
+   - **Accepted / To Appear**: accepted; proceedings or journal issue not out yet.
+   - **Published**: the proceedings or issue is out.
+3. For accepted or published papers only: conference or journal, year, the full proceedings name, the short
+   name shown in bold (e.g. **NeurIPS**, usually guessed for you), and for conferences the presentation:
+   Oral / Spotlight / Poster / Other / Unknown, then In person / Online / Hybrid / Not specified.
+   "Unknown" is always fine.
+4. **Links**: arXiv, official publication page, DOI, GitHub, project page; then optionally PDF, OpenReview,
+   slides, video, poster, supplementary material, dataset. Press **Enter** to skip any of them.
+5. Research themes, the abstract, whether to feature it on the home page, and its web address (suggested).
+6. A summary, then **Save this paper?**
+
+### Updating a paper (`npm run update-pub`)
+
+It asks you to search (a few title words), then shows a menu:
+
+```
+1) Status               6) DOI                          11) Video
+2) Venue                7) Official publication URL     12) Authors, title or year
+3) Publication type     8) GitHub / code                13) Other (abstract, themes, featured, …)
+4) Presentation         9) Project page                 14) Review changes and save
+5) arXiv               10) Slides                       15) Quit without saving
 ```
 
-It shows the paper and a menu:
+Change as many things as you like, then choose **14**. You see every change first, for example:
 
 ```
-1) Stage (working paper → under review → accepted → published)
-2) Venue, year, pages
-3) Presentation (oral, poster, spotlight …; online or in person)
-4) Links (DOI, arXiv, PDF, code, project, slides, video …)
-5) Title or authors
-6) Abstract
-7) Research themes
-8) Featured on the home page
-9) Save and finish
-10) Quit without saving
+Changes:
+
+  Status
+    Under Review → Accepted / To Appear
+  Venue
+    — → NeurIPS 2027
+  Presentation
+    — → Oral
+
+Apply these changes? [y/N]
 ```
 
-Change as many things as you like, then choose **Save and finish**. You see the summary first. Only
-that paper's lines change in the file; it is validated before and after saving and restored automatically if
-anything goes wrong. Then publish with the three `git` commands above.
+Nothing is written unless you type **y**.
 
-## The usual life of a paper
+### The usual life of a paper
 
-| What happened | Run | Choose | Result on the site |
-|---|---|---|---|
-| Posted on arXiv, not submitted | `npm run add-pub -- <arXiv id>` | *Public preprint only* | **Working Paper** |
-| Submitted | `npm run update-pub -- <id>` | Stage → *Submitted and under review* | moves to **Under review** (no longer a working paper) |
-| Accepted | `npm run update-pub -- <id>` | Stage → *Accepted, to appear*; then venue, year, presentation | **Conference** (or Journal) · venue **[To Appear]** · e.g. Oral |
-| Published | `npm run update-pub -- <id>` | Stage → *Published*; paste the DOI | "[To Appear]" disappears; DOI, pages and publisher link are added |
+| What happened | Run | Choose |
+|---|---|---|
+| Posted on arXiv, not submitted | `npm run add-pub -- <arXiv id>` | Working Paper |
+| Submitted | `npm run update-pub` | 1) Status → Under Review. It stops being a Working Paper automatically. |
+| Accepted | `npm run update-pub` | 1) Status → Accepted / To Appear, then answer the venue questions |
+| Proceedings out | `npm run update-pub` | 1) Status → Published (add the DOI if there is one) |
+| New GitHub repo, slides, video … | `npm run update-pub` | 8) GitHub, 10) Slides, 11) Video … |
 
-The paper keeps its web address (`/publications/<id>/`) through all of these stages. The arXiv link stays
-on the paper throughout; an arXiv link never makes a paper a "working paper" by itself.
+The paper keeps its web address (`/publications/<id>/`) through all of these, and its arXiv link stays on it.
+An arXiv link never makes a paper a Working Paper by itself.
 
-## Checking everything
+### Advanced shortcuts
 
-```sh
-npm test
-```
-
-This checks every rule below. The same check runs automatically when you push, so a broken entry can never
-reach the live site.
+- `npm run update-pub -- "budget constraints"` starts with a search.
+- `npm run update-pub -- <paper-id>` goes straight to a paper (the id is the last part of its web address).
+- `npm test` runs every check, including a full rehearsal of the tools on a temporary copy of the data. The same
+  checks run automatically when you push, so broken data can never reach the live site.
 
 ---
 
@@ -131,7 +137,7 @@ Never encode one of these in another.
 |---|---|---|
 | `type` | What is it? | `conference`, `journal`, `survey`, `working-paper` (or a list, e.g. `[survey, journal]`) |
 | `status` | Where is it in review? | `under-review`, `under-revision`, `to-appear`, `published` (default for conference/journal) |
-| `presentation` | How was it presented? | `oral`, `spotlight`, `contributed-talk`, `poster`, or with the mode: `{ type: oral, mode: online }` (`mode`: `in-person` or `online`). Only record what the official programme or you can confirm. |
+| `presentation` | How was it presented? | `oral`, `spotlight`, `contributed-talk`, `poster`, or with the mode: `{ type: oral, mode: online }` (`mode`: `in-person`, `online` or `hybrid`). Only record what the official programme or you can confirm. |
 | `links` / `versions` | Where can it be read? | arXiv, DOI, proceedings, OpenReview, PDF, code, … |
 
 The publication **type** drives the coloured badges and the type filter. Status and presentation are shown

@@ -6,7 +6,7 @@
 //   type          what the work IS:            conference | journal | survey | working-paper
 //   status        where it is in review:       under-review | under-revision | to-appear | published
 //   presentation  how it was presented:        { type: oral | spotlight | poster | contributed-talk,
-//                                               mode: in-person | online }  (or just "oral")
+//                                               mode: in-person | online | hybrid }  (or just "oral")
 //   links/versions where it can be read:       arXiv, DOI, proceedings, code, …
 //
 // A working paper is a PUBLIC preprint that is neither under review nor accepted.
@@ -34,6 +34,7 @@ export const REVIEW_STATUSES = Object.keys(STATUS_META).filter((s) => STATUS_MET
 export const MODE_META = {
   'in-person': { label: 'In person' },
   online: { label: 'Online' },
+  hybrid: { label: 'Hybrid' },
 };
 
 /** Official presentation categories. Only record what the venue's own programme states. */

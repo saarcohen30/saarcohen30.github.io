@@ -1,58 +1,69 @@
 #!/usr/bin/env node
-// `npm run update-pub` — change an existing paper without editing YAML.
+// `npm run update-pub` — change an existing paper without editing any files.
 //
-//   npm run update-pub -- attacker-in-the-mirror-anchored-bipolicy-self-play   by id
-//   npm run update-pub -- "fair division"                                       search titles
-//   npm run update-pub                                                          list and pick
+//   npm run update-pub                      search your papers by title, then pick one
+//   npm run update-pub -- "fair division"   start with a search
+//   npm run update-pub -- <paper-id>        (advanced) go straight to one paper
 //
-// Shows the paper, offers a short menu (stage, venue, presentation, links, …), shows a summary of
-// the result and asks before saving. Only this paper's lines change; the file is validated before
-// and after writing and restored automatically on failure.
+// Pick what to change from a menu. Before anything is written you see every change
+// ("Status: Under Review → Accepted / To Appear") and confirm. Only that paper's lines change;
+// the file is checked before and after writing and restored automatically on failure.
 import { argv, exit } from 'node:process';
-import { c, rl, ask, yes, choose, readFile, records, replaceRecord, safeWrite, describe, askTopics, fromDoi, normaliseId } from './lib/pubfile.mjs';
-import { askAccepted, askPresentation, askLinks } from './add-publication.mjs';
+import { c, rl, ask, yes, choose, readFile, records, replaceRecord, safeWrite, describe, askTopics, fromDoi, normaliseId, stageOf, changes, printChanges } from './lib/pubfile.mjs';
+import { askAccepted, askPresentation, askLinks, askLink, STATUS_OPTIONS } from './add-publication.mjs';
+
+const line = (p) => `${p.title}${c.dim(` · ${p.venue?.acronym ? `${p.venue.acronym} ${p.year}` : stageOf(p)}`)}`;
 
 async function pick(query) {
   const all = records(readFile());
   if (query && all.some((p) => p.id === query)) return all.find((p) => p.id === query);
-  const q = (query ?? '').toLowerCase();
-  const hits = q ? all.filter((p) => `${p.id} ${p.title}`.toLowerCase().includes(q)) : all;
-  if (hits.length === 1) return hits[0];
-  if (!hits.length) {
-    console.log(c.yellow(`No paper matches “${query}”.`));
-    return pick(await ask('Search titles'));
+  let q = query;
+  for (;;) {
+    if (q === undefined) q = await ask('Search publication (words from the title; press Enter to list all)');
+    const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+    const hits = all.filter((p) => words.every((w) => `${p.id} ${p.title} ${p.venue?.acronym ?? ''}`.toLowerCase().includes(w)));
+    if (!hits.length) {
+      console.log(c.yellow(`No paper matches “${q}”. Try other words.`));
+      q = undefined;
+      continue;
+    }
+    if (hits.length === 1) {
+      console.log(`\n${line(hits[0])}`);
+      if (await yes('Is this the paper?', true)) return hits[0];
+      q = undefined;
+      continue;
+    }
+    const id = await choose('Which paper? (type its number)', [...hits.map((p) => ({ label: line(p), value: p.id })), { label: c.dim('None of these: search again'), value: '' }]);
+    if (id) return all.find((p) => p.id === id);
+    q = undefined;
   }
-  const id = await choose('Which paper?', hits.map((p) => ({ label: `${p.title}${p.venue?.acronym ? c.dim(` · ${p.venue.acronym} ${p.year}`) : p.status ? c.dim(` · ${p.status}`) : c.dim(' · working paper')}`, value: p.id })));
-  return all.find((p) => p.id === id);
 }
 
-async function setStage(rec) {
-  const types = rec.type ? [rec.type].flat() : [];
+/** Change the status; asks only what that status needs. */
+async function setStatus(rec) {
+  const now = stageOf(rec);
+  console.log(c.dim(`Currently: ${now}`));
+  const stage = await choose('New status?', [...STATUS_OPTIONS.slice(0, 2), { label: `Under Revision ${c.dim('(reviews back; revising)')}`, value: 'under-revision' }, ...STATUS_OPTIONS.slice(2)]);
+  const types = [rec.type ?? []].flat();
   const survey = types.includes('survey');
-  const stage = await choose('Where is this paper now?', [
-    { label: 'Public preprint only; not submitted anywhere (working paper)', value: 'working' },
-    { label: 'Submitted and under review', value: 'under-review' },
-    { label: 'Under revision', value: 'under-revision' },
-    { label: 'Accepted, to appear', value: 'to-appear' },
-    { label: 'Published (proceedings or issue out)', value: 'published' },
-  ]);
   if (stage === 'working') {
     rec.type = 'working-paper';
     for (const k of ['status', 'venue', 'presentation', 'year', 'note']) delete rec[k];
     if (!rec.links?.arxiv && !rec.links?.paper && !rec.links?.pdf) {
-      const a = await ask('A working paper must be public. arXiv id or URL');
-      if (a) rec.links = { ...(rec.links ?? {}), [/^\d{4}\.\d{4,5}/.test(normaliseId(a)) ? 'arxiv' : 'paper']: normaliseId(a) };
+      console.log(c.yellow('A working paper must be public: add its arXiv id.'));
+      await askLink(rec, 'arxiv');
     }
   } else if (stage === 'under-review' || stage === 'under-revision') {
+    // No longer a working paper, and not yet at a venue.
     rec.status = stage;
     if (survey) rec.type = 'survey';
     else delete rec.type;
     for (const k of ['venue', 'presentation', 'year', 'note']) delete rec[k];
-  } else if (stage === 'to-appear' || stage === 'published') {
-    const accepted = types.includes('conference') || types.includes('journal');
-    if (!accepted || !rec.venue) {
-      rec.status = stage;
-      await askAccepted(rec);
+  } else {
+    const hasVenue = (types.includes('conference') || types.includes('journal')) && rec.venue;
+    if (!hasVenue) {
+      console.log(c.dim('\nWhere was it accepted?'));
+      await askAccepted(rec, {}, stage);
     } else rec.status = stage;
     if (stage === 'published') {
       const doi = await ask('DOI of the published version (optional; bare id or doi.org link)', rec.links?.doi ?? '');
@@ -61,15 +72,37 @@ async function setStage(rec) {
         try {
           const m = await fromDoi(normaliseId(doi));
           if (m.pages && !rec.venue.pages && (await yes(`Crossref lists pages ${m.pages}. Add them?`, true))) rec.venue.pages = m.pages;
-          if (m.links.paper && !rec.links.paper && (await yes(`Add the publisher page ${m.links.paper}?`, true))) rec.links.paper = m.links.paper;
+          if (m.links.paper && !rec.links.paper && (await yes(`Use the publisher page ${m.links.paper}?`, true))) rec.links.paper = m.links.paper;
         } catch {}
       }
-      const paper = await ask('Official proceedings / publisher page (optional)', rec.links?.paper ?? '');
-      if (paper) rec.links.paper = paper;
     }
+    await askLink(rec, 'paper');
   }
-  if (rec.status === 'published') delete rec.status; // the default; keeps the file tidy
+  if (rec.status === 'published') delete rec.status; // the default
 }
+
+async function setType(rec) {
+  const stage = stageOf(rec);
+  if (stage === 'Working Paper' || stage === 'Under Review' || stage === 'Under Revision') {
+    console.log(c.yellow(`A paper that is ${stage.toLowerCase()} has no conference/journal type yet. Change its status to Accepted or Published first.`));
+    const survey = await yes('Is it a survey paper?', [rec.type ?? []].flat().includes('survey'));
+    if (stage !== 'Working Paper') {
+      if (survey) rec.type = 'survey';
+      else delete rec.type;
+    }
+    return;
+  }
+  const types = [rec.type].flat();
+  const kind = await choose('Conference or journal?', [
+    { label: 'Conference', value: 'conference' },
+    { label: 'Journal', value: 'journal' },
+  ], types.includes('journal') ? 'journal' : 'conference');
+  const survey = await yes('Is it a survey paper?', types.includes('survey'));
+  rec.type = survey ? ['survey', kind] : kind;
+  if (kind !== 'conference') delete rec.presentation;
+}
+
+const ONE_LINK = { arxiv: 'arxiv', doi: 'doi', official: 'paper', code: 'code', project: 'project', slides: 'slides', video: 'video' };
 
 async function main() {
   console.log(c.bold('\nUpdate a publication') + c.dim('   Enter keeps the value in [brackets]. Nothing is saved until you confirm.\n'));
@@ -78,16 +111,21 @@ async function main() {
   const rec = structuredClone(found);
   for (;;) {
     console.log('\n' + describe(rec) + '\n');
-    const what = await choose('What would you like to change?', [
-      { label: 'Stage (working paper → under review → accepted → published)', value: 'stage' },
-      { label: 'Venue, year, pages', value: 'venue' },
-      { label: 'Presentation (oral, poster, spotlight …; online or in person)', value: 'presentation' },
-      { label: 'Links (DOI, arXiv, PDF, code, project, slides, video …)', value: 'links' },
-      { label: 'Title or authors', value: 'title' },
-      { label: 'Abstract', value: 'abstract' },
-      { label: 'Research themes', value: 'topics' },
-      { label: 'Featured on the home page', value: 'featured' },
-      { label: c.green('Save and finish'), value: 'save' },
+    const what = await choose('What would you like to update?', [
+      { label: 'Status (working paper → under review → accepted → published)', value: 'status' },
+      { label: 'Venue (name, year, pages)', value: 'venue' },
+      { label: 'Publication type (conference / journal / survey)', value: 'type' },
+      { label: 'Presentation (oral, spotlight, poster …; in person / online / hybrid)', value: 'presentation' },
+      { label: 'arXiv', value: 'arxiv' },
+      { label: 'DOI', value: 'doi' },
+      { label: 'Official publication URL', value: 'official' },
+      { label: 'GitHub / code', value: 'code' },
+      { label: 'Project page', value: 'project' },
+      { label: 'Slides', value: 'slides' },
+      { label: 'Video', value: 'video' },
+      { label: 'Authors, title or year', value: 'title' },
+      { label: 'Other (abstract, research themes, featured, note, more links)', value: 'other' },
+      { label: c.green('Review changes and save'), value: 'save' },
       { label: 'Quit without saving', value: 'quit' },
     ]);
     if (what === 'quit') {
@@ -95,40 +133,69 @@ async function main() {
       return 0;
     }
     if (what === 'save') break;
-    if (what === 'stage') await setStage(rec);
+    if (what === 'status') await setStatus(rec);
+    if (what === 'type') await setType(rec);
     if (what === 'venue') {
-      if (!rec.venue) console.log(c.yellow('This paper has no venue yet; change its stage to "accepted" first.'));
-      else await askAccepted(rec);
+      if (!rec.venue) console.log(c.yellow('This paper has no venue yet: change its status to Accepted / To Appear first (option 1).'));
+      else await askAccepted(rec, {}, rec.status ?? 'published');
       if (rec.status === 'published') delete rec.status;
     }
     if (what === 'presentation') {
-      if (![rec.type].flat().includes('conference')) console.log(c.yellow('Presentation only applies to accepted conference papers.'));
+      if (![rec.type ?? []].flat().includes('conference')) console.log(c.yellow('Presentation applies only to accepted conference papers.'));
       else await askPresentation(rec);
     }
-    if (what === 'links') await askLinks(rec);
+    if (ONE_LINK[what]) {
+      console.log(c.dim('Paste the new value, press Enter to keep it, or type "-" to remove it.'));
+      await askLink(rec, ONE_LINK[what]);
+    }
     if (what === 'title') {
       rec.title = await ask('Title', rec.title);
       rec.authors = (await ask('Authors, comma-separated', rec.authors.join(', '))).split(',').map((s) => s.trim()).filter(Boolean);
+      if (rec.venue) rec.year = Number(await ask('Year', rec.year));
     }
-    if (what === 'abstract') {
-      const a = await ask('Paste the abstract on one line ("-" removes it)', '');
-      if (a === '-') delete rec.abstract;
-      else if (a) rec.abstract = a;
-    }
-    if (what === 'topics') rec.topics = await askTopics(rec.topics ?? []);
-    if (what === 'featured') {
-      rec.featured = await yes('Feature it on the home page?', !!rec.featured);
-      if (!rec.featured) delete rec.featured;
+    if (what === 'other') {
+      const o = await choose('Which?', [
+        { label: 'Abstract', value: 'abstract' },
+        { label: 'Research themes', value: 'topics' },
+        { label: 'Featured on the home page', value: 'featured' },
+        { label: 'Note (e.g. "Extended Abstract")', value: 'note' },
+        { label: 'All links (PDF, OpenReview, poster, supplement, dataset …)', value: 'links' },
+      ]);
+      if (o === 'abstract') {
+        const a = await ask('Paste the abstract on one line ("-" removes it)', '');
+        if (a === '-') delete rec.abstract;
+        else if (a) rec.abstract = a;
+      }
+      if (o === 'topics') rec.topics = await askTopics(rec.topics ?? []);
+      if (o === 'featured') {
+        rec.featured = await yes('Feature it on the home page?', !!rec.featured);
+        if (!rec.featured) delete rec.featured;
+      }
+      if (o === 'note') {
+        const n = await ask('Note ("-" removes it)', rec.note ?? '');
+        if (n === '-' || !n) delete rec.note;
+        else rec.note = n;
+      }
+      if (o === 'links') await askLinks(rec);
     }
   }
-  const text = readFile();
-  const res = safeWrite(replaceRecord(text, found.id, rec));
+  const diff = changes(found, rec);
+  if (!diff.length) {
+    console.log('\nNo changes. Nothing was saved.');
+    return 0;
+  }
+  printChanges(diff);
+  if (!(await yes('Apply these changes?', false))) {
+    console.log('Nothing was saved.');
+    return 0;
+  }
+  const res = safeWrite(replaceRecord(readFile(), found.id, rec));
   if (!res.ok) {
     console.log(c.red(res.message));
     console.log('Nothing was saved.');
     return 1;
   }
-  console.log(c.green('\n✔ Saved and validated.') + ` Preview: npm run dev, then open http://localhost:4321/publications/${rec.id}/`);
+  console.log(c.green('\n✔ Saved and checked.') + ` Preview: npm run dev, then open http://localhost:4321/publications/${rec.id}/`);
   console.log(c.dim('  Publish: git add -A && git commit -m "Update paper" && git push\n'));
   return 0;
 }

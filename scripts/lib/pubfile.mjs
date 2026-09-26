@@ -11,7 +11,8 @@ import { parse, stringify } from 'yaml';
 import { loadPublications, PublicationDataError } from '../../src/lib/pubs/index.mjs';
 
 export const ROOT = new URL('../../', import.meta.url);
-export const FILE = new URL('src/data/publications.yaml', ROOT);
+// PUBS_FILE lets the tools run against a copy (used by the tests); normally the real data file.
+export const FILE = process.env.PUBS_FILE ? new URL(`file://${process.env.PUBS_FILE}`) : new URL('src/data/publications.yaml', ROOT);
 export const profile = parse(readFileSync(new URL('src/data/profile.yaml', ROOT), 'utf8'));
 export const topicIds = Object.keys(profile.topics);
 export const themes = profile.themes;
@@ -24,16 +25,41 @@ export const c = {
   red: (s) => `\x1b[31m${s}\x1b[0m`,
   yellow: (s) => `\x1b[33m${s}\x1b[0m`,
 };
-export const rl = createInterface({ input: stdin, output: stdout });
+export const rl = createInterface({ input: stdin, output: stdout, terminal: stdin.isTTY });
+// Answers are queued line by line, so typed and pasted/piped answers behave the same.
+const queued = [];
+const waiting = [];
+let ended = false;
+rl.on('line', (l) => (waiting.length ? waiting.shift()(l) : queued.push(l)));
+rl.on('close', () => {
+  ended = true;
+  while (waiting.length) waiting.shift()(null);
+});
+async function readLine(prompt) {
+  stdout.write(prompt);
+  const l = queued.length ? queued.shift() : ended ? null : await new Promise((r) => waiting.push(r));
+  if (l === null) {
+    stdout.write('\n');
+    console.log('Input ended; nothing was saved.');
+    process.exit(1);
+  }
+  if (!stdin.isTTY) stdout.write(l + '\n'); // show piped answers in the transcript
+  return l;
+}
 export async function ask(question, fallback = '') {
   const shown = fallback === undefined || fallback === null ? '' : String(fallback);
   const hint = shown ? c.dim(` [${shown.length > 60 ? shown.slice(0, 57) + '…' : shown}]`) : '';
-  const answer = (await rl.question(`${question}${hint}: `)).trim();
+  const answer = (await readLine(`${question}${hint}: `)).trim();
   return answer || shown;
 }
 export async function yes(q, def = false) {
-  const a = (await rl.question(`${q} ${c.dim(def ? '[Y/n]' : '[y/N]')}: `)).trim().toLowerCase();
-  return a ? a.startsWith('y') : def;
+  for (;;) {
+    const a = (await readLine(`${q} ${c.dim(def ? '[Y/n]' : '[y/N]')}: `)).trim().toLowerCase();
+    if (!a) return def;
+    if (['y', 'yes'].includes(a)) return true;
+    if (['n', 'no'].includes(a)) return false;
+    console.log(c.yellow('  Please answer y (yes) or n (no), or press Enter for the default.'));
+  }
 }
 /** Numbered choice; returns the chosen option's value (or `def`). */
 export async function choose(q, options, def) {
@@ -253,22 +279,77 @@ export function safeWrite(next) {
 }
 
 // ------------------------------------------------------------------ plain-language summary
+/** The paper's status in plain words. */
+export function stageOf(rec) {
+  const types = rec.type ? [rec.type].flat() : [];
+  if (types.includes('working-paper')) return 'Working Paper';
+  if (rec.status === 'under-review') return 'Under Review';
+  if (rec.status === 'under-revision') return 'Under Revision';
+  if (rec.status === 'to-appear') return 'Accepted / To Appear';
+  return 'Published';
+}
+const kindOf = (rec) => [rec.type ?? []].flat().filter((t) => t !== 'working-paper').map((t) => t[0].toUpperCase() + t.slice(1)).join(' + ');
+const presOf = (rec) => {
+  const p = rec.presentation ? (typeof rec.presentation === 'string' ? { type: rec.presentation } : rec.presentation) : null;
+  if (!p) return '';
+  const t = { oral: 'Oral', spotlight: 'Spotlight', 'contributed-talk': 'Contributed talk', poster: 'Poster' }[p.type] ?? p.type;
+  return p.mode ? `${t} · ${{ 'in-person': 'In person', online: 'Online', hybrid: 'Hybrid' }[p.mode] ?? p.mode}` : t;
+};
+const venueOf = (rec) => (rec.venue ? `${rec.venue.acronym ? rec.venue.acronym + ' ' : ''}${rec.year ?? ''}${rec.venue.name ? c.dim(` (${rec.venue.name})`) : ''}`.trim() : '');
+const linkOf = (v) => (Array.isArray(v) ? v.map((x) => x.url ?? x).join(', ') : String(v));
+export const LINK_LABELS = {
+  arxiv: 'arXiv',
+  paper: 'Official publication page',
+  doi: 'DOI',
+  code: 'GitHub / code',
+  project: 'Project page',
+  pdf: 'PDF',
+  openreview: 'OpenReview',
+  slides: 'Slides',
+  video: 'Video / talk',
+  poster: 'Poster',
+  supplement: 'Supplementary material',
+  data: 'Dataset',
+};
+
+/** Field-by-field differences between two versions of a record, in plain words. */
+export function changes(before, after) {
+  const rows = [];
+  const add = (label, a, b) => {
+    const x = a === undefined || a === null || a === '' ? '—' : String(a);
+    const y = b === undefined || b === null || b === '' ? '—' : String(b);
+    if (x !== y) rows.push([label, x, y]);
+  };
+  add('Status', before.id ? stageOf(before) : '', stageOf(after));
+  add('Type', kindOf(before), kindOf(after));
+  add('Venue', venueOf(before), venueOf(after));
+  add('Pages', before.venue?.pages, after.venue?.pages);
+  add('Presentation', presOf(before), presOf(after));
+  for (const k of Object.keys(LINK_LABELS)) add(LINK_LABELS[k], before.links?.[k] && linkOf(before.links[k]), after.links?.[k] && linkOf(after.links[k]));
+  add('Title', before.title, after.title);
+  add('Authors', before.authors?.join(', '), after.authors?.join(', '));
+  add('Note', before.note, after.note);
+  add('Abstract', before.abstract ? 'present' : '', after.abstract ? (after.abstract === before.abstract ? 'present' : 'new text') : '');
+  add('Research themes', before.topics?.join(', '), after.topics?.join(', '));
+  add('Featured on home page', before.featured ? 'yes' : 'no', after.featured ? 'yes' : 'no');
+  return rows;
+}
+export function printChanges(rows) {
+  console.log(c.bold('\nChanges:\n'));
+  for (const [label, a, b] of rows) console.log(`  ${c.bold(label)}\n    ${c.dim(a)} → ${b}\n`);
+}
+
 export function describe(rec) {
   const types = rec.type ? [rec.type].flat() : [];
-  let stage;
-  if (types.includes('working-paper')) stage = 'Working paper (public preprint, not under review)';
-  else if (rec.status === 'under-review') stage = 'Under review';
-  else if (rec.status === 'under-revision') stage = 'Under revision';
-  else if (rec.status === 'to-appear') stage = `Accepted, to appear (${types.join(' + ')})`;
-  else stage = `Published (${types.join(' + ')})`;
-  const p = rec.presentation ? (typeof rec.presentation === 'string' ? { type: rec.presentation } : rec.presentation) : null;
+  const kind = types.filter((t) => t !== 'working-paper').join(' + ');
+  const stage = stageOf(rec) + (kind && !['Working Paper', 'Under Review', 'Under Revision'].includes(stageOf(rec)) ? ` (${kind})` : '');
   const rows = [
     ['Title', rec.title + (rec.note ? ` (${rec.note})` : '')],
     ['Authors', rec.authors.join(', ')],
     ['Stage', stage],
     rec.venue && ['Venue', `${rec.venue.name}${rec.venue.acronym ? ` · ${rec.venue.acronym}` : ''}${rec.year ? ` ${rec.year}` : ''}`],
-    p && ['Presentation', `${p.type}${p.mode ? ` · ${p.mode}` : ''}`],
-    ['Links', Object.entries(rec.links ?? {}).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.map((x) => x.url ?? x).join(', ') : v}`).join('\n' + ' '.repeat(16)) || '(none)'],
+    rec.presentation && ['Presentation', presOf(rec)],
+    ['Links', Object.entries(rec.links ?? {}).map(([k, v]) => `${LINK_LABELS[k] ?? k}: ${linkOf(v)}`).join('\n' + ' '.repeat(16)) || '(none)'],
     rec.topics?.length && ['Topics', rec.topics.join(', ')],
     ['Abstract', rec.abstract ? `${rec.abstract.slice(0, 90)}…` : '(none)'],
     ['URL', `/publications/${rec.id}/`],

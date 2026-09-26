@@ -13,7 +13,7 @@ to GitHub Pages by GitHub Actions.
 | `npm run dev` | local development server with live reload (see *Local preview*) |
 | `npm run add-pub -- <arXiv id or DOI>` | add a publication (see PUBLICATIONS.md) |
 | `npm run update-pub -- <id or title words>` | change a publication's stage, venue, presentation or links |
-| `npm run check` | validate `src/data/publications.yaml` |
+| `npm run validate-pubs` | check the publication data (same as `npm run check`) |
 | `npm test` | schema rules + data validation (also runs in CI) |
 | `npm run build` | build the static site into `dist/` |
 | `npm run preview` | serve the built site |
