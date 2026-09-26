@@ -7,6 +7,12 @@ import { createAir } from '../elements/air';
 import { createEarth } from '../elements/earth';
 import { createFire } from '../elements/fire';
 import { createConvergence } from '../elements/convergence';
+import { canvasPainter } from '../canvas';
+import { createAdapt } from '../scenes/adapt';
+import { createExchange } from '../scenes/exchange';
+import { createShare } from '../scenes/share';
+import { createGather } from '../scenes/gather';
+import { UNIFIED } from './unified-protos';
 import type { Proto, ProtoFactory } from './common';
 import { FIRE_PROTOS } from './fire-protos';
 import { FIRE_STUDIES } from './fire-studies';
@@ -37,7 +43,27 @@ const fromScene =
     return p;
   };
 
-export type Group = 'family' | 'wind' | 'fire-old' | 'conv-old' | 'earth-old';
+/** The research scenes (they draw through the shared Painter, as in the hero). */
+const fromResearch =
+  (factory: SceneFactory): ProtoFactory =>
+  (w, h, _seed, opts) => {
+    const field = { x0: w * 0.04, x1: w * 0.96, y0: h * 0.06, y1: h * 0.94 };
+    const s = factory({ width: w, height: h, field, density: (((field.x1 - field.x0) * (field.y1 - field.y0)) / 1e5) * 22, layout: opts?.mobile ? 'top' : 'side', seed: 30 });
+    let next = s.introMs + 3900;
+    return {
+      step(dt) {
+        s.step(dt);
+        if (s.clock > next) {
+          s.churn();
+          next = s.clock + 3900 * (0.7 + Math.random() * 0.6);
+        }
+      },
+      render: (ctx) => s.draw(canvasPainter(ctx), -1),
+      settle: () => s.finish(),
+    };
+  };
+
+export type Group = 'family' | 'wind' | 'research' | 'unified' | 'fire-old' | 'conv-old' | 'earth-old';
 
 export interface Entry {
   id: string;
@@ -68,6 +94,11 @@ export const ENTRIES: Entry[] = [
     note: 'The live Convergence scene (?scene=convergence). One wind field moves everything: long currents in the sky at different depths (rising over the fire), smoke taken and stretched by the current, embers carried downwind, mist drifting at the wind speed of its height, gust patches running across the water, and the flames leaning. Pointer: ripples on the water, a gust in the air.',
     make: fromScene(createConvergence),
   },
+  { id: 'r-gather', group: 'research', label: 'Gather', title: 'Coalitions & collective decisions', note: 'Agents arrive and join the group they value most.', make: fromResearch(createGather) },
+  { id: 'r-share', group: 'research', label: 'Share', title: 'Fair allocation over time', note: 'Resources routed so bundles grow evenly.', make: fromResearch(createShare) },
+  { id: 'r-adapt', group: 'research', label: 'Adapt', title: 'Learning in multi-agent systems', note: 'A network learns from consistent feedback and regroups.', make: fromResearch(createAdapt) },
+  { id: 'r-exchange', group: 'research', label: 'Exchange', title: 'Principled & safe AI', note: 'Two mirrored groups exchange messages; some are stopped at the boundary.', make: fromResearch(createExchange) },
+  ...UNIFIED.map((u) => ({ id: `u-${u.key}`, group: 'unified' as const, label: u.title, title: 'in the flow language', note: u.note, make: u.make })),
   { id: 'conv-current', group: 'wind', label: 'Current wind', title: 'Dramatic Lake as reviewed', note: 'The study you selected, unchanged: independent, faint sky lines; smoke and mist not tied to them.', make: LAKE_STUDIES[1].make },
   { id: 'conv-refined', group: 'wind', label: 'Refined wind', title: 'Dramatic Lake, production', note: 'One wind field for everything (see Convergence above). A few long currents, not a sky full of lines.', make: fromScene(createConvergence) },
   ...FIRE_PROTOS.map((p) => ({ id: `fire-${p.key}`, group: 'fire-old' as const, label: `Fire ${p.key}`, title: p.title, note: p.note, make: p.make })),
