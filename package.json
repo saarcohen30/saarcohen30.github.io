@@ -12,6 +12,8 @@
     "preview": "astro preview",
     "preview:status": "astro preview status",
     "preview:stop": "astro preview stop",
+    "dev:status": "astro dev status",
+    "dev:stop": "astro dev stop",
     "check": "node scripts/validate-publications.mjs",
     "add-pub": "node scripts/add-publication.mjs",
     "update-pub": "node scripts/update-publication.mjs",

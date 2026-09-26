@@ -10,46 +10,54 @@ to GitHub Pages by GitHub Actions.
 | Command | |
 |---|---|
 | `npm install` | once, after cloning (Node 22+) |
-| `npm run dev` | local preview with live reload at http://localhost:4321 |
+| `npm run dev` | local development server with live reload (see *Local preview*) |
 | `npm run add-pub -- <arXiv id or DOI>` | add a publication (see PUBLICATIONS.md) |
 | `npm run update-pub -- <id or title words>` | change a publication's stage, venue, presentation or links |
 | `npm run check` | validate `src/data/publications.yaml` |
 | `npm test` | schema rules + data validation (also runs in CI) |
 | `npm run build` | build the static site into `dist/` |
 | `npm run preview` | serve the built site |
-| `npm run preview:status` / `preview:stop` | inspect / stop a preview server started in the background |
+| `npm run preview:stop` / `dev:stop` | stop a preview / dev server that is stuck or already running (see *Local preview*) |
 
-## Local development
+## Local preview
 
-`npm run dev` and `npm run preview` do different jobs:
+There are two ways to look at the site locally:
 
-- **`npm run dev`** serves the site from source with live reload. Use it while editing. It does not produce
-  `dist/`, and it is not exactly what gets deployed.
-- **`npm run build` then `npm run preview`** builds the production site into `dist/` and serves exactly those files.
-  Use it to check what will be deployed (and for Lighthouse).
+- **`npm run dev`**: for editing. It serves the site from source and reloads as you change files. Open the URL it
+  prints (normally http://localhost:4321).
+- **`npm run build` then `npm run preview`**: the production site. It builds into `dist/` and serves exactly what
+  will be deployed. Run `npm run build` first each time, or you will see the previous build.
 
-| Task | Command |
+```sh
+cd ~/Documents/saarcohen30.github.io-master
+npm run build
+npm run preview
+```
+
+Then open http://localhost:4321/.
+
+**To stop a server, press Ctrl+C** in its terminal. **Do not press Ctrl+Z.** Ctrl+Z only *suspends* the server:
+it keeps the port and Astro still counts it as running, but it never answers, so the page just hangs and the next
+`npm run preview` says *"Another astro preview server is already running"*.
+
+### If Astro says a server is already running (or localhost hangs)
+
+```sh
+npm run preview:stop     # or: npm run dev:stop
+npm run preview
+```
+
+This works even for a suspended server. If the old terminal then shows a stopped job (see `jobs`), type `fg` there
+and it will exit.
+
+| Command | |
 |---|---|
-| Start development | `npm run dev`, then open http://localhost:4321 |
-| Stop development | **Ctrl+C** in that terminal (releases the port) |
-| Build for production | `npm run build` |
-| Serve the production build | `npm run preview`, then open http://localhost:4321 |
-| Stop the preview | **Ctrl+C** in that terminal |
-| Is a preview running somewhere? | `npm run preview:status` |
-| Stop a preview started in the background | `npm run preview:stop` |
-| Replace a background preview with a fresh one | `npx astro preview --background --force` (then `npm run preview:stop` when done) |
+| `npm run preview:status` / `npm run dev:status` | Is a preview / dev server for this project running? |
+| `npm run preview:stop` / `npm run dev:stop` | Stop it (also one started in the background or suspended) |
 
-**"Another astro preview server is already running"** means Astro found a preview it started earlier and is still
-tracking. Astro 7 allows one dev server and one preview server per project. It tracks them with lock files in
-`.astro/`, which are ignored automatically once their process has exited. Fix it with `npm run preview:stop`, then
-`npm run preview` again. Note:
-
-- Plain `npx astro preview --force` is **not** honoured in the foreground in this Astro version; only
-  `--background --force` replaces a server.
-- When `astro preview` is run by an automated agent or tool, Astro 7 starts it **in the background** on purpose,
-  so it keeps running after the tool finishes. That is how a stale preview can appear without you starting one.
-  `npm run preview:stop` ends it.
-- The same applies to dev servers: `npx astro dev status` and `npx astro dev stop`.
+Astro 7 allows one dev server and one preview server per project and tracks them in `.astro/` (not committed).
+When an automated tool runs `astro preview` or `astro dev`, Astro starts it in the background on purpose, so it
+keeps running after the tool finishes; the `stop` commands end those too.
 
 ## Previewing hero scenes
 
