@@ -1,0 +1,34 @@
+---
+// One animated card on /design-review/elements/ (driven by src/scripts/element-review.ts).
+import type { Entry } from '../../lib/field/review/registry';
+interface Props { e: Entry; frames?: { at: number; label: string }[]; compact?: boolean }
+const { e, frames, compact = false } = Astro.props;
+---
+<article class:list={['card', { compact }]} data-card={e.id}>
+  <div class="stage">
+    <canvas aria-label={`${e.label}: ${e.title}`} role="img"></canvas>
+  </div>
+  <div class="ctl">
+    <span class="k">{e.label}</span>
+    <span class="t">{e.title}</span>
+    <span class="btns">
+      <button type="button" data-act="replay">Replay</button>
+      <button type="button" data-act="pause" aria-pressed="false">Pause</button>
+      <button type="button" data-act="reset">Reset</button>
+      <button type="button" data-act="slow" aria-pressed="false">Slow</button>
+    </span>
+  </div>
+  {
+    frames && (
+      <div class="frames" data-frames={e.id}>
+        {frames.map((fr) => (
+          <figure data-at={fr.at}>
+            <canvas aria-label={`${e.label} at ${fr.label}`} role="img" />
+            <figcaption>{fr.label}</figcaption>
+          </figure>
+        ))}
+      </div>
+    )
+  }
+  {!compact && <p class="note">{e.note}</p>}
+</article>

@@ -7,7 +7,7 @@ export interface Proto {
   pointer?(x: number, y: number, t: number): void;
   settle?(): void;
 }
-export type ProtoFactory = (w: number, h: number, seed?: number) => Proto;
+export type ProtoFactory = (w: number, h: number, seed?: number, opts?: { mobile?: boolean }) => Proto;
 
 // ---------------------------------------------------------------- fire palette
 // Temperature → colour with narrow transitions between nested regions:

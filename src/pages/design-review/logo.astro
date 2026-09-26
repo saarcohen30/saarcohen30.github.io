@@ -8,202 +8,364 @@ import LogoB1 from '../../components/logos/LogoB1.astro';
 import LogoB2 from '../../components/logos/LogoB2.astro';
 import LogoB3 from '../../components/logos/LogoB3.astro';
 import LogoB4 from '../../components/logos/LogoB4.astro';
+import LogoC1 from '../../components/logos/LogoC1.astro';
+import LogoC2 from '../../components/logos/LogoC2.astro';
+import LogoC3 from '../../components/logos/LogoC3.astro';
+import LogoC4 from '../../components/logos/LogoC4.astro';
 import Mark from '../../components/Mark.astro';
 
-const candidates = [
-  { key: 'B1', name: 'Two currents', note: 'Two currents in complementary motion: one rises and runs on, the other falls and returns. They part around a tilted central void and settle level at both ends, so the balance comes from negative space and controlled asymmetry, not from a symbol.', C: LogoB1 },
-  { key: 'B2', name: 'One stroke', note: 'A single calligraphic stroke: heavy through the crest like a wave, thinning into a long glide like moving air. The most minimal; at 16 px it reads mostly as the crest.', C: LogoB2 },
-  { key: 'B3', name: 'Negative-space current', note: 'A current cut through a solid tile splits it into two interlocking forms of equal weight; the flow is the empty channel between them. The strongest favicon of the four.', C: LogoB3 },
-  { key: 'B4', name: 'S and C through flow', note: 'One stroke descends as an S and carries on into the lower arc of a C; the C’s upper arc curls back above it. The initials are there if you look, but it reads first as a current.', C: LogoB4 },
+const explore = [
+  {
+    key: 'C1',
+    name: 'Wave into vortex',
+    note: 'One gesture. Heavy along the bottom like a body of water, it rises up the right and winds inward, thinning as it turns into a vortex. The circle is implied by the path; nothing encloses it.',
+    C: LogoC1,
+  },
+  {
+    key: 'C2',
+    name: 'Counter-rotating currents',
+    note: 'Two arms turning about one centre with unequal weight: the heavier (water) winds out below, the lighter (air) winds out above. They pass without touching, and neither is a comma or tadpole shape.',
+    C: LogoC2,
+  },
+  {
+    key: 'C3',
+    name: 'Elemental aperture',
+    note: 'One round silhouette with two readings. Below, a dense body whose top edge rises as a wave to a crest; from the crest a thin arc continues over the top and stops short, so the opening above the wave is air. Strongest at favicon size.',
+    C: LogoC3,
+  },
+  {
+    key: 'C4',
+    name: 'Crest and current',
+    note: 'A crest of water and one current of air. The same current is a line where it runs through open air and an empty channel where it runs through the water, so each form completes the other. Wider than the others.',
+    C: LogoC4,
+  },
+];
+const finalists = [
+  { key: 'B2', name: 'One stroke', note: 'Existing finalist, for comparison.', C: LogoB2 },
+  { key: 'B3', name: 'Negative-space current', note: 'Existing finalist, for comparison.', C: LogoB3 },
 ];
 const earlier = [
-  { key: 'B', name: 'Flow & balance (first version)', note: 'The earlier wave with a point in its trough, kept for comparison.', C: LogoB },
-  { key: 'A', name: 'Monogram', note: 'Not selected.', C: LogoA },
-  { key: 'C', name: 'Typographic', note: 'Not selected.', C: LogoC },
+  { key: 'B1', name: 'Two currents', C: LogoB1 },
+  { key: 'B4', name: 'S and C through flow', C: LogoB4 },
+  { key: 'B', name: 'Flow & balance, first version', C: LogoB },
+  { key: 'A', name: 'Monogram', C: LogoA },
+  { key: 'C', name: 'Typographic', C: LogoC },
+  { key: '·', name: 'Current mark', C: Mark },
 ];
-const sizes = [48, 32, 24, 16];
-const surfaces = [
-  { key: 'light', label: 'Light', style: '--s-bg:#f4f2ec;--s-ink:#14161b;--logo-accent:#2742c4;--logo-on:#f4f2ec' },
-  { key: 'dark', label: 'Dark', style: '--s-bg:#0b0d11;--s-ink:#ebe8e1;--logo-accent:#93b0ff;--logo-on:#0b0d11' },
-  { key: 'mono-l', label: 'Mono on light', style: '--s-bg:#ffffff;--s-ink:#000000;--logo-accent:#000000;--logo-on:#ffffff' },
-  { key: 'mono-d', label: 'Mono on dark', style: '--s-bg:#000000;--s-ink:#ffffff;--logo-accent:#ffffff;--logo-on:#000000' },
+const sizes = [64, 48, 32, 24, 16];
+const groups = [
+  { id: 'explore', title: 'New elemental exploration', intro: 'Monochrome first: none of these relies on colour. C5 (initials hidden in the flow) was tried and left out: the letters either dominated or disappeared.', items: explore },
+  { id: 'finalists', title: 'Existing finalists', intro: 'B2 and B3, shown the same way for comparison.', items: finalists },
 ];
 ---
 
 <Base title="Logo candidates" description="Site-mark candidates for review." noindex>
-  <div class="wrap review">
+  <div class="wrap review-logo">
     <p class="eyebrow">Design review · not linked from the site</p>
-    <h1>Site mark: Flow &amp; balance</h1>
-    <p class="intro">Four marks in the Flow &amp; balance direction, none with a decorative point, shown at header size and at 48, 32, 24 and 16 px on light, dark and monochrome surfaces. Earlier candidates and the current mark follow for comparison. Nothing here replaces the live mark until you choose.</p>
+    <h1>Site mark: elemental exploration</h1>
+    <p class="intro">
+      Water and Air, flow and balance. Each candidate is shown isolated at 64, 48, 32, 24 and 16 px; beside the name in the real header on the dark hero stage and on the light page; in pure black and white; and as a 16 px favicon in a browser tab. Nothing here replaces the live mark until you choose.
+    </p>
 
     {
-      candidates.map(({ key, name, note, C }) => (
-        <section class="cand">
-          <header>
-            <h2>
-              <span class="k">{key}</span> {name}
-            </h2>
-            <p>{note}</p>
-          </header>
-          <div class="grid">
-            {surfaces.map((s) => (
-              <div class="surface" style={s.style}>
-                <p class="slabel">{s.label}</p>
-                <div class="header-demo">
-                  <C size={26} />
-                  <span>Saar Cohen</span>
+      groups.map((g) => (
+        <section class="group" id={g.id}>
+          <h2>{g.title}</h2>
+          <p class="intro">{g.intro}</p>
+          {g.items.map(({ key, name, note, C }) => (
+            <article class="cand">
+              <header>
+                <h3>
+                  <span class="k">{key}</span> {name}
+                </h3>
+                <p>{note}</p>
+              </header>
+              <div class="grid">
+                <div class="panel light">
+                  <p class="lbl">Isolated · light</p>
+                  <div class="sizes">
+                    {sizes.map((z) => (
+                      <figure>
+                        <C size={z} />
+                        <figcaption>{z}</figcaption>
+                      </figure>
+                    ))}
+                  </div>
                 </div>
-                <div class="sizes">
-                  {sizes.map((z) => (
-                    <figure>
-                      <C size={z} />
-                      <figcaption>{z}</figcaption>
-                    </figure>
-                  ))}
+                <div class="panel dark">
+                  <p class="lbl">Isolated · dark</p>
+                  <div class="sizes">
+                    {sizes.map((z) => (
+                      <figure>
+                        <C size={z} />
+                        <figcaption>{z}</figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                </div>
+                <div class="panel stage">
+                  <p class="lbl">Header · dark hero</p>
+                  <div class="brand">
+                    <C size={26} />
+                    <span>Saar Cohen</span>
+                  </div>
+                </div>
+                <div class="panel light">
+                  <p class="lbl">Header · light page</p>
+                  <div class="brand">
+                    <C size={26} />
+                    <span>Saar Cohen</span>
+                  </div>
+                </div>
+                <div class="panel mono-b">
+                  <p class="lbl">Black</p>
+                  <div class="sizes">
+                    <C size={48} />
+                    <C size={24} />
+                    <C size={16} />
+                  </div>
+                </div>
+                <div class="panel mono-w">
+                  <p class="lbl">White</p>
+                  <div class="sizes">
+                    <C size={48} />
+                    <C size={24} />
+                    <C size={16} />
+                  </div>
+                </div>
+                <div class="panel tabs">
+                  <p class="lbl">Favicon · 16 px</p>
+                  <div class="tabbar tl">
+                    <span class="tab on">
+                      <C size={16} />
+                      Saar Cohen
+                    </span>
+                    <span class="tab">
+                      <span class="fav" />
+                      Inbox
+                    </span>
+                  </div>
+                  <div class="tabbar td">
+                    <span class="tab on">
+                      <C size={16} />
+                      Saar Cohen
+                    </span>
+                    <span class="tab">
+                      <span class="fav" />
+                      Inbox
+                    </span>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
+            </article>
+          ))}
         </section>
       ))
     }
 
-    <h2 class="group">Earlier candidates (for comparison)</h2>
-    {
-      earlier.map(({ key, name, note, C }) => (
-        <section class="cand">
-          <header>
-            <h2>
-              <span class="k">{key}</span> {name}
-            </h2>
-            <p>{note}</p>
-          </header>
-          <div class="grid">
-            {surfaces.map((s) => (
-              <div class="surface" style={s.style}>
-                <p class="slabel">{s.label}</p>
-                <div class="header-demo">
-                  <C size={26} />
-                  <span>Saar Cohen</span>
+    <section class="group" id="earlier">
+      <details>
+        <summary><h2>Earlier candidates</h2></summary>
+        <div class="earlier">
+          {
+            earlier.map(({ key, name, C }) => (
+              <div class="mini">
+                <div class="panel light">
+                  <C size={32} />
+                  <C size={16} />
                 </div>
-                <div class="sizes">
-                  {sizes.map((z) => (
-                    <figure>
-                      <C size={z} />
-                      <figcaption>{z}</figcaption>
-                    </figure>
-                  ))}
+                <div class="panel dark">
+                  <C size={32} />
+                  <C size={16} />
                 </div>
+                <p>
+                  <span class="k">{key}</span> {name}
+                </p>
               </div>
-            ))}
-          </div>
-        </section>
-      ))
-    }
-
-    <section class="cand">
-      <header>
-        <h2><span class="k">·</span> Current mark (for comparison)</h2>
-      </header>
-      <div class="grid">
-        {
-          surfaces.map((s) => (
-            <div class="surface" style={s.style}>
-              <p class="slabel">{s.label}</p>
-              <div class="header-demo">
-                <Mark size={26} />
-                <span>Saar Cohen</span>
-              </div>
-              <div class="sizes">
-                {sizes.map((z) => (
-                  <figure>
-                    <Mark size={z} />
-                    <figcaption>{z}</figcaption>
-                  </figure>
-                ))}
-              </div>
-            </div>
-          ))
-        }
-      </div>
+            ))
+          }
+        </div>
+      </details>
     </section>
   </div>
 </Base>
 
 <style>
-  .review {
-    padding-top: var(--space-7);
+  .review-logo {
+    padding-block: var(--space-7) var(--space-8);
     display: grid;
     gap: var(--space-6);
   }
   h1 {
     font-size: var(--step-3);
   }
+  h2 {
+    font-size: var(--step-2);
+  }
   .intro {
     color: var(--ink-2);
-    max-width: 64ch;
+    max-width: 70ch;
   }
   .group {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .cand {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .cand h3 {
     font-size: var(--step-1);
-    color: var(--ink-2);
-    margin-top: var(--space-6);
-  }
-  .cand header {
-    margin-bottom: var(--space-4);
-  }
-  .cand h2 {
-    font-size: var(--step-2);
   }
   .cand header p {
     color: var(--ink-2);
-    max-width: 70ch;
     font-size: var(--step--1);
+    max-width: 72ch;
   }
   .k {
     font-family: var(--font-mono);
     color: var(--accent);
-    margin-right: 0.4em;
+    margin-right: 0.35em;
   }
   .grid {
     display: grid;
     gap: 1px;
-    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     overflow: hidden;
     background: var(--line);
   }
-  .surface {
-    background: var(--s-bg);
-    color: var(--s-ink);
-    padding: var(--space-5);
+  .panel {
+    padding: var(--space-4);
     display: grid;
-    gap: var(--space-4);
+    gap: var(--space-3);
+    align-content: start;
   }
-  .slabel {
+  /* Surfaces: the site's own colours. */
+  .light {
+    background: #f4f2ec;
+    color: #14161b;
+  }
+  .dark {
+    background: #0b0d11;
+    color: #ebe8e1;
+  }
+  .stage {
+    background:
+      radial-gradient(ellipse 80% 90% at 70% 40%, rgba(80, 100, 170, 0.14), transparent 70%),
+      #06070a;
+    color: #eeebe4;
+  }
+  .mono-b {
+    background: #fff;
+    color: #000;
+  }
+  .mono-w {
+    background: #000;
+    color: #fff;
+  }
+  .lbl {
     font-family: var(--font-mono);
-    font-size: var(--step--2);
+    font-size: 0.68rem;
     opacity: 0.6;
-  }
-  .header-demo {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 1.12rem;
   }
   .sizes {
     display: flex;
     align-items: flex-end;
-    gap: 1.2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
   }
   figure {
     display: grid;
     justify-items: center;
-    gap: 0.35rem;
+    gap: 0.3rem;
   }
   figcaption {
     font-family: var(--font-mono);
-    font-size: 0.68rem;
+    font-size: 0.66rem;
     opacity: 0.55;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.12rem;
+    letter-spacing: -0.01em;
+    min-height: 44px;
+  }
+  .tabs {
+    background: #e9e7e1;
+    grid-column: span 2;
+  }
+  .tabbar {
+    display: flex;
+    gap: 2px;
+    padding: 6px 6px 0;
+    border-radius: 8px 8px 0 0;
+    font: 12px/1 system-ui, sans-serif;
+  }
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 12px;
+    border-radius: 8px 8px 0 0;
+    min-width: 7.5rem;
+  }
+  .fav {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    background: currentColor;
+    opacity: 0.3;
+  }
+  .tl {
+    background: #dee1e6;
+    color: #202124;
+  }
+  .tl .on {
+    background: #fff;
+  }
+  .td {
+    background: #202124;
+    color: #e8eaed;
+  }
+  .td .on {
+    background: #35363a;
+  }
+  summary {
+    cursor: pointer;
+    list-style: none;
+  }
+  summary h2 {
+    display: inline;
+    font-size: var(--step-1);
+    color: var(--ink-2);
+  }
+  .earlier {
+    margin-top: var(--space-4);
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  }
+  .mini {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .mini .panel {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.8rem;
+  }
+  .mini p {
+    grid-column: 1 / -1;
+    padding: 0.5rem 0.8rem;
+    font-size: var(--step--1);
+    background: var(--bg-elev);
   }
 </style>
