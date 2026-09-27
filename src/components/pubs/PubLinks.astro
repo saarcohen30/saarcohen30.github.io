@@ -1,0 +1,79 @@
+---
+import Icon from '../Icon.astro';
+import type { Publication } from '../../lib/site';
+
+interface Props {
+  pub: Publication;
+  size?: 'sm' | 'md';
+}
+const { pub, size = 'sm' } = Astro.props;
+
+const iconFor = (kind: string, href: string) => (kind === 'code' && /^https:\/\/github\.com\//.test(href) ? 'github' : kind);
+---
+
+{
+  (pub.links.length > 0 || pub.versions.length > 0) && (
+    <ul role="list" class:list={['links', size]} aria-label={`Links for “${pub.title}”`}>
+      {pub.links.map((l) => (
+        <li>
+          <a class="chip" href={l.href} data-kind={l.kind} title={l.title}>
+            <Icon name={iconFor(l.kind, l.href)} size={15} />
+            <span>{l.label}</span>
+          </a>
+        </li>
+      ))}
+      {pub.versions.map((v) => (
+        <li>
+          <a class="chip version" href={v.href} title={v.title ? `${v.label}: “${v.title}”` : v.label}>
+            <Icon name={v.arxiv ? 'arxiv' : 'doi'} size={15} />
+            <span>{v.label}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+<style>
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2rem;
+    padding: 0.2rem 0.65rem 0.2rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--bg-elev);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 500;
+    color: var(--ink-2);
+    text-decoration: none;
+    transition:
+      border-color var(--dur-1),
+      color var(--dur-1),
+      background-color var(--dur-1),
+      transform var(--dur-2) var(--ease-out);
+  }
+  .chip:hover {
+    color: var(--ink);
+    border-color: var(--ink-3);
+    transform: translateY(-1px);
+  }
+  .chip :global(svg) {
+    opacity: 0.8;
+  }
+  .version {
+    border-style: dashed;
+  }
+  .md .chip {
+    min-height: 2.5rem;
+    padding-inline: 0.85rem 0.95rem;
+    font-size: var(--step--1);
+  }
+</style>

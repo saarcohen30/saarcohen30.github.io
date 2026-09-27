@@ -1,0 +1,116 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<Base title="Page not found" description="This page does not exist." noindex stageHeader>
+  <section class="lost stage" data-stage-root>
+    <svg class="scene" viewBox="0 0 400 220" aria-hidden="true" focusable="false">
+      <g stroke="rgba(143,169,255,.45)" stroke-width="1.2" fill="none">
+        <path d="M250 70 282 60 296 92 262 104z M250 70 296 92" />
+        <path d="M300 150 330 138 336 172z" stroke="rgba(95,211,170,.45)" />
+      </g>
+      <g fill="#8fa9ff">
+        <circle cx="250" cy="70" r="4" /><circle cx="282" cy="60" r="4" /><circle cx="296" cy="92" r="4" /><circle cx="262" cy="104" r="4" />
+      </g>
+      <g fill="#5fd3aa"><circle cx="300" cy="150" r="4" /><circle cx="330" cy="138" r="4" /><circle cx="336" cy="172" r="4" /></g>
+      <path class="probe" d="M110 120C160 110 210 100 250 80" stroke="rgba(238,235,228,.35)" stroke-dasharray="3 5" fill="none" />
+      <path class="probe" d="M110 120C170 130 240 150 300 150" stroke="rgba(238,235,228,.25)" stroke-dasharray="3 5" fill="none" />
+      <circle class="lonely" cx="110" cy="120" r="5" fill="#eeebe4" />
+      <circle class="ping" cx="110" cy="120" r="5" fill="none" stroke="#eeebe4" />
+    </svg>
+    <div class="wrap copy">
+      <p class="eyebrow">Error 404</p>
+      <h1>This agent arrived, but no coalition would take it.</h1>
+      <p class="sub">The page you were looking for does not exist, or it moved when the site was rebuilt.</p>
+      <p class="actions">
+        <a class="btn btn--light" href="/">Home <Icon name="arrow-right" class="arrow" /></a>
+        <a class="btn btn--ghost" href="/publications/">Publications</a>
+        <a class="btn btn--ghost" href="/cv/">CV</a>
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .lost {
+    min-height: 100svh;
+    padding-top: var(--header-h);
+    display: grid;
+    align-content: center;
+    gap: var(--space-5);
+    padding-block: var(--space-7);
+    background: var(--stage-bg);
+    color: var(--stage-ink);
+    color-scheme: dark;
+  }
+  .scene {
+    width: min(32rem, 90vw);
+    margin-inline: auto;
+  }
+  .copy {
+    display: grid;
+    gap: var(--space-4);
+    text-align: center;
+    justify-items: center;
+  }
+  .eyebrow {
+    color: var(--stage-ink-3);
+  }
+  h1 {
+    font-size: var(--step-3);
+    font-weight: 350;
+    max-width: 22ch;
+  }
+  .sub {
+    color: var(--stage-ink-2);
+    max-width: 44ch;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+  .btn--light {
+    --btn-bg: var(--stage-ink);
+    --btn-ink: var(--stage-bg);
+    --btn-line: var(--stage-ink);
+  }
+  .btn--ghost {
+    --btn-ink: var(--stage-ink);
+    --btn-line: rgba(238, 235, 228, 0.28);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .lonely {
+      animation: wander 6s var(--ease-in-out) infinite alternate;
+    }
+    .ping {
+      animation: ping 2.4s ease-out infinite;
+      transform-origin: 110px 120px;
+    }
+    .probe {
+      animation: probe 2.4s ease-in-out infinite;
+    }
+  }
+  @keyframes wander {
+    to {
+      transform: translate(6px, -8px);
+    }
+  }
+  @keyframes ping {
+    from {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    to {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+  @keyframes probe {
+    50% {
+      opacity: 0.2;
+    }
+  }
+</style>

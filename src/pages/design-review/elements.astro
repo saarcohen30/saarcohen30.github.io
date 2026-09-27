@@ -1,0 +1,298 @@
+---
+// Hidden art-direction review for the elemental scenes (not linked, not in the sitemap, noindex).
+// The final elemental family are the live scenes; everything else here is an earlier study.
+import Base from '../../layouts/Base.astro';
+import ReviewCard from '../../components/review/ReviewCard.astro';
+import { ENTRIES, type Group } from '../../lib/field/review/registry';
+
+const group = (g: Group) => ENTRIES.filter((e) => e.group === g);
+const FRAMES = [
+  { at: 1200, label: 'early 1.2 s' },
+  { at: 2800, label: 'middle 2.8 s' },
+  { at: 4800, label: 'late 4.8 s' },
+  { at: -1, label: 'live' },
+];
+const family = group('family');
+const fire = ENTRIES.find((e) => e.id === 'fire')!;
+const sections = [
+  {
+    id: 'wind',
+    title: 'Convergence wind comparison',
+    intro: 'Dramatic Lake as you reviewed it, and with the refined wind. The aim: Air perceptible through how everything moves, without filling the sky with lines.',
+    items: group('wind'),
+    open: true,
+  },
+  { id: 'fire-old', title: 'Earlier Fire studies', intro: 'A to E: not selected. Kept for comparison only.', items: group('fire-old'), open: false },
+  { id: 'conv-old', title: 'Earlier Convergence studies', intro: 'A to D: not selected. Kept for comparison only.', items: group('conv-old'), open: false },
+  { id: 'earth-old', title: 'Other Earth studies (not selected)', intro: 'A, B, C: kept for reference.', items: group('earth-old'), open: false },
+];
+---
+
+<Base title="Element concepts" description="Art-direction prototypes for the elemental scenes." noindex>
+  <div class="wrap review">
+    <p class="eyebrow">Design review · not linked from the site</p>
+    <h1>Elemental scenes</h1>
+    <p class="intro">
+      Each card plays its entrance on load. <b>Replay</b> restarts it, <b>Pause</b> holds it, <b>Reset</b> jumps to the settled state, <b>Slow</b> plays at a quarter speed. Move the pointer over a card to try its
+      pointer response.
+    </p>
+    <nav class="toc" aria-label="Sections">
+      <a href="#family">Final elemental family</a>
+      <a href="#fire">Fire in detail</a>
+      {sections.map((s) => <a href={`#${s.id}`}>{s.title}</a>)}
+    </nav>
+
+    <section id="family">
+      <h2>Final elemental family</h2>
+      <p class="intro">
+        The five production scenes side by side, at the same scale and viewport. None is in the normal visitor rotation yet (it stays Adapt, Exchange, Share, Gather). Preview any one on the home page with
+        <code>/?scene=water</code>, <code>air</code>, <code>earth</code>, <code>fire</code> or <code>convergence</code> (add <code>&amp;intro=1</code> for the entrance).
+      </p>
+      <div class="family">{family.map((e) => <ReviewCard e={e} compact />)}</div>
+      <h3>Settled</h3>
+      <div class="stills five" data-stills>
+        {
+          family.map((e) => (
+            <figure data-still={e.id} data-at="-1">
+              <canvas aria-label={`${e.label}, settled`} role="img" />
+              <figcaption>{e.label}</figcaption>
+            </figure>
+          ))
+        }
+      </div>
+      <h3>Phone layout</h3>
+      <div class="stills five mobile" data-stills>
+        {
+          family.map((e) => (
+            <figure data-still={e.id} data-at="-1" data-mobile>
+              <canvas aria-label={`${e.label}, phone layout`} role="img" />
+              <figcaption>{e.label}</figcaption>
+            </figure>
+          ))
+        }
+      </div>
+      <div class="notes">{family.map((e) => <p class="note"><b>{e.label}.</b> {e.note}</p>)}</div>
+    </section>
+
+    <section id="fire">
+      <h2>Fire in detail</h2>
+      <p class="intro">Converging Bursts is about timing: early, middle, late and live frames are shown under the card, and Slow plays it at a quarter speed.</p>
+      <div class="cards wide"><ReviewCard e={fire} frames={FRAMES} /></div>
+    </section>
+
+    {
+      sections.map((s) => {
+        const body = (
+          <>
+            <p class="intro">{s.intro}</p>
+            <div class="cards">{s.items.map((e) => <ReviewCard e={e} />)}</div>
+          </>
+        );
+        return s.open ? (
+          <section id={s.id}>
+            <h2>{s.title}</h2>
+            {body}
+          </section>
+        ) : (
+          <section id={s.id} class="secondary">
+            <details data-lazy>
+              <summary>
+                <h2>{s.title}</h2>
+              </summary>
+              {body}
+            </details>
+          </section>
+        );
+      })
+    }
+  </div>
+</Base>
+
+<script>
+  import '../../scripts/element-review';
+</script>
+
+<style is:global>
+  .review {
+    padding-top: var(--space-7);
+    padding-bottom: var(--space-8);
+    display: grid;
+    gap: var(--space-7);
+  }
+  .review h1 {
+    font-size: var(--step-3);
+  }
+  .review h2 {
+    font-size: var(--step-2);
+  }
+  .review .intro {
+    color: var(--ink-2);
+    max-width: 70ch;
+  }
+  .review .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    font-size: var(--step--1);
+  }
+  .review section {
+    display: grid;
+    gap: var(--space-4);
+    scroll-margin-top: 5rem;
+  }
+  .review .secondary {
+    opacity: 0.85;
+  }
+  .review .secondary summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  .review .secondary summary::before {
+    content: '▸';
+    color: var(--ink-3, var(--ink-2));
+    font-size: var(--step--1);
+  }
+  .review .secondary details[open] summary::before {
+    content: '▾';
+  }
+  .review .secondary summary h2 {
+    font-size: var(--step-1);
+    color: var(--ink-2);
+  }
+  .review .secondary details > :not(summary) {
+    margin-top: var(--space-4);
+  }
+  .review .family {
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .review h3 {
+    font-size: var(--step-0);
+    color: var(--ink-2);
+    margin-top: var(--space-3);
+  }
+  .review .stills.five {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .review .stills.mobile canvas {
+    aspect-ratio: 4 / 3;
+  }
+  .review .notes {
+    display: grid;
+    gap: var(--space-2);
+  }
+  @media (max-width: 1100px) {
+    .review .family,
+    .review .stills.five {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .review .cards {
+    display: grid;
+    gap: var(--space-5);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr));
+  }
+  .review .cards.wide {
+    grid-template-columns: 1fr;
+    max-width: 60rem;
+  }
+  .review .card {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+  }
+  .review .stage {
+    background: #06070a;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+  }
+  .review canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .review .ctl {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem 0.7rem;
+  }
+  .review .k {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    font-size: var(--step--1);
+  }
+  .review .t {
+    font-weight: 600;
+  }
+  .review .compact .btns {
+    margin-left: 0;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .review .compact button {
+    padding: 0.2rem 0.45rem;
+  }
+  .review .btns {
+    margin-left: auto;
+    display: flex;
+    gap: 0.35rem;
+  }
+  .review button {
+    font: inherit;
+    font-size: var(--step--2);
+    font-family: var(--font-mono);
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--bg-elev);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .review button:hover,
+  .review button[aria-pressed='true'] {
+    border-color: var(--accent);
+  }
+  .review .note {
+    color: var(--ink-2);
+    font-size: var(--step--1);
+    max-width: 70ch;
+  }
+  .review .frames,
+  .review .stills {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+  .review .stills {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .review .frames figure,
+  .review .stills figure {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .review .frames canvas,
+  .review .stills canvas {
+    aspect-ratio: 16 / 10;
+    height: auto;
+    background: #06070a;
+    border-radius: var(--radius);
+  }
+  .review figcaption {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-2);
+  }
+  @media (max-width: 720px) {
+    .review .frames,
+    .review .stills {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

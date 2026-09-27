@@ -1,0 +1,358 @@
+---
+// One page per paper, generated from publications.yaml. Carries Google Scholar
+// (Highwire Press) meta tags and schema.org ScholarlyArticle data.
+import Base from '../../layouts/Base.astro';
+import TypeBadge from '../../components/pubs/TypeBadge.astro';
+import Authors from '../../components/pubs/Authors.astro';
+import PubLinks from '../../components/pubs/PubLinks.astro';
+import VenueLine from '../../components/pubs/VenueLine.astro';
+import Presentation from '../../components/pubs/Presentation.astro';
+import Icon from '../../components/Icon.astro';
+import { profile, publications, relatedTo, bibtex, citationText, SITE_URL, type Publication } from '../../lib/site';
+
+export function getStaticPaths() {
+  return publications.map((pub, i) => ({
+    params: { id: pub.id },
+    props: { pub, newer: publications[i - 1], older: publications[i + 1] },
+  }));
+}
+interface Props {
+  pub: Publication;
+  newer?: Publication;
+  older?: Publication;
+}
+const { pub, newer, older } = Astro.props;
+
+const url = `${SITE_URL}/publications/${pub.id}/`;
+const doi = pub.links.find((l) => l.kind === 'doi')?.title.replace('DOI: ', '');
+const arxiv = pub.links.find((l) => l.kind === 'arxiv')?.title.replace('arXiv:', '');
+const pdf = pub.links.find((l) => l.kind === 'pdf')?.href;
+const status = pub.statusLabel ?? 'Working paper';
+const isJournal = pub.types.includes('journal');
+const [firstPage, lastPage] = (pub.venue?.pages ?? '').split(/[–—-]+/);
+// Scholar wants the publication date: for accepted work that is not yet out, just the year.
+const date = pub.isAccepted ? (pub.status === 'to-appear' ? String(pub.year) : (pub.date ?? String(pub.year))) : pub.date;
+const related = relatedTo(pub);
+
+const description = pub.abstract
+  ? pub.abstract.length > 200
+    ? pub.abstract.slice(0, pub.abstract.lastIndexOf(' ', 197)) + '…'
+    : pub.abstract
+  : `${pub.authors.map((a) => a.name).join(', ')}. ${pub.title}${pub.venueLabel ? `. ${pub.venueLabel}${pub.status === 'to-appear' ? ' (to appear)' : ''}` : ` (${status.toLowerCase()})`}.`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ScholarlyArticle',
+  headline: pub.title,
+  name: pub.title,
+  url,
+  author: pub.authors.map((a) =>
+    a.name === profile.name ? { '@type': 'Person', '@id': `${SITE_URL}/#person`, name: a.name } : { '@type': 'Person', name: a.name },
+  ),
+  ...(pub.isAccepted && pub.status === 'published' && date && { datePublished: date }),
+  ...(!pub.isAccepted && pub.date && { dateCreated: pub.date }),
+  ...(pub.abstract && { abstract: pub.abstract }),
+  ...(pub.venue && {
+    isPartOf: isJournal
+      ? { '@type': 'Periodical', name: pub.venue.name }
+      : { '@type': 'Book', name: pub.venue.name, ...(pub.venue.series && { isPartOf: { '@type': 'BookSeries', name: pub.venue.series } }) },
+  }),
+  ...(pub.venue?.pages && { pagination: pub.venue.pages }),
+  ...(doi && { sameAs: `https://doi.org/${doi}`, identifier: { '@type': 'PropertyValue', propertyID: 'DOI', value: doi } }),
+  ...(pub.status !== 'published' && { creativeWorkStatus: status }),
+};
+---
+
+<Base title={pub.title} description={description} ogType="article" jsonLd={jsonLd}>
+  {/* Google Scholar (Highwire) tags only for accepted work, not for preprints or papers under review. */}
+  <Fragment slot="head">
+    {pub.isAccepted && (
+    <Fragment>
+    <meta name="citation_title" content={pub.title} />
+    {pub.authors.map((a) => <meta name="citation_author" content={a.name} />)}
+    {date && <meta name="citation_publication_date" content={date.replace(/-/g, '/')} />}
+    {pub.venue && !isJournal && <meta name="citation_conference_title" content={pub.venue.name} />}
+    {pub.venue && isJournal && <meta name="citation_journal_title" content={pub.venue.name} />}
+    {pub.venue?.volume && <meta name="citation_volume" content={String(pub.venue.volume)} />}
+    {pub.venue?.number && <meta name="citation_issue" content={String(pub.venue.number)} />}
+    {firstPage && <meta name="citation_firstpage" content={firstPage} />}
+    {lastPage && <meta name="citation_lastpage" content={lastPage} />}
+    {pub.venue?.publisher && <meta name="citation_publisher" content={pub.venue.publisher} />}
+    {doi && <meta name="citation_doi" content={doi} />}
+    {arxiv && <meta name="citation_arxiv_id" content={arxiv} />}
+    {pdf && <meta name="citation_pdf_url" content={pdf} />}
+    <meta name="citation_abstract_html_url" content={url} />
+    </Fragment>
+    )}
+  </Fragment>
+
+  <article class="paper wrap wrap--narrow" data-pub data-type={pub.primaryType}>
+    <nav class="crumbs mono" aria-label="Breadcrumb">
+      <a href="/publications/"><Icon name="arrow-left" size={14} /> Publications</a>
+      {pub.year && <span aria-hidden="true">/</span>}
+      {pub.year && <a href={`/publications/?year=${pub.year}`}>{pub.year}</a>}
+    </nav>
+
+    <header class="head">
+      <p class="kicker">
+        {pub.types.map((t) => <TypeBadge type={t} />)}
+        <Presentation pub={pub} />
+        {pub.note && <span class="mono muted">{pub.note}</span>}
+        {!pub.isAccepted && <span class="mono status">{status}</span>}
+      </p>
+      <h1 style={`view-transition-name: pub-${pub.id}; view-transition-class: pub-title`}>{pub.title}</h1>
+      <Authors pub={pub} class="authors-lg" />
+      <VenueLine pub={pub} full class="venue-lg" />
+      <PubLinks pub={pub} size="md" />
+    </header>
+
+    {
+      pub.abstract && (
+        <section class="block" aria-labelledby="abs-h">
+          <h2 id="abs-h" class="eyebrow">
+            Abstract
+          </h2>
+          <p class="abstract">{pub.abstract}</p>
+        </section>
+      )
+    }
+
+    {
+      pub.versions.length > 0 && (
+        <section class="block" aria-labelledby="ver-h">
+          <h2 id="ver-h" class="eyebrow">
+            Other versions
+          </h2>
+          <ul role="list" class="versions">
+            {pub.versions.map((v) => (
+              <li>
+                <a href={v.href}>{v.label}</a>
+                {v.title && <span class="muted">: “{v.title}”</span>}
+                {v.venue && <span class="muted">, {v.venue}</span>}
+                {v.year && <span class="muted">, {v.year}</span>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <section class="block cite" aria-labelledby="cite-h" data-copy-scope>
+      <h2 id="cite-h" class="eyebrow">Cite</h2>
+      <p class="citation" data-copy-source>{citationText(pub)}</p>
+      <pre class="bibtex" tabindex="0" aria-label="BibTeX entry"><code data-copy-source>{bibtex(pub)}</code></pre>
+      <div class="copy-row js-only">
+        <button type="button" class="btn" data-copy="citation"><Icon name="copy" /> <span>Copy citation</span></button>
+        <button type="button" class="btn" data-copy="bibtex"><Icon name="copy" /> <span>Copy BibTeX</span></button>
+      </div>
+    </section>
+
+    {
+      related.length > 0 && (
+        <section class="block" aria-labelledby="rel-h">
+          <h2 id="rel-h" class="eyebrow">
+            Related work
+          </h2>
+          <ul role="list" class="related">
+            {related.map((p) => (
+              <li>
+                <a href={`/publications/${p.id}/`}>{p.title}</a>
+                <span class="mono muted">{p.venueLabel ? `${p.venueLabel}${p.status === 'to-appear' ? ' · to appear' : ''}` : (p.statusLabel ?? 'Working paper')}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <nav class="pager" aria-label="More papers">
+      {
+        newer ? (
+          <a href={`/publications/${newer.id}/`} class="prev">
+            <span class="mono muted">
+              <Icon name="arrow-left" size={14} /> Previous
+            </span>
+            <span class="t">{newer.title}</span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        older && (
+          <a href={`/publications/${older.id}/`} class="next">
+            <span class="mono muted">
+              Next <Icon name="arrow-right" size={14} />
+            </span>
+            <span class="t">{older.title}</span>
+          </a>
+        )
+      }
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .paper {
+    padding-top: var(--space-6);
+  }
+  .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: var(--step--1);
+    color: var(--ink-3);
+  }
+  .crumbs a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 44px;
+    text-decoration: none;
+    color: var(--ink-2);
+  }
+  .crumbs a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+  }
+  .head {
+    display: grid;
+    gap: var(--space-4);
+    padding-block: var(--space-5) var(--space-6);
+    border-bottom: 1px solid var(--line);
+  }
+  .kicker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.8rem;
+    font-size: var(--step--2);
+  }
+  .muted {
+    color: var(--ink-3);
+  }
+  .status {
+    color: var(--c-working-paper);
+  }
+  h1 {
+    font-size: var(--step-3);
+    font-weight: 380;
+    letter-spacing: -0.022em;
+    line-height: 1.08;
+    font-variation-settings: 'opsz' 60;
+  }
+  .head :global(.authors-lg) {
+    font-size: var(--step-1);
+  }
+  .head :global(.venue-lg) {
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+  .head :global(.links) {
+    margin-top: var(--space-2);
+  }
+
+  .block {
+    padding-block: var(--space-6);
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    gap: var(--space-4);
+  }
+  .abstract {
+    font-size: var(--step-0);
+    line-height: 1.65;
+    color: var(--ink-2);
+    max-width: 66ch;
+  }
+  .abstract::first-line {
+    color: var(--ink);
+  }
+  .citation {
+    color: var(--ink-2);
+  }
+  .bibtex {
+    margin: 0;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    border-radius: var(--radius);
+    background: var(--bg-sunk);
+    border: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+  .copy-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  :global(.btn.is-done) {
+    color: var(--c-journal);
+    border-color: currentColor;
+  }
+  .versions,
+  .related {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .related li {
+    display: grid;
+    gap: 0.15rem;
+  }
+  .related .mono {
+    font-size: var(--step--2);
+  }
+  .related a:hover,
+  .versions a:hover {
+    color: var(--accent);
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+    padding-top: var(--space-6);
+  }
+  .pager a {
+    display: grid;
+    gap: 0.35rem;
+    padding: var(--space-4);
+    border-radius: var(--radius);
+    text-decoration: none;
+    transition: background-color var(--dur-1);
+  }
+  .pager a:hover {
+    background: var(--bg-sunk);
+  }
+  .pager .mono {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: var(--step--2);
+  }
+  .pager .t {
+    font-size: var(--step--1);
+    line-height: 1.35;
+  }
+  .next {
+    text-align: right;
+  }
+  .next .mono {
+    justify-content: flex-end;
+  }
+  @media (max-width: 34rem) {
+    .pager {
+      grid-template-columns: 1fr;
+    }
+    .next {
+      text-align: left;
+    }
+    .next .mono {
+      justify-content: flex-start;
+    }
+  }
+  :global(html:not(.js)) .js-only {
+    display: none !important;
+  }
+</style>

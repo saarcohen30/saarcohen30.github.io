@@ -1,0 +1,321 @@
+---
+// An HTML CV generated from profile.yaml + publications.yaml (no duplicated paper list),
+// with the PDF one click away. Prints cleanly.
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import Authors from '../components/pubs/Authors.astro';
+import { profile, publications, inlineMd, TYPE_META } from '../lib/site';
+
+const sections = [
+  { title: 'Conference papers', test: (p) => p.isAccepted && p.types.includes('conference') },
+  { title: 'Journal articles & surveys', test: (p) => p.isAccepted && !p.types.includes('conference') },
+  { title: 'Working papers', test: (p) => p.isWorkingPaper },
+  { title: 'Under review / revision', test: (p) => p.isUnderReview },
+].map((s) => ({ ...s, items: publications.filter(s.test) }));
+// Every paper must land in exactly one CV section.
+const placed = new Set(sections.flatMap((s) => s.items.map((p) => p.id)));
+const orphans = publications.filter((p) => !placed.has(p.id));
+if (orphans.length) throw new Error(`CV: no section for ${orphans.map((p) => p.id).join(', ')}`);
+
+type Entry = { period: string; title: string; org: string; detail?: string; items?: string[] };
+---
+
+<Base title="CV" description={`Curriculum vitae of ${profile.name}: positions, education, publications, awards, service and teaching.`}>
+  <div class="wrap wrap--narrow cv">
+    <header class="cv-head">
+      <p class="eyebrow">Curriculum vitae</p>
+      <h1>{profile.name}</h1>
+      <p class="role">{profile.role}, {profile.affiliation}</p>
+      <div class="cv-actions no-print">
+        <a class="btn btn--solid" href={profile.cv_pdf}><Icon name="download" /> Download PDF</a>
+        <button class="btn js-only" type="button" onclick="window.print()"><Icon name="print" /> Print this page</button>
+        <a class="btn" href={`mailto:${profile.email}`}><Icon name="mail" /> {profile.email}</a>
+      </div>
+      <p class="note mono no-print">
+        This page is generated from the same data as the rest of the site. The PDF is the formal version and may differ slightly.
+      </p>
+    </header>
+
+    <section aria-labelledby="pos">
+      <h2 id="pos">Positions</h2>
+      <ol role="list" class="entries">
+        {
+          profile.positions.map((e: Entry) => (
+            <li>
+              <span class="when mono">{e.period}</span>
+              <div>
+                <p class="what">{e.title}</p>
+                <p class="where">{e.org}</p>
+                {e.detail && <p class="detail" set:html={inlineMd(e.detail)} />}
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section aria-labelledby="edu">
+      <h2 id="edu">Education</h2>
+      <ol role="list" class="entries">
+        {
+          profile.education.map((e: Entry) => (
+            <li>
+              <span class="when mono">{e.period}</span>
+              <div>
+                <p class="what">{e.title}</p>
+                <p class="where">{e.org}</p>
+                {e.detail && <p class="detail" set:html={inlineMd(e.detail)} />}
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section aria-labelledby="pubs">
+      <h2 id="pubs">Publications</h2>
+      {
+        sections
+          .filter((s) => s.items.length)
+          .map((s) => (
+            <Fragment>
+              <h3>
+                {s.title} <span class="mono count">{s.items.length}</span>
+              </h3>
+              <ol class="cv-pubs" reversed>
+                {s.items.map((p) => (
+                  <li>
+                    <Authors pub={p} class="cv-authors" />
+                    <a class="cv-title" href={`/publications/${p.id}/`}>
+                      {p.title}
+                      {p.note && ` (${p.note})`}
+                    </a>
+                    <span class="cv-venue">
+                      {p.venue ? (
+                        <Fragment>
+                          <i>{p.venueLabel}</i>
+                          {p.status === 'to-appear' && ' (to appear)'}
+                          {p.presentationLabel && ` · ${p.presentationLabel}${p.presentationModeLabel ? ` (${p.presentationModeLabel.toLowerCase()})` : ''}`}
+                          {p.types.includes('survey') && ` · ${TYPE_META.survey.label}`}
+                        </Fragment>
+                      ) : p.isWorkingPaper ? (
+                        `arXiv ${p.links.find((l) => l.kind === 'arxiv')?.title.replace('arXiv:', '') ?? ''}`
+                      ) : (
+                        p.statusLabel
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </Fragment>
+          ))
+      }
+    </section>
+
+    <section aria-labelledby="awards">
+      <h2 id="awards">Awards &amp; scholarships</h2>
+      <ol role="list" class="entries">
+        {
+          profile.awards.map((a: { year: number; title: string; detail?: string }) => (
+            <li>
+              <span class="when mono">{a.year}</span>
+              <div>
+                <p class="what">{a.title}</p>
+                {a.detail && <p class="detail">{a.detail}</p>}
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section aria-labelledby="service">
+      <h2 id="service">Service</h2>
+      <h3>Organization</h3>
+      <ol role="list" class="entries">
+        {
+          profile.service.organization.map((s: { year: number; title: string; detail?: string }) => (
+            <li>
+              <span class="when mono">{s.year}</span>
+              <div>
+                <p class="what">{s.title}</p>
+                {s.detail && <p class="detail">{s.detail}</p>}
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+      <h3>Reviewing</h3>
+      <ol role="list" class="entries">
+        {
+          profile.service.reviewing.map((r: { year: number; role: string; venues: string }) => (
+            <li>
+              <span class="when mono">{r.year}</span>
+              <div>
+                <p class="what">{r.role}</p>
+                <p class="detail">{r.venues}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section aria-labelledby="teaching">
+      <h2 id="teaching">Teaching</h2>
+      <ol role="list" class="entries">
+        {
+          profile.teaching.map((e: Entry) => (
+            <li>
+              <span class="when mono">{e.period}</span>
+              <div>
+                <p class="what">{e.title}</p>
+                <p class="where">{e.org}</p>
+                {e.items && (
+                  <ul class="detail-list">
+                    {e.items.map((i) => (
+                      <li>{i}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .cv {
+    padding-top: var(--space-7);
+  }
+  .cv-head {
+    display: grid;
+    gap: var(--space-3);
+    padding-bottom: var(--space-6);
+  }
+  h1 {
+    font-size: var(--step-4);
+    font-weight: 330;
+    letter-spacing: -0.035em;
+    line-height: 1;
+    font-variation-settings: 'opsz' 72;
+  }
+  .role {
+    font-size: var(--step-1);
+    color: var(--ink-2);
+  }
+  .cv-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: var(--space-3);
+  }
+  .note {
+    font-size: var(--step--2);
+    color: var(--ink-3);
+    max-width: 60ch;
+  }
+  section {
+    padding-top: var(--space-6);
+    margin-top: var(--space-5);
+    border-top: 1px solid var(--line-2);
+  }
+  h2 {
+    font-size: var(--step-2);
+    margin-bottom: var(--space-4);
+  }
+  h3 {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    font-weight: 500;
+    margin: var(--space-5) 0 var(--space-3);
+  }
+  .count {
+    margin-left: 0.4rem;
+    color: var(--ink-3);
+  }
+  .entries {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .entries > li {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: var(--space-4);
+  }
+  .when {
+    font-size: var(--step--2);
+    color: var(--ink-3);
+    padding-top: 0.3em;
+  }
+  .what {
+    color: var(--ink);
+  }
+  .where,
+  .detail {
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+  .detail-list {
+    margin-top: 0.3rem;
+    padding-left: 1.1rem;
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    display: grid;
+    gap: 0.2rem;
+  }
+  .cv-pubs {
+    display: grid;
+    gap: var(--space-3);
+    padding-left: 2.2rem;
+    font-size: var(--step--1);
+  }
+  .cv-pubs li::marker {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-3);
+  }
+  .cv-pubs li > :global(*) {
+    display: inline;
+  }
+  .cv-pubs :global(.cv-authors)::after {
+    content: '. ';
+  }
+  .cv-title {
+    color: var(--ink);
+    text-decoration-color: var(--line-2);
+  }
+  .cv-title::after {
+    content: '. ';
+  }
+  .cv-venue {
+    color: var(--ink-2);
+  }
+  @media (max-width: 34rem) {
+    .entries > li {
+      grid-template-columns: 1fr;
+      gap: 0.2rem;
+    }
+  }
+  @media print {
+    .cv {
+      padding-top: 0;
+    }
+    h1 {
+      font-size: 26pt;
+    }
+    section {
+      break-inside: auto;
+    }
+    .entries > li,
+    .cv-pubs li {
+      break-inside: avoid;
+    }
+  }
+</style>

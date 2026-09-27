@@ -1,0 +1,531 @@
+---
+// Hidden review: which visual system should the home page use? (noindex, not in the sitemap)
+// Nothing here changes the live site. Live: the five elements in the hero (random on every load) and
+// the four research scenes below in "What I work on".
+import Base from '../../layouts/Base.astro';
+import ReviewCard from '../../components/review/ReviewCard.astro';
+import { ENTRIES } from '../../lib/field/review/registry';
+import { STORYBOARDS } from '../../lib/field/review/exchange-storyboards';
+import { profile } from '../../lib/site';
+
+const by = (id: string) => ENTRIES.find((e) => e.id === id)!;
+const elements = ['water', 'air', 'earth', 'fire', 'convergence'].map(by);
+const original = [
+  { e: by('r-gather'), t: 'Coalitions & collective decisions' },
+  { e: by('r-share'), t: 'Fair allocation over time' },
+  { e: by('r-adapt'), t: 'Learning in multi-agent systems' },
+  { e: by('r-exchange'), t: 'Principled & safe AI' },
+];
+const flowOnly = ['u-gather', 'u-share', 'u-adapt', 'u-exchange'].map(by);
+const selected = [
+  { e: by('d2-gather'), badge: 'FROZEN', t: 'Coalitions & collective decisions' },
+  { e: by('d2-share-a'), badge: 'SELECTED / FROZEN · exact 170ffa7', t: 'Fair allocation over time' },
+  { e: by('d2-adapt-a1'), badge: 'SELECTED / FROZEN', t: 'Learning in multi-agent systems' },
+  { e: by('safe-rounds'), badge: 'SELECTED / FROZEN · storyboard G', t: 'Principled & safe AI' },
+];
+const shareCompare = [
+  { e: by('share-v1'), badge: 'SELECTED / FROZEN', t: 'Share A — Original approved (170ffa7)' },
+  { e: by('share-v2'), badge: 'REJECTED REGRESSION', t: 'Share A — e4a29aa' },
+  { e: by('share-mound'), badge: 'REJECTED ALTERNATIVE REPAIR', t: 'Share A — mound repair' },
+];
+const rejectedExchange = ['d2-exchange', 'd2-exchange-a', 'd2-exchange-b', 'd2-exchange-c'].map(by);
+const alternatives = [by('d2-share-b'), by('d2-adapt-b')];
+const mockIds = ['d2-gather', 'd2-share-a', 'd2-adapt-a1', 'safe-rounds'];
+const themes = (profile.themes as { title: string; areas: string[]; summary: string }[]).map((t, i) => ({ ...t, id: mockIds[i] }));
+---
+
+<Base title="Scene architecture" description="Which visual system should the home page use?" noindex>
+  <div class="wrap review arch">
+    <p class="eyebrow">Design review · not linked from the site</p>
+    <h1>Scene architecture</h1>
+    <div class="rec">
+      <p><b>Working architecture (B + D2):</b> elements are the hero identity; research-specific scenes explain the research in “What I work on”; one shared art direction connects them. Live on the home page: Gather, Share A, Adapt A1 and Adversarial Rounds.</p>
+    </div>
+    <nav class="toc" aria-label="Sections">
+      <a href="#selected">Selected / frozen</a>
+      <a href="#share-regression">Share regression</a>
+      <a href="#safe-research">Safe AI: research</a>
+      <a href="#storyboards">Safe AI: storyboards</a>
+      <a href="#mock">What I work on mock</a>
+      <a href="#frozen">Frozen-scene sheet</a>
+      <a href="#rejected-exchange">Rejected Exchange</a>
+    </nav>
+
+    <section id="selected">
+      <h2>Selected / frozen</h2>
+      <div class="row four">
+        {
+          selected.map(({ e, badge, t }) => (
+            <div class="d2">
+              <p class="badge">{badge}</p>
+              <ReviewCard e={e} compact />
+              <p class="theme-t">{t}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="share-regression">
+      <h2>Share regression comparison</h2>
+      <p class="intro">The selected scene is the exact Share A from commit 170ffa7 (verified pixel-identical by <code>npm run verify-share</code>). The other two are kept only for comparison.</p>
+      <div class="row three">
+        {
+          shareCompare.map(({ e, t, badge }) => (
+            <div class:list={['d2', { rejected: badge.startsWith('REJECTED') }]}>
+              <p class={badge.startsWith('REJECTED') ? 'flag' : 'badge'}>{badge}</p>
+              <ReviewCard e={e} compact />
+              <p class="theme-t">{t}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="safe-research">
+      <h2>Safe AI: design research</h2>
+      <ul class="plain">
+        <li><b>Key message first.</b> “Ten simple rules for designing graphical abstracts” (Jambor &amp; Bornhäuser, PLOS Comput Biol 2024): without a clear central message a clear graphic is impossible; use a reading direction, sparse colour, and check what viewers see at first glance. <a href="https://journals.plos.org/ploscompbiol/article?id=10.1371%2Fjournal.pcbi.1011789">source</a></li>
+        <li><b>One thing at a time.</b> Heer &amp; Robertson (InfoVis 2007): multiple simultaneous changes raise cognitive load; stage complex transitions so one action happens at a time, with slow-in/slow-out. <a href="https://idl.cs.washington.edu/files/2007-AnimatedTransitions-InfoVis.pdf">source</a> Tversky et al. (2002): congruence and apprehension; animations are often too complex or too fast to be perceived. <a href="https://hci.stanford.edu/courses/cs448b/papers/Tversky_AnimationFacilitate_IJHCS02.pdf">source</a> People track about four objects at once (Pylyshyn &amp; Storm 1988). <a href="https://pubmed.ncbi.nlm.nih.gov/3153671">source</a></li>
+        <li><b>Salience and simplicity.</b> Nature Methods “Points of View”: use salience to direct reading; simplify to clarify; negative space. <a href="http://blogs.nature.com/methagora/2013/07/data-visualization-points-of-view.html">index</a></li>
+        <li><b>How labs describe red teaming.</b> Generate attack → target responds → judge/reward → update, iterated; plain RL attackers collapse to near-identical attacks (Beutel et al., OpenAI 2024). <a href="https://arxiv.org/abs/2412.18693">source</a> · Perez et al. 2022. <a href="https://arxiv.org/abs/2202.03286">source</a></li>
+        <li>
+          <b>The paper.</b> When attacker and defender share one model, “gradient updates for the attacker shift the defender’s decision boundaries, resulting in self-consistency”: the model learns to avoid the prompts it already defends against, so attacks stop exerting pressure. Anchored Bipolicy Self-Play freezes the base and trains separate attacker and defender adapters, “restoring adversarial pressure”. <a href="https://arxiv.org/html/2605.08427">source</a>
+        </li>
+        <li><b>Key message for the scene:</b> <i>one shared model training against itself goes slack; separate roles on a fixed shared base keep the pressure on.</i></li>
+      </ul>
+    </section>
+
+    <section id="storyboards">
+      <h2>Safe AI: storyboards (static, at card size)</h2>
+      <p class="intro">Four frames each, drawn at the real card size (270 × 169). <b>G · Adversarial rounds is selected</b> (built generically, not paper-specific: see the Selected row); H, D and F are kept for review only. Concept E (coupled vs independent trajectories) was dropped at the research stage: it is too close to the rejected strategy-space study and needs its text to be understood.</p>
+      {
+        STORYBOARDS.map((b) => (
+          <div class="board">
+            <h3>
+              {b.title} {b.key === 'rounds' ? <span class="badge inline">SELECTED</span> : <span class="flag inline">NOT SELECTED</span>}
+            </h3>
+            <p class="bestrisk"><b>Best at communicating:</b> {b.best} · <b>Main risk:</b> {b.risk}</p>
+            <div class="frames4" data-stills>
+              {b.frames.map((cap, i) => (
+                <figure data-still={`sb-${b.key}`} data-at={i * 1000}>
+                  <canvas aria-label={`${b.title}, frame ${i + 1}`} role="img" />
+                  <figcaption>
+                    <b>{i + 1}</b> {cap}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </section>
+
+    <section id="mock">
+      <h2>What I work on (mock, real card size)</h2>
+      <p class="intro">The four production scenes in the real section with its real text, at real card size.</p>
+      <div class="mock-work">
+        <p class="mock-eyebrow"><span>02</span> Research</p>
+        <p class="mock-h">What I work on</p>
+        <ol class="mock-themes">
+          {
+            themes.map((t, i) => (
+              <li>
+                {t.id ? <ReviewCard e={by(t.id)} compact /> : <div class="placeholder"><span>safe-AI scene under design</span></div>}
+                <p class="mock-n">{String(i + 1).padStart(2, '0')}</p>
+                <h3>{t.title}</h3>
+                <p class="mock-areas">{t.areas.join(' · ')}</p>
+                <p class="mock-sum">{t.summary}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </section>
+
+    <section id="frozen">
+      <h2>Frozen-scene regression sheet</h2>
+      <p class="intro">Every approved scene rendered deterministically (fixed seed, size and time). <code>npm run visual-check</code> compares these against the committed references and writes a reference | current | difference contact sheet.</p>
+      <iframe class="frozen-frame" src="/design-review/frozen/" title="Frozen-scene fixtures" loading="lazy"></iframe>
+    </section>
+
+    <section id="rejected-exchange" class="secondary">
+      <details>
+        <summary><h2>Rejected Exchange experiments</h2></summary>
+        <p class="flag">Rejected because the visual metaphor required too much explanation and did not communicate the research mechanism clearly at card size.</p>
+        <div class="row two">{rejectedExchange.map((e) => <ReviewCard e={e} compact />)}</div>
+      </details>
+    </section>
+
+    <section id="alternatives" class="secondary">
+      <details>
+        <summary><h2>Alternatives, not selected</h2></summary>
+        <div class="row two">{alternatives.map((e) => <ReviewCard e={e} compact />)}</div>
+      </details>
+    </section>
+
+    <section id="context" class="secondary">
+      <details>
+        <summary><h2>Context: elemental identity, original scenes, rejected flow-only experiment</h2></summary>
+        <h3>Elemental identity (hero)</h3>
+        <div class="row five">{elements.map((e) => <ReviewCard e={e} compact />)}</div>
+        <h3>Original research scenes</h3>
+        <div class="row four">
+          {
+            original.map((o) => (
+              <div class="tile">
+                <ReviewCard e={o.e} compact />
+                <p>{o.t}</p>
+              </div>
+            ))
+          }
+        </div>
+        <h3>Flow-only experiment (rejected: semantic distinctions too weak)</h3>
+        <div class="row four">{flowOnly.map((e) => <ReviewCard e={e} compact />)}</div>
+      </details>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import '../../scripts/element-review';
+</script>
+
+<style is:global>
+  .arch {
+    padding-block: var(--space-7) var(--space-8);
+    display: grid;
+    gap: var(--space-7);
+  }
+  .arch h1 {
+    font-size: var(--step-3);
+  }
+  .arch h2 {
+    font-size: var(--step-2);
+  }
+  .arch h3 {
+    font-size: var(--step-0);
+    color: var(--ink-2);
+  }
+  .arch section {
+    display: grid;
+    gap: var(--space-4);
+    scroll-margin-top: 5rem;
+  }
+  .arch .intro,
+  .arch .dim {
+    color: var(--ink-2);
+    max-width: 72ch;
+  }
+  .arch .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    font-size: var(--step--1);
+  }
+  .arch .row {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .arch .row.four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .arch .row.five {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .arch .row.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .arch .board {
+    display: grid;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+  }
+  .arch .frames4 {
+    display: grid;
+    grid-template-columns: repeat(4, 270px);
+    gap: var(--space-3);
+    overflow-x: auto;
+  }
+  .arch .frames4 canvas {
+    width: 270px;
+    height: 169px;
+    border-radius: var(--radius);
+    background: #06070a;
+  }
+  .arch .frames4 figcaption {
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    margin-top: 0.3rem;
+  }
+  .arch .frames4 figcaption b {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    margin-right: 0.3em;
+  }
+  .arch .bestrisk {
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+  .arch .placeholder {
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-lg);
+    background: #06070a;
+    border: 1px dashed var(--line);
+    display: grid;
+    place-items: center;
+  }
+  .arch .placeholder span {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-3, var(--ink-2));
+  }
+  .arch .frozen-frame {
+    width: 100%;
+    height: 1400px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+  }
+  .arch .row.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+  .arch .rejected {
+    opacity: 0.75;
+  }
+  .arch .badge {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+  }
+  .arch .theme-t,
+  .arch .tile-t {
+    font-size: var(--step--1);
+    margin-top: 0.4rem;
+  }
+  .arch .phone {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 343px);
+    gap: var(--space-4);
+  }
+  .arch .secondary summary {
+    cursor: pointer;
+    list-style: none;
+  }
+  .arch .secondary summary h2 {
+    display: inline;
+    color: var(--ink-2);
+    font-size: var(--step-1);
+  }
+  .arch .secondary .row {
+    margin-top: var(--space-4);
+  }
+  .arch .flag {
+    color: #d9895a;
+    font-size: var(--step--1);
+  }
+  .arch .inline {
+    display: inline;
+    margin-left: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+  }
+  .arch .sem {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.25rem 0.8rem;
+    font-size: var(--step--1);
+    margin-top: 0.4rem;
+  }
+  .arch .sem dt {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-3, var(--ink-2));
+    padding-top: 0.15rem;
+  }
+  .arch .sem dd {
+    color: var(--ink-2);
+  }
+  .arch .mock-work .ctl {
+    display: none;
+  }
+  .arch .mock-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .arch .mock-eyebrow span {
+    color: var(--accent);
+    margin-right: 0.5em;
+  }
+  .arch .mock-themes {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+    list-style: none;
+    padding: 0;
+  }
+  .arch .mock-themes h3 {
+    font-size: var(--step-0);
+    color: var(--ink);
+  }
+  .arch .mock-n {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--accent);
+    margin-top: 0.6rem;
+  }
+  .arch .mock-areas {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-2);
+  }
+  .arch .mock-sum {
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    margin-top: 0.3rem;
+  }
+  .arch .card {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+  }
+  .arch .stage {
+    background: #06070a;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+  }
+  .arch canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .arch .ctl {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem 0.6rem;
+  }
+  .arch .k {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    font-size: var(--step--1);
+  }
+  .arch .t {
+    font-weight: 600;
+    font-size: var(--step--1);
+  }
+  .arch .btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    width: 100%;
+  }
+  .arch button {
+    font: inherit;
+    font-size: var(--step--2);
+    font-family: var(--font-mono);
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--bg-elev);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .arch .note {
+    color: var(--ink-2);
+    font-size: var(--step--1);
+  }
+  /* Home-page mocks: the real stage colours and type, at reduced scale. */
+  .arch .mock {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .arch .mock-hero {
+    background:
+      radial-gradient(ellipse 70% 60% at 72% 42%, rgba(80, 100, 170, 0.14), transparent 70%),
+      #06070a;
+    color: #eeebe4;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-6) var(--space-5);
+    min-height: 22rem;
+  }
+  .arch .mock-role {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #a9adb6;
+  }
+  .arch .mock-name {
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    font-weight: 330;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-block: 0.4rem 0.8rem;
+  }
+  .arch .mock-tag {
+    color: #a9adb6;
+    font-size: var(--step-0);
+    max-width: 38ch;
+  }
+  .arch .mock-scene .stage {
+    background: transparent;
+  }
+  .arch .mock .ctl {
+    display: none;
+  }
+  .arch .mock-work {
+    padding: var(--space-5);
+    background: var(--bg);
+    display: grid;
+    gap: var(--space-3);
+  }
+  .arch .mock-h {
+    font-size: var(--step-1);
+  }
+  .arch .tile p {
+    font-size: var(--step--1);
+    margin-top: 0.4rem;
+  }
+  .arch .rec {
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    display: grid;
+    gap: var(--space-3);
+    max-width: 80ch;
+  }
+  .arch .rec ul,
+  .arch .plain {
+    display: grid;
+    gap: 0.5rem;
+    padding-left: 1.2rem;
+    max-width: 80ch;
+  }
+  .arch .rec li,
+  .arch .plain li {
+    list-style: disc;
+  }
+  @media (max-width: 900px) {
+    .arch .row.four,
+    .arch .row.five {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .arch .row.two,
+    .arch .mock-themes {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,81 @@
+---
+// Inline SVG icons. Line icons are original (24px grid, 1.6 stroke, currentColor).
+// Brand marks: GitHub mark (permitted as a link to GitHub, unmodified, monochrome) and the
+// official ORCID iD icon (unaltered). No venue or arXiv logos, for trademark reasons.
+interface Props {
+  name: string;
+  size?: number | string;
+  class?: string;
+  label?: string;
+}
+const { name, size = '1em', class: className, label } = Astro.props;
+
+const stroke: Record<string, string> = {
+  paper: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H10a2 2 0 0 1 2 2v14a1.8 1.8 0 0 0-1.8-1.8H4z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H14a2 2 0 0 0-2 2v14a1.8 1.8 0 0 1 1.8-1.8H20z"/>',
+  pdf: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 16.5h4"/>',
+  arxiv: '<path d="M7 3.5h7l4 4V20a.5.5 0 0 1-.5.5h-10A.5.5 0 0 1 7 20z"/><path d="M4 7v12.5A1.5 1.5 0 0 0 5.5 21H14"/><path d="m10 11 4 5m0-5-4 5"/>',
+  doi: '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',
+  openreview: '<path d="M4.5 5.5h15v10h-8l-4 3.5v-3.5h-3z"/><path d="m9 10.5 2 2 4-4"/>',
+  code: '<path d="m8.5 7.5-5 4.5 5 4.5M15.5 7.5l5 4.5-5 4.5M13.5 5l-3 14"/>',
+  project: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.3 3.5 5.2 3.5 8.5s-1.1 6.2-3.5 8.5c-2.4-2.3-3.5-5.2-3.5-8.5S9.6 5.8 12 3.5z"/>',
+  data: '<ellipse cx="12" cy="6" rx="7" ry="2.8"/><path d="M5 6v12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V6M5 12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8"/>',
+  slides: '<rect x="3.5" y="4" width="17" height="11.5" rx="1"/><path d="M12 15.5V20m-3.5 0h7M8 11.5l2.5-2.5 2 2 3.5-3.5"/>',
+  poster: '<rect x="4.5" y="3.5" width="15" height="17" rx="1"/><circle cx="9.5" cy="9" r="1.7"/><path d="m4.5 17 5-4.5 3.5 3 2.5-2 3.5 3"/>',
+  video: '<circle cx="12" cy="12" r="8.5"/><path d="M10.2 8.8v6.4l5.3-3.2z" fill="currentColor" stroke-linejoin="round"/>',
+  supplement: '<path d="m20 11.5-7.6 7.6a4.6 4.6 0 0 1-6.5-6.5l7.8-7.8a3 3 0 0 1 4.3 4.3l-7.6 7.6a1.5 1.5 0 0 1-2.2-2.2l7-7"/>',
+  scholar: '<path d="m2.5 9.5 9.5-5 9.5 5-9.5 5z"/><path d="M6.5 11.6v4.6c1.4 1.5 3.3 2.3 5.5 2.3s4.1-.8 5.5-2.3v-4.6M21.5 9.5v5"/>',
+  researchgate: '<circle cx="6" cy="17" r="2.2"/><circle cx="18" cy="17" r="2.2"/><circle cx="12" cy="6.5" r="2.2"/><path d="m7.2 15.2 3.7-6.8m2.2 0 3.7 6.8M8.2 17h7.6"/>',
+  dblp: '<path d="M5 4.5h14M5 9.5h14M5 14.5h9M5 19.5h11"/>',
+  linkedin: '<rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M8 10.5v6M8 7.5v.01M12 16.5v-6m0 2.5c0-1.6 1-2.6 2.4-2.6 1.4 0 2.1 1 2.1 2.6v3.5"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="m3.5 6 8.5 7 8.5-7"/>',
+  download: '<path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M4.5 19.5h15"/>',
+  'arrow-right': '<path d="M4.5 12h15m0 0-6-6m6 6-6 6"/>',
+  'arrow-left': '<path d="M19.5 12h-15m0 0 6-6m-6 6 6 6"/>',
+  'arrow-up-right': '<path d="M7 17 17 7m0 0H8.5M17 7v8.5"/>',
+  sun: '<circle cx="12" cy="12" r="3.8"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/>',
+  moon: '<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/>',
+  auto: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17" /><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/>',
+  copy: '<rect x="8.5" y="8.5" width="12" height="12" rx="1.5"/><path d="M15.5 8.5V5A1.5 1.5 0 0 0 14 3.5H5A1.5 1.5 0 0 0 3.5 5v9A1.5 1.5 0 0 0 5 15.5h3.5"/>',
+  check: '<path d="m4.5 12.5 5 5 10-11"/>',
+  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>',
+  x: '<path d="m6 6 12 12M18 6 6 18"/>',
+  chevron: '<path d="m6 9.5 6 6 6-6"/>',
+  quote: '<path d="M4 18v-5.5C4 9 5.8 6.7 9 6M13 18v-5.5C13 9 14.8 6.7 18 6"/><path d="M4 12.5h4.5V18H4zM13 12.5h4.5V18H13z"/>',
+  abstract: '<path d="M4 6h16M4 10h16M4 14h16M4 18h9"/>',
+  print: '<path d="M7 9V3.5h10V9M7 17.5H4.5v-7A1.5 1.5 0 0 1 6 9h12a1.5 1.5 0 0 1 1.5 1.5v7H17"/><rect x="7" y="14" width="10" height="6.5"/>',
+  'external': '<path d="M14 4.5h5.5V10M19.5 4.5 11 13M17 14v4.5a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1H10"/>',
+};
+
+const fill: Record<string, { viewBox: string; body: string }> = {
+  github: {
+    viewBox: '0 0 16 16',
+    body: '<path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>',
+  },
+  orcid: {
+    viewBox: '0 0 72 72',
+    body: '<path fill="#A6CE39" d="M72,36C72,55.884 55.884,72 36,72C16.116,72 0,55.884 0,36C0,16.116 16.116,0 36,0C55.884,0 72,16.116 72,36Z"/><g fill="#fff" transform="translate(18.869 12.910)"><polygon points="5.037 39.125 0.695 39.125 0.695 9.144 5.037 9.144 5.037 22.693 5.037 39.125"/><path d="M11.409,9.144L23.138,9.144C34.303,9.144 39.209,17.066 39.209,24.149C39.209,31.847 33.147,39.153 23.194,39.153L11.409,39.153L11.409,9.144ZM15.751,35.262L22.659,35.262C32.499,35.262 34.754,27.844 34.754,24.149C34.754,18.130 30.892,13.035 22.433,13.035L15.751,13.035L15.751,35.262Z"/><path d="M5.714,2.902C5.714,4.441 4.445,5.729 2.866,5.729C1.288,5.729 0.019,4.441 0.019,2.902C0.019,1.334 1.288,0.075 2.866,0.075C4.445,0.075 5.714,1.362 5.714,2.902Z"/></g>',
+  },
+};
+
+const f = fill[name];
+const body = f ? f.body : stroke[name];
+if (!body) throw new Error(`Icon "${name}" does not exist`);
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox={f ? f.viewBox : '0 0 24 24'}
+  width={size}
+  height={size}
+  fill="none"
+  stroke={f ? undefined : 'currentColor'}
+  stroke-width={f ? undefined : 1.6}
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class:list={['icon', className]}
+  aria-hidden={label ? undefined : 'true'}
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  focusable="false"
+  set:html={body}
+/>

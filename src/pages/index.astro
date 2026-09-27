@@ -1,0 +1,556 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import PubItem from '../components/pubs/PubItem.astro';
+import Icon from '../components/Icon.astro';
+import portrait from '../assets/portrait.jpg';
+import { HERO_IDS } from '../lib/field/scenes/meta';
+import { pickHeroScene, heroHead } from '../lib/field/scenes/pick.mjs';
+import { profile, publications, themes, pubsForTheme, inlineMd, SITE_URL, type Publication } from '../lib/site';
+
+const accepted = publications.filter((p) => p.isAccepted);
+const working = publications.filter((p) => p.isWorkingPaper);
+const review = publications.filter((p) => p.isUnderReview);
+const featured = publications.filter((p) => p.featured);
+
+// Current work: the newest public paper from each research theme, so the list shows breadth
+// rather than whatever happened to be published last. Explicit `featured: true` overrides it.
+const byTheme: { theme: string; pub: Publication }[] = [];
+for (const t of themes) {
+  const pick = pubsForTheme(t)
+    .filter((p) => !p.isUnderReview && !byTheme.some((x) => x.pub.id === p.id))
+    .sort((a, b) => (a.sortKey < b.sortKey ? 1 : -1))[0];
+  if (pick) byTheme.push({ theme: t.title, pub: pick });
+}
+const highlight = featured.length ? featured.map((pub) => ({ theme: null, pub })) : byTheme;
+
+// Example papers on the theme cards: avoid repeating one card's examples on another.
+const shownOnCards = new Set<string>();
+const cardExamples = themes.map((t) => {
+  const all = pubsForTheme(t);
+  const fresh = all.filter((p) => !shownOnCards.has(p.id));
+  const picks = [...fresh, ...all.filter((p) => shownOnCards.has(p.id))].slice(0, 2);
+  picks.forEach((p) => shownOnCards.add(p.id));
+  return { count: all.length, picks };
+});
+
+const description = `${profile.name} is a ${profile.role} at the ${profile.affiliation}, working on ${profile.areas.slice(0, -1).join(', ').toLowerCase()} and ${profile.areas.at(-1).toLowerCase()}: strategic interaction, collective decisions, fair allocation, learning and AI safety.`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  url: SITE_URL + '/',
+  mainEntity: {
+    '@type': 'Person',
+    '@id': SITE_URL + '/#person',
+    name: profile.name,
+    url: SITE_URL + '/',
+    image: SITE_URL + '/og.jpg',
+    email: `mailto:${profile.email}`,
+    jobTitle: profile.role,
+    worksFor: { '@type': 'Organization', name: 'University of Oxford', department: 'Department of Computer Science' },
+    alumniOf: [
+      { '@type': 'CollegeOrUniversity', name: 'Bar-Ilan University' },
+      { '@type': 'CollegeOrUniversity', name: 'Tel Aviv University' },
+    ],
+    knowsAbout: profile.themes.map((t: { title: string }) => t.title),
+    sameAs: profile.links.map((l: { url: string }) => l.url),
+  },
+};
+
+// Reviewing summary derived from profile.yaml (venues de-duplicated, "Distinguished" called out).
+const reviewing: { year: number; venues: string }[] = profile.service.reviewing;
+const venueNames = [...new Set(reviewing.flatMap((r) => r.venues.split(/,\s*/).map((v) => v.replace(/\s*\(.*\)$/, '').replace(/[’']\d{2}$/, '').trim())))];
+const distinguished = reviewing.flatMap((r) => r.venues.split(/,\s*/).filter((v) => /distinguished/i.test(v)).map((v) => v.replace(/\s*\(.*\)$/, '')));
+const reviewYears = reviewing.map((r) => r.year);
+
+// Hero scene choice, before first paint: the tested functions from pick.mjs, inlined verbatim.
+const heroHeadScript = `${pickHeroScene.toString()}\n${heroHead.toString()}\nheroHead(${JSON.stringify(HERO_IDS)}, ${12 * 3600e3});`;
+
+const facts = [
+  { label: 'Now', value: `${profile.role}, ${profile.affiliation}`, detail: `Hosted by ${profile.host.name}` },
+  ...profile.education.map((e: { period: string; title: string; org: string }) => ({ label: e.period, value: `${e.title}, ${e.org}` })),
+];
+---
+
+<Base description={description} stageHeader jsonLd={jsonLd} ogType="profile">
+  <script is:inline slot="head" set:html={heroHeadScript} />
+
+  <Hero />
+
+  <!-- 01 About -->
+  <section id="about" class="section about" aria-labelledby="about-h">
+    <div class="wrap about-grid">
+      <header class="section-head">
+        <p class="eyebrow"><span class="n">01</span> About</p>
+        <h2 id="about-h" class="visually-hidden">About</h2>
+      </header>
+      <div class="about-body">
+        <div class="prose">
+          <p class="lead-bio" set:html={inlineMd(profile.bio[0])} />
+          {profile.bio.slice(1).map((p: string) => <p set:html={inlineMd(p)} />)}
+        </div>
+        <dl class="facts">
+          {
+            facts.map((f) => (
+              <div class="fact">
+                <dt class="mono">{f.label}</dt>
+                <dd>
+                  {f.value}
+                  {f.detail && <span class="fact-detail">{f.detail}</span>}
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
+        <div class="actions-row">
+          <a class="btn btn--solid" href="/cv/">Curriculum vitae <Icon name="arrow-right" class="arrow" /></a>
+          <a class="btn" href={profile.cv_pdf}><Icon name="download" /> PDF</a>
+        </div>
+      </div>
+      <figure class="portrait">
+        <Image src={portrait} alt={`Portrait of ${profile.name}`} widths={[240, 360, 480, 720]} sizes="(min-width: 900px) 18rem, 40vw" loading="lazy" decoding="async" />
+      </figure>
+    </div>
+  </section>
+
+  <!-- 02 Research -->
+  <section id="research" class="section" aria-labelledby="research-h">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="eyebrow"><span class="n">02</span> Research</p>
+        <h2 id="research-h">What I work on</h2>
+        <button class="motion-toggle mono" type="button" data-motion-toggle hidden aria-pressed="false">
+          <span class="mt-label">Pause animations</span>
+        </button>
+      </header>
+      <ol class="themes" role="list">
+        {
+          themes.map((t, i) => {
+            const { count, picks } = cardExamples[i];
+            return (
+              <li class="theme">
+                <div class="theme-art" aria-hidden="true">
+                  <canvas data-research={t.id} />
+                </div>
+                <p class="theme-n mono" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </p>
+                <h3>{t.title}</h3>
+                <p class="theme-areas mono">{t.areas.join(' · ')}</p>
+                <p class="theme-summary">{t.summary}</p>
+                {count > 0 && (
+                  <div class="theme-papers">
+                    <p class="mono theme-count">
+                      {count} paper{count > 1 ? 's' : ''}
+                    </p>
+                    <ul role="list">
+                      {picks.map((p) => (
+                        <li>
+                          <a href={`/publications/${p.id}/`}>{p.title}</a>
+                          <span class="mono">{p.venueLabel ?? (p.isWorkingPaper ? 'Working paper' : p.statusLabel)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </li>
+            );
+          })
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- 03 Publications -->
+  <section id="publications" class="section" aria-labelledby="pubs-h">
+    <div class="wrap pubs-grid">
+      <header class="section-head">
+        <p class="eyebrow"><span class="n">03</span> Publications</p>
+        <h2 id="pubs-h">{featured.length ? 'Selected work' : 'Current work'}</h2>
+        <p class="section-sub">
+          {!featured.length && <Fragment>One recent paper from each research theme. </Fragment>}
+          {accepted.length} published or accepted papers, {working.length} working papers and {review.length} under review.
+        </p>
+        <a class="btn" href="/publications/">All publications <Icon name="arrow-right" class="arrow" /></a>
+      </header>
+      <div class="pubs-list">
+        {
+          highlight.map(({ theme, pub }) => (
+            <div class="highlight">
+              {theme && <p class="eyebrow highlight-theme">{theme}</p>}
+              <PubItem pub={pub} compact />
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 Recognition & service -->
+  <section id="recognition" class="section" aria-labelledby="rec-h">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="eyebrow"><span class="n">04</span> Recognition &amp; service</p>
+        <h2 id="rec-h" class="visually-hidden">Recognition and service</h2>
+      </header>
+      <div class="rec-grid">
+        <div>
+          <h3 class="col-h">Awards &amp; scholarships</h3>
+          <ul role="list" class="timeline">
+            {
+              profile.awards.map((a: { year: number; title: string; detail?: string }) => (
+                <li>
+                  <span class="mono yr">{a.year}</span>
+                  <span>
+                    {a.title}
+                    {a.detail && <span class="sub">{a.detail}</span>}
+                  </span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+        <div>
+          <h3 class="col-h">Service</h3>
+          <ul role="list" class="timeline">
+            {
+              profile.service.organization.map((s: { year: number; title: string; detail?: string }) => (
+                <li>
+                  <span class="mono yr">{s.year}</span>
+                  <span>
+                    {s.title}
+                    {s.detail && <span class="sub">{s.detail}</span>}
+                  </span>
+                </li>
+              ))
+            }
+            <li>
+              <span class="mono yr">{Math.min(...reviewYears)}–{Math.max(...reviewYears)}</span>
+              <span>
+                Program committee and reviewing: {venueNames.join(', ')}
+                {distinguished.length > 0 && <span class="sub">Distinguished PC member: {distinguished.join(', ')}</span>}
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="section contact" aria-labelledby="contact-h">
+    <div class="wrap">
+      <p class="eyebrow"><span class="n">05</span> Contact</p>
+      <h2 id="contact-h" class="contact-h">
+        <a href={`mailto:${profile.email}`}>{profile.email}</a>
+      </h2>
+    </div>
+  </section>
+<script>
+  import '../scripts/research';
+</script>
+</Base>
+
+<style>
+  .section {
+    padding-block: var(--space-8) 0;
+  }
+  .section-head .btn {
+    justify-self: start;
+    margin-top: var(--space-2);
+  }
+  .section-sub {
+    color: var(--ink-3);
+    font-size: var(--step--1);
+    font-family: var(--font-mono);
+  }
+
+  /* About */
+  .about-grid {
+    display: grid;
+    gap: var(--space-6);
+  }
+  .about-body {
+    display: grid;
+    gap: var(--space-6);
+    max-width: var(--measure);
+  }
+  .lead-bio {
+    font-size: var(--step-2);
+    line-height: 1.28;
+    letter-spacing: -0.012em;
+    color: var(--ink);
+    margin-bottom: 0.5em;
+  }
+  .prose p:not(.lead-bio) {
+    color: var(--ink-2);
+  }
+  .facts {
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+  .fact {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: var(--space-4);
+    padding-block: 0.8rem;
+    border-bottom: 1px solid var(--line);
+    font-size: var(--step--1);
+  }
+  .fact dt {
+    color: var(--ink-3);
+    font-size: var(--step--2);
+    padding-top: 0.2em;
+  }
+  .fact-detail {
+    display: block;
+    color: var(--ink-3);
+  }
+  .actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .portrait {
+    width: min(18rem, 46vw);
+  }
+  @media (max-width: 899px) {
+    .about-grid .section-head {
+      order: -2;
+      margin-bottom: 0;
+    }
+    .portrait {
+      order: -1;
+    }
+  }
+  .portrait :global(img) {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--radius);
+    filter: saturate(0.82) contrast(1.02);
+  }
+  @media (min-width: 900px) {
+    .about-grid {
+      grid-template-columns: 12rem minmax(0, 1fr) 18rem;
+      align-items: start;
+    }
+    .portrait {
+      order: 0;
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+    }
+  }
+  @media (max-width: 34rem) {
+    .fact {
+      grid-template-columns: 1fr;
+      gap: 0.2rem;
+    }
+  }
+
+  /* Research themes — calm, typographic cards. Subgrid aligns each row (number, title,
+     fields, summary, papers) across the cards so the section reads as one table. */
+  .themes {
+    display: grid;
+    gap: 1px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    padding: 0;
+  }
+  .theme {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-5) var(--space-5);
+    background: var(--bg);
+  }
+  @supports (grid-template-rows: subgrid) {
+    .theme {
+      display: grid;
+      grid-row: span 6;
+      grid-template-rows: subgrid;
+      row-gap: var(--space-3);
+      align-content: start;
+    }
+    .theme-papers {
+      margin-top: 0 !important;
+    }
+  }
+  /* Research illustration: a dark panel (the scenes are drawn for the dark stage in both themes). */
+  .motion-toggle {
+    justify-self: start;
+    font-size: var(--step--2);
+    color: var(--ink-3);
+    background: none;
+    border: 0;
+    padding: 0.4rem 0;
+    min-height: 32px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: var(--line);
+    text-underline-offset: 0.25em;
+  }
+  .motion-toggle:hover,
+  .motion-toggle:focus-visible {
+    color: var(--ink);
+  }
+  .theme-art {
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: #06070a;
+    margin-bottom: var(--space-1);
+  }
+  .theme-art canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .theme-n {
+    font-size: var(--step--2);
+    color: var(--ink-3);
+    letter-spacing: 0.08em;
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .theme h3 {
+    font-size: var(--step-2);
+    margin-top: var(--space-2);
+    align-self: end;
+  }
+  .theme-areas {
+    font-size: var(--step--2);
+    color: var(--accent);
+    letter-spacing: 0.01em;
+  }
+  .theme-summary {
+    color: var(--ink-2);
+    font-size: var(--step--1);
+    line-height: 1.55;
+  }
+  .theme-papers {
+    margin-top: auto;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+    align-self: start;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .theme-count {
+    font-size: var(--step--2);
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .theme-papers ul {
+    display: grid;
+    gap: 0.55rem;
+  }
+  .theme-papers li {
+    display: grid;
+    font-size: var(--step--1);
+    line-height: 1.35;
+  }
+  .theme-papers a {
+    text-decoration-color: var(--line-2);
+  }
+  .theme-papers a:hover {
+    color: var(--accent);
+    text-decoration-color: currentColor;
+  }
+  .theme-papers li span {
+    font-size: var(--step--2);
+    color: var(--ink-3);
+  }
+
+  /* Publications */
+  .pubs-grid {
+    display: grid;
+    gap: var(--space-6);
+  }
+  @media (min-width: 900px) {
+    .pubs-grid {
+      grid-template-columns: 17rem minmax(0, 1fr);
+      align-items: start;
+    }
+    .pubs-grid .section-head {
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+    }
+  }
+  .pubs-list {
+    border-bottom: 1px solid var(--line);
+  }
+  .highlight {
+    position: relative;
+    border-top: 1px solid var(--line);
+  }
+  .highlight :global(.pub) {
+    border-top: 0;
+    padding-top: 0.35rem;
+  }
+  .highlight :global(.pub)::before {
+    top: 0.45rem;
+  }
+  .highlight-theme {
+    padding: 1.1rem 0 0 1.25rem;
+  }
+
+  /* Recognition */
+  .rec-grid {
+    display: grid;
+    gap: var(--space-7);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  }
+  .col-h {
+    font-size: var(--step-1);
+    margin-bottom: var(--space-4);
+  }
+  .timeline {
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+  .timeline li {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: var(--space-4);
+    padding-block: 0.8rem;
+    border-bottom: 1px solid var(--line);
+    font-size: var(--step--1);
+  }
+  .yr {
+    color: var(--ink-3);
+    font-size: var(--step--2);
+    padding-top: 0.2em;
+  }
+  .sub {
+    display: block;
+    color: var(--ink-3);
+  }
+
+  /* Contact */
+  .contact {
+    padding-bottom: var(--space-4);
+  }
+  .contact .wrap {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .contact-h {
+    font-size: var(--step-3);
+    overflow-wrap: anywhere;
+  }
+  .contact-h a {
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+    transition: color var(--dur-2);
+  }
+  .contact-h a:hover {
+    color: var(--accent);
+  }
+</style>

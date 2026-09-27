@@ -1,0 +1,78 @@
+---
+// Composes the venue line from structured data — no markup in the YAML:
+//   Proceedings of the 40th Annual Conference on … Systems  NeurIPS 2026  [To Appear]
+import type { Publication } from '../../lib/site';
+
+interface Props {
+  pub: Publication;
+  /** Only "NeurIPS 2026 [To Appear]" — for compact lists. */
+  short?: boolean;
+  /** Add series, volume, number and pages (paper pages). */
+  full?: boolean;
+  class?: string;
+}
+const { pub, short = false, full = false, class: className } = Astro.props;
+const v = pub.venue;
+---
+
+{
+  v && (
+    <p class:list={['venue-line', { short }, className]}>
+      {!short && <span class="vname">{v.name}</span>}
+      {/* "NeurIPS 2026 [To Appear]" never breaks apart. */}
+      {v.acronym ? (
+        <Fragment>
+          {' '}
+          <span class="vid">
+            <strong class="vacr">{v.acronym}</strong> <span class="vyear">{pub.year}</span>
+            {pub.status === 'to-appear' && <span class="appear"> [To Appear]</span>}
+          </span>
+        </Fragment>
+      ) : (
+        <Fragment>
+          {short ? <span class="vname">{pub.venueLabel}</span> : <span class="vyear">{`, ${pub.year}`}</span>}
+          {pub.status === 'to-appear' && <span class="appear"> [To Appear]</span>}
+        </Fragment>
+      )}
+      {full && v.series && <span class="vmeta">{`, ${v.series}`}</span>}
+      {full && v.volume && <span class="vmeta">{`, vol. ${v.volume}`}</span>}
+      {full && v.number && <span class="vmeta">{`(${v.number})`}</span>}
+      {full && v.pages && <span class="vmeta">{`, pp. ${v.pages}`}</span>}
+    </p>
+  )
+}
+
+<style>
+  .venue-line {
+    font-size: var(--step--1);
+    line-height: 1.45;
+    color: var(--ink-3);
+    max-width: 72ch;
+    overflow-wrap: break-word;
+  }
+  .vname {
+    font-style: italic;
+  }
+  .vacr {
+    font-style: normal;
+    font-weight: 650;
+    color: var(--ink);
+    letter-spacing: 0.005em;
+  }
+  .vyear {
+    color: var(--ink-2);
+  }
+  .vid {
+    white-space: nowrap;
+  }
+  .appear {
+    color: var(--ink-2);
+  }
+  .short {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+  }
+  .short .vacr {
+    font-weight: 600;
+  }
+</style>

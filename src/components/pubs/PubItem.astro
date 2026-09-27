@@ -1,0 +1,352 @@
+---
+import TypeBadge from './TypeBadge.astro';
+import Authors from './Authors.astro';
+import PubLinks from './PubLinks.astro';
+import VenueLine from './VenueLine.astro';
+import Presentation from './Presentation.astro';
+import Icon from '../Icon.astro';
+import { bibtex, citationText, type Publication } from '../../lib/site';
+
+interface Props {
+  pub: Publication;
+  /** Heading level for the title, so each page keeps a correct outline. */
+  level?: 2 | 3 | 4;
+  /** Leaner variant for the home page (no venue line, no drawers). */
+  compact?: boolean;
+}
+const { pub, level = 3, compact = false } = Astro.props;
+const H = `h${level}` as 'h2' | 'h3' | 'h4';
+const href = `/publications/${pub.id}/`;
+const searchText = [pub.title, pub.note, pub.authors.map((a) => a.name).join(' '), pub.venue?.acronym, pub.venue?.name, pub.year, pub.statusLabel, pub.presentationLabel, pub.abstract]
+  .filter(Boolean)
+  .join(' ')
+  .toLowerCase();
+const uid = `${pub.id}${compact ? '-c' : ''}`;
+// A manuscript under review with no public copy has nothing useful to cite yet.
+const citable = !(pub.isUnderReview && pub.links.length === 0);
+---
+
+<article
+  class:list={['pub', { compact }]}
+  id={compact ? undefined : pub.id}
+  data-pub
+  data-types={pub.types.join(' ')}
+  data-year={pub.year ?? ''}
+  data-search={compact ? undefined : searchText}
+  data-type={pub.primaryType ?? 'none'}
+  data-stage={pub.stage}
+>
+  <p class="kicker">
+    {pub.types.map((t) => <TypeBadge type={t} />)}
+    {
+      pub.isUnderReview && (
+        <span class="review-tag">
+          <svg viewBox="0 0 10 10" aria-hidden="true">
+            <path d="M5 1.2a3.8 3.8 0 1 0 0 7.6" fill="none" stroke="currentColor" stroke-width="1.3" />
+            <path d="M5 1.2a3.8 3.8 0 0 1 0 7.6" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="1.2 1.4" />
+          </svg>
+          {pub.statusLabel}
+        </span>
+      )
+    }
+    <Presentation pub={pub} />
+    {pub.note && <span class="note">{pub.note}</span>}
+    {pub.isWorkingPaper && pub.date && <span class="note posted">{`arXiv ${pub.date.slice(0, 7)}`}</span>}
+  </p>
+  <H class="title">
+    <a href={href} style={`view-transition-name: pub-${pub.id}; view-transition-class: pub-title`}>{pub.title}</a>
+  </H>
+  <Authors pub={pub} class="pub-authors" />
+  <VenueLine pub={pub} short={compact} />
+
+  {
+    !compact && (
+      <div class="actions">
+        <PubLinks pub={pub} />
+        <div class="toggles js-only">
+          {pub.abstract && (
+            <button type="button" class="toggle" aria-expanded="false" aria-controls={`abs-${uid}`} data-toggle>
+              <Icon name="abstract" size={15} />
+              Abstract
+              <Icon name="chevron" size={13} class="chev" />
+            </button>
+          )}
+          {citable && (
+          <button type="button" class="toggle" aria-expanded="false" aria-controls={`cite-${uid}`} data-toggle>
+            <Icon name="quote" size={15} />
+            Cite
+            <Icon name="chevron" size={13} class="chev" />
+          </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+  {compact && pub.links.length > 0 && <PubLinks pub={pub} />}
+
+  {
+    !compact && pub.abstract && (
+      <div class="drawer" id={`abs-${uid}`} hidden>
+        <p class="abstract">{pub.abstract}</p>
+      </div>
+    )
+  }
+  {
+    !compact && citable && (
+      <div class="drawer cite" id={`cite-${uid}`} hidden>
+        <p class="citation" data-copy-source>{citationText(pub)}</p>
+        <pre class="bibtex" tabindex="0" aria-label="BibTeX"><code data-copy-source>{bibtex(pub)}</code></pre>
+        <div class="copy-row">
+          <button type="button" class="copy" data-copy="citation">
+            <Icon name="copy" size={14} /> <span>Copy citation</span>
+          </button>
+          <button type="button" class="copy" data-copy="bibtex">
+            <Icon name="copy" size={14} /> <span>Copy BibTeX</span>
+          </button>
+        </div>
+      </div>
+    )
+  }
+</article>
+
+<style>
+  .pub {
+    --c: var(--c-conference);
+    position: relative;
+    display: grid;
+    gap: 0.45rem;
+    padding: 1.35rem 0 1.4rem 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+  .pub[data-type='working-paper'] {
+    --c: var(--c-working-paper);
+  }
+  .pub[data-type='journal'] {
+    --c: var(--c-journal);
+  }
+  .pub[data-type='survey'] {
+    --c: var(--c-survey);
+  }
+  .pub[data-type='none'] {
+    --c: var(--ink-3);
+  }
+  /* A thin edge in the paper's type colour grows on hover/focus: the "coalition" it belongs to. */
+  .pub::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 1.45rem;
+    width: 2px;
+    height: 1.1rem;
+    border-radius: 2px;
+    background: var(--c);
+    opacity: 0.55;
+    transition:
+      height 480ms var(--ease-out),
+      opacity var(--dur-2);
+  }
+  .pub:hover::before,
+  .pub:focus-within::before {
+    height: calc(100% - 2.9rem);
+    opacity: 1;
+  }
+
+  .kicker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem 0.7rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-3);
+    letter-spacing: 0.01em;
+  }
+  .review-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.15em 0.55em 0.15em 0.45em;
+    border-radius: 4px;
+    border: 1px dotted var(--line-2);
+    color: var(--ink-2);
+    font-weight: 550;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+  }
+  .review-tag svg {
+    width: 0.8em;
+    height: 0.8em;
+  }
+  .note {
+    position: relative;
+    padding-left: 0.8rem;
+  }
+  .note::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .title {
+    font-size: var(--step-1);
+    line-height: 1.22;
+    font-weight: 450;
+    letter-spacing: -0.01em;
+    max-width: 44ch;
+  }
+  .title a {
+    text-decoration: none;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition:
+      background-size 500ms var(--ease-out),
+      color var(--dur-1);
+  }
+  .title a:hover {
+    background-size: 100% 1px;
+  }
+  .pub-authors {
+    font-size: var(--step--1);
+    line-height: 1.5;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem 1rem;
+    margin-top: 0.45rem;
+  }
+  .toggles {
+    display: flex;
+    gap: 0.25rem;
+    margin-left: auto;
+  }
+  .actions:not(:has(.links)) .toggles {
+    margin-left: -0.6rem;
+  }
+  :global(html:not(.js)) .js-only {
+    display: none;
+  }
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 500;
+    color: var(--ink-2);
+    transition:
+      background-color var(--dur-1),
+      color var(--dur-1);
+  }
+  .toggle:hover {
+    background: var(--bg-sunk);
+    color: var(--ink);
+  }
+  .toggle[aria-expanded='true'] {
+    background: var(--bg-sunk);
+    color: var(--ink);
+  }
+  .toggle :global(.chev) {
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+  .toggle[aria-expanded='true'] :global(.chev) {
+    transform: rotate(180deg);
+  }
+
+  .drawer {
+    margin-top: 0.6rem;
+    padding: 1rem 1.1rem;
+    border-radius: var(--radius);
+    background: var(--bg-sunk);
+    font-size: var(--step--1);
+    animation: drawer-in 360ms var(--ease-out);
+  }
+  @keyframes drawer-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .drawer {
+      animation: none;
+    }
+  }
+  .abstract {
+    color: var(--ink-2);
+    line-height: 1.6;
+    max-width: 75ch;
+  }
+  .cite {
+    display: grid;
+    gap: 0.8rem;
+  }
+  .citation {
+    color: var(--ink-2);
+  }
+  .bibtex {
+    margin: 0;
+    padding: 0.8rem 0.9rem;
+    overflow-x: auto;
+    border-radius: 4px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+    tab-size: 2;
+  }
+  .copy-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2rem;
+    padding: 0.2rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-2);
+    background: var(--bg-elev);
+    transition:
+      border-color var(--dur-1),
+      color var(--dur-1);
+  }
+  .copy:hover {
+    border-color: var(--ink-3);
+    color: var(--ink);
+  }
+  .copy.is-done {
+    color: var(--c-journal);
+    border-color: currentColor;
+  }
+
+  .compact {
+    padding-block: 1.1rem 1.2rem;
+  }
+  .compact .title {
+    font-size: var(--step-1);
+  }
+  .compact :global(.links) {
+    margin-top: 0.3rem;
+  }
+</style>
