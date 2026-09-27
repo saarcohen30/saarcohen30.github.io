@@ -17,6 +17,15 @@ const fixtures = [
   { key: 'safe-rounds-card', id: 'safe-rounds', w: 270, h: 169, mode: '6600', mobile: 0 },
   { key: 'safe-rounds-phone', id: 'safe-rounds', w: 343, h: 214, mode: '6600', mobile: 0 },
 ];
+// The pre-refinement Water and Dune Field (review comparison), kept reproducible. Rendered after
+// everything else so no existing fixture moves on the page. `npm run verify-originals` proves they
+// are pixel-identical to the live code of commit af14c9d.
+const originals = ['water-original', 'earth-original'].flatMap((id) => [
+  { key: `${id}-desktop`, id, w: 720, h: 450, mode: 'settled', mobile: 0 },
+  { key: `${id}-mobile`, id, w: 390, h: 300, mode: 'settled', mobile: 1 },
+]);
+// Earth's living sand at the first gust of the entrance (6 s), drawn while stepping.
+const living = [{ key: 'earth-gust-desktop', id: 'earth', w: 720, h: 450, mode: 'live6000', mobile: 0 }];
 ---
 
 <Base title="Frozen scenes" description="Deterministic fixtures for the visual regression check." noindex>
@@ -44,6 +53,14 @@ const fixtures = [
               <Mark size={16} />
             </div>
             <figcaption>{key}</figcaption>
+          </figure>
+        ))
+      }
+      {
+        [...originals, ...living].map((f) => (
+          <figure>
+            <canvas data-fixture={f.key} data-entry={f.id} data-w={f.w} data-h={f.h} data-mode={f.mode} data-mobile={f.mobile} />
+            <figcaption>{f.key}</figcaption>
           </figure>
         ))
       }

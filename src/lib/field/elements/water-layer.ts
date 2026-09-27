@@ -21,9 +21,17 @@ export interface WaterOptions extends LayerContext {
   warmStrength?: number | ((t: number) => number);
   /** First ripple reveals the surface from this point (fraction of the rect). */
   reveal?: boolean;
+  /**
+   * Display-robust rendering (the production Water scene). Keeps the same surface but makes its
+   * structure survive dim, low-contrast screens: crests catch light across the whole width, not only
+   * in the light column; a depth hierarchy (quiet far rows, stronger near rows); waves travel, so the
+   * surface has a direction; a faint sky sheen on the far water and a restrained horizon line.
+   */
+  robust?: boolean;
 }
 
 const COOL_FAR = [92, 128, 160];
+const COOL_FAR_ROBUST = [124, 152, 180]; // lifted: deep blue on black has too little luminance to survive a dim screen
 const COOL_NEAR = [214, 236, 244];
 const WARM = [255, 186, 120];
 
@@ -40,6 +48,8 @@ export function createWaterLayer(o: WaterOptions): Layer & { surface: Rect; ripp
   const firstAt = delay + 380;
   const origin = { x: f.x0 + W * 0.52, y: f.y0 + H * 0.58 };
   let revealDone = !o.reveal;
+  const R = !!o.robust;
+  const far = R ? COOL_FAR_ROBUST : COOL_FAR;
   let lastPointer = -1e9;
 
   const depthAt = (y: number) => clamp(Math.pow(clamp((y - f.y0) / H), 1 / 1.55));
@@ -83,6 +93,36 @@ export function createWaterLayer(o: WaterOptions): Layer & { surface: Rect; ripp
 
       ctx.save();
       ctx.lineCap = 'round';
+      if (R) {
+        // The far water reflects the sky (grazing angle): a faint sheen widening from the horizon,
+        // brightest where the light falls, and a thin horizon line. Both are large, low-frequency
+        // shapes, so they remain readable where fine lines disappear.
+        const shown = presence * (revealDone ? 1 : smooth(firstAt, firstAt + 1600, t));
+        const hy = f.y0 + 1;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(f.x0, hy, W, H);
+        ctx.clip();
+        ctx.translate(lightX, hy);
+        ctx.scale(1, (H * 0.55) / (W * 0.5));
+        const sheen = ctx.createRadialGradient(0, 0, 0, 0, 0, W * 0.42);
+        sheen.addColorStop(0, `rgba(150,176,204,${(0.085 * shown).toFixed(3)})`);
+        sheen.addColorStop(0.5, `rgba(130,160,190,${(0.035 * shown).toFixed(3)})`);
+        sheen.addColorStop(1, 'rgba(120,150,180,0)');
+        ctx.fillStyle = sheen;
+        ctx.fillRect(-W * 0.5, 0, W, W * 0.5);
+        ctx.restore();
+        const hz = ctx.createLinearGradient(f.x0, 0, f.x1, 0);
+        hz.addColorStop(0, 'rgba(170,192,214,0)');
+        hz.addColorStop(clamp((lightX - f.x0) / W), `rgba(190,210,228,${(0.26 * shown).toFixed(3)})`);
+        hz.addColorStop(1, 'rgba(170,192,214,0)');
+        ctx.strokeStyle = hz;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(f.x0, hy);
+        ctx.lineTo(f.x1, hy);
+        ctx.stroke();
+      }
       // Each row is a continuous wave line. Its height comes from layered noise plus the rings of
       // any ripples; its brightness from its slope (where the surface tilts towards the light).
       const BUCKETS = 7;
@@ -91,7 +131,9 @@ export function createWaterLayer(o: WaterOptions): Layer & { surface: Rect; ripp
         const d = (k + 1) / rows;
         const spacing = (H * 1.55 * Math.pow(d, 0.55)) / rows;
         const y0 = f.y0 + H * Math.pow(d, 1.55) + noise(k * 0.6, time * 0.15, 8) * spacing * 0.35;
-        const amp = mix(0.8, 9, d * d);
+        const amp = R ? mix(1, 11, d * d) : mix(0.8, 9, d * d);
+        // Robust: the wave pattern travels across the surface (faster on near rows: perspective).
+        const drift = R ? time * mix(5, 24, d) : 0;
         const step = mix(4, 9, d);
         const fx = 0.009 / mix(0.3, 1, d);
         const column = W * 0.1 * mix(0.5, 1.6, d);
@@ -101,7 +143,8 @@ export function createWaterLayer(o: WaterOptions): Layer & { surface: Rect; ripp
         let py = 0;
         let first = true;
         for (let x = f.x0; x <= f.x1 + step; x += step) {
-          let h = amp * (noise(x * fx, k * 0.33, time * 0.3) * 0.75 + noise(x * fx * 2.7, k * 0.8 + 7, time * 0.75) * 0.25);
+          const xw = x - drift;
+          let h = amp * (noise(xw * fx, k * 0.33, time * 0.3) * 0.75 + noise(xw * fx * 2.7, k * 0.8 + 7, time * 0.75) * 0.25);
           let ring = 0;
           for (const r of ripples) {
             const age = t - r.born;
@@ -115,10 +158,13 @@ export function createWaterLayer(o: WaterOptions): Layer & { surface: Rect; ripp
           const y = y0 + h;
           if (!first) {
             const slope = (y - py) / step;
-            const light = 0.18 + 0.82 * Math.exp(-(((x - lightX) / column) ** 2));
+            const light = (R ? 0.42 : 0.18) + (R ? 0.58 : 0.82) * Math.exp(-(((x - lightX) / column) ** 2));
             const spec = Math.exp(-(((slope + 0.1) / 0.09) ** 2)) * (0.45 + 0.55 * clamp(0.5 + noise(x * 0.07, k * 1.3, time * 1.6)));
             const vignette = 1 - smooth(0.55, 1, Math.abs((x - (f.x0 + f.x1) / 2) / (W / 2)));
-            let a = (0.015 + 0.035 * d + spec * light * mix(0.4, 1.15, d) + ring * 0.3) * vignette * edgeFade(f, x, y0, 0.02, 0.03) * presence;
+            let a = R
+              ? // Hierarchy: quiet far rows, stronger near rows (atmospheric depth); crests everywhere.
+                (0.02 + 0.055 * d ** 1.4 + spec * light * mix(0.32, 1.25, d) + ring * 0.45) * vignette * edgeFade(f, x, y0, 0.02, 0.03) * presence
+              : (0.015 + 0.035 * d + spec * light * mix(0.4, 1.15, d) + ring * 0.3) * vignette * edgeFade(f, x, y0, 0.02, 0.03) * presence;
             if (!revealDone) a *= 1 - smooth(revealR - 160, revealR, Math.hypot(x - origin.x, (y0 - origin.y) / ratioAt(origin.y)));
             if (a > 0.015) {
               const bucket = Math.min(BUCKETS - 1, Math.floor(clamp(a) * BUCKETS));
@@ -130,7 +176,7 @@ export function createWaterLayer(o: WaterOptions): Layer & { surface: Rect; ripp
           py = y;
           first = false;
         }
-        const light = COOL_FAR.map((v, i) => mix(v, COOL_NEAR[i], 0.25 + 0.75 * d));
+        const light = far.map((v, i) => mix(v, COOL_NEAR[i], 0.25 + 0.75 * d));
         for (let i = 0; i < BUCKETS; i++) {
           let c = light;
           if (o.warmX !== undefined && warmNow > 0.01) c = c.map((v, j) => mix(v, WARM[j], 0.55 * warmNow * (i / BUCKETS)));

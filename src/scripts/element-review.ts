@@ -33,20 +33,29 @@ function sizeCanvas(canvas: HTMLCanvasElement) {
 }
 
 /** Run a fresh instance offline to scene time `at` (or settled, when at < 0) and draw it. */
-function drawAt(canvas: HTMLCanvasElement, id: string, at: number, mobile = false) {
+function drawAt(canvas: HTMLCanvasElement, id: string, at: number, mobile = false, live = false) {
   const { w, h } = sizeCanvas(canvas);
   if (w < 2) return;
   const p = byId.get(id)!.make(w, h, undefined, { mobile });
   let t = 0;
+  // Live: draw while stepping, as on the page (scenes whose motion depends on what they have drawn).
+  const ctx0 = canvas.getContext('2d')!;
+  const tick = () => {
+    if (live) p.render(ctx0, t);
+  };
   if (at < 0) {
     // Settled, then a moment of live motion (some scenes, like Air, fill in as they run).
     p.settle?.();
     t = SETTLED_AT;
-    for (let k = 0; k < 96; k++) p.step(16, (t += 16));
+    for (let k = 0; k < 96; k++) {
+      p.step(16, (t += 16));
+      tick();
+    }
   } else
     while (t < at) {
       t += 16;
       p.step(16, t);
+      tick();
     }
   const ctx = canvas.getContext('2d')!;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -190,7 +199,7 @@ const lazyIo = new IntersectionObserver((es) => {
     if (el.dataset.frames !== undefined) setTimeout(() => drawFrames(el.parentElement!), 80);
     else
       el.querySelectorAll<HTMLElement>('[data-still]').forEach((fig, i) =>
-        setTimeout(() => drawAt(fig.querySelector('canvas')!, fig.dataset.still!, Number(fig.dataset.at ?? 4500), fig.dataset.mobile !== undefined), 80 + i * 40),
+        setTimeout(() => drawAt(fig.querySelector('canvas')!, fig.dataset.still!, Number(fig.dataset.at ?? 4500), fig.dataset.mobile !== undefined, fig.dataset.live !== undefined), 80 + i * 40),
       );
   }
 });

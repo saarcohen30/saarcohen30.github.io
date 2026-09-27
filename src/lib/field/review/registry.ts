@@ -2,9 +2,9 @@
 // Convergence) are the live scenes, wrapped unchanged (including their timed churn, as the hero
 // runs them); everything else is an earlier study.
 import type { SceneFactory } from '../core';
-import { createWater } from '../elements/water';
+import { createWater, createWaterOriginal } from '../elements/water';
 import { createAir } from '../elements/air';
-import { createEarth } from '../elements/earth';
+import { createEarth, createEarthOriginal } from '../elements/earth';
 import { createFire } from '../elements/fire';
 import { createConvergence } from '../elements/convergence';
 import { canvasPainter } from '../canvas';
@@ -68,7 +68,7 @@ const fromResearch =
     };
   };
 
-export type Group = 'family' | 'wind' | 'research' | 'unified' | 'd2' | 'story' | 'fire-old' | 'conv-old' | 'earth-old';
+export type Group = 'family' | 'refine' | 'wind' | 'research' | 'unified' | 'd2' | 'story' | 'fire-old' | 'conv-old' | 'earth-old';
 
 export interface Entry {
   id: string;
@@ -82,9 +82,11 @@ export interface Entry {
 }
 
 export const ENTRIES: Entry[] = [
-  { id: 'water', group: 'family', label: 'Water', title: 'Approved', note: 'The live Water scene, unchanged. Pointer: a small ripple.', make: fromScene(createWater) },
+  { id: 'water', group: 'family', label: 'Water', title: 'Approved, refined for weak displays', note: 'The live Water scene (?scene=water). Crests catch light across the whole surface (brightest in the light column), near rows stronger than far ones, the wave pattern travels, a faint sky sheen on the far water and a restrained horizon line. Pointer: a small ripple.', make: fromScene(createWater) },
   { id: 'air', group: 'family', label: 'Air', title: 'Approved', note: 'The live Air scene, unchanged. Pointer: a local eddy.', make: fromScene(createAir) },
-  { id: 'earth', group: 'family', label: 'Earth', title: 'Dune Field', note: 'The live Earth scene (?scene=earth). No pointer response.', make: fromScene(createEarth) },
+  { id: 'earth', group: 'family', label: 'Earth', title: 'Dune Field, living', note: 'The live Earth scene (?scene=earth). The dunes stay massive; the sand is alive: a varied rhythm of calm, building wind, gusts and settling; grains hop up the windward faces and stream off the crests as a thin veil that falls back behind the brink (sparse near, clearest in the middle distance, a faint haze far away); crests and ripples migrate slowly downwind. Entrance: darkness, crest rims catch a low light, the light rises, the first gust. Pointer: a weak local gust lifts a few grains.', make: fromScene(createEarth) },
+  { id: 'water-original', group: 'refine', label: 'Water', title: 'Current production (before refinement)', note: 'The Water scene as it was live: structure mostly in the light column; far rows near black.', make: fromScene(createWaterOriginal) },
+  { id: 'earth-original', group: 'refine', label: 'Earth', title: 'Current production Dune Field (before refinement)', note: 'The Dune Field as it was live: imperceptible migration, sparse wisps, a fade-in entrance.', make: fromScene(createEarthOriginal) },
   {
     id: 'fire',
     group: 'family',

@@ -13,6 +13,21 @@ const FRAMES = [
   { at: -1, label: 'live' },
 ];
 const family = group('family');
+const byId = (id: string) => ENTRIES.find((e) => e.id === id)!;
+// Production refinements (temporary section): Water readable on weak displays; Earth alive.
+const waterPair = [
+  { e: byId('water-original'), t: 'Current production Water' },
+  { e: byId('water'), t: 'Refined Water' },
+];
+const earthPair = [
+  { e: byId('earth-original'), t: 'Current production Dune Field' },
+  { e: byId('earth'), t: 'Refined active Dune Field' },
+];
+const EARTH_MOMENTS = [
+  { at: 1200, label: 'early 1.2 s (entrance)' },
+  { at: 6000, label: 'gust 6 s' },
+  { at: 11500, label: 'settled / ambient 11.5 s' },
+];
 const fire = ENTRIES.find((e) => e.id === 'fire')!;
 const sections = [
   {
@@ -37,15 +52,79 @@ const sections = [
       pointer response.
     </p>
     <nav class="toc" aria-label="Sections">
+      <a href="#refinements">Production refinements</a>
       <a href="#family">Final elemental family</a>
       <a href="#fire">Fire in detail</a>
       {sections.map((s) => <a href={`#${s.id}`}>{s.title}</a>)}
     </nav>
 
+    <section id="refinements">
+      <h2>Production refinements</h2>
+      <p class="intro">
+        Temporary comparison. Only Water and Earth change; Air, Fire and Convergence are untouched. The <b>simulated low contrast</b> rows apply a CSS filter (<code>contrast(0.78) brightness(0.8)</code>) that
+        lifts the black level and dims the image, roughly a glossy laptop in a lit room at reduced brightness.
+      </p>
+
+      <h3>Water</h3>
+      <div class="cards two">{waterPair.map(({ e }) => <ReviewCard e={e} compact />)}</div>
+      <p class="sub">Normal rendering (settled)</p>
+      <div class="stills two" data-stills>
+        {
+          waterPair.map(({ e, t }) => (
+            <figure data-still={e.id} data-at="-1">
+              <canvas aria-label={`${t}, settled`} role="img" />
+              <figcaption>{t}</figcaption>
+            </figure>
+          ))
+        }
+      </div>
+      <p class="sub">Simulated low contrast</p>
+      <div class="stills two lowc" data-stills>
+        {
+          waterPair.map(({ e, t }) => (
+            <figure data-still={e.id} data-at="-1">
+              <canvas aria-label={`${t}, simulated low contrast`} role="img" />
+              <figcaption>{t}</figcaption>
+            </figure>
+          ))
+        }
+      </div>
+      <p class="sub">Phone layout, simulated low contrast</p>
+      <div class="stills two mobile lowc" data-stills>
+        {
+          waterPair.map(({ e, t }) => (
+            <figure data-still={e.id} data-at="-1" data-mobile>
+              <canvas aria-label={`${t}, phone, simulated low contrast`} role="img" />
+              <figcaption>{t}</figcaption>
+            </figure>
+          ))
+        }
+      </div>
+
+      <h3>Earth</h3>
+      <div class="cards two">{earthPair.map(({ e }) => <ReviewCard e={e} compact />)}</div>
+      {
+        earthPair.map(({ e, t }) => (
+          <>
+            <p class="sub">{t}</p>
+            <div class="stills three" data-stills>
+              {EARTH_MOMENTS.map((m) => (
+                <figure data-still={e.id} data-at={m.at} data-live>
+                  <canvas aria-label={`${t}, ${m.label}`} role="img" />
+                  <figcaption>{m.label}</figcaption>
+                </figure>
+              ))}
+            </div>
+          </>
+        ))
+      }
+      <div class="notes">{[...waterPair, ...earthPair].map(({ e, t }) => <p class="note"><b>{t}.</b> {e.note}</p>)}</div>
+    </section>
+
     <section id="family">
       <h2>Final elemental family</h2>
       <p class="intro">
-        The five production scenes side by side, at the same scale and viewport. None is in the normal visitor rotation yet (it stays Adapt, Exchange, Share, Gather). Preview any one on the home page with
+        The five production scenes side by side, at the same scale and viewport. The home page shows one of them at random on every load. Preview any one with
         <code>/?scene=water</code>, <code>air</code>, <code>earth</code>, <code>fire</code> or <code>convergence</code> (add <code>&amp;intro=1</code> for the entrance).
       </p>
       <div class="family">{family.map((e) => <ReviewCard e={e} compact />)}</div>
@@ -293,6 +372,33 @@ const sections = [
     .review .frames,
     .review .stills {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  /* Production refinements (temporary section). */
+  .review .stills.two,
+  .review .cards.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .review .stills.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .review .stills.two.mobile {
+    max-width: 40rem;
+  }
+  .review .lowc canvas {
+    filter: contrast(0.78) brightness(0.8);
+  }
+  .review .sub {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+    margin-top: var(--space-3);
+  }
+  @media (max-width: 720px) {
+    .review .cards.two,
+    .review .stills.three {
+      grid-template-columns: 1fr;
     }
   }
 </style>

@@ -13,7 +13,7 @@ for (const el of document.querySelectorAll<HTMLCanvasElement>('canvas[data-fixtu
   const id = el.dataset.entry!;
   const w = Number(el.dataset.w);
   const h = Number(el.dataset.h);
-  const mode = el.dataset.mode; // 'settled' (hero scenes) or a time in ms (research cards)
+  const mode = el.dataset.mode; // 'settled' (hero scenes), a time in ms (research cards), or 'live<ms>' (drawn while stepping)
   el.width = w;
   el.height = h;
   el.style.width = `${w}px`;
@@ -24,6 +24,14 @@ for (const el of document.querySelectorAll<HTMLCanvasElement>('canvas[data-fixtu
     p.settle?.();
     t = 6000;
     for (let k = 0; k < 90; k++) p.step(16, (t += 16));
+  } else if (mode?.startsWith('live')) {
+    // Drawn while stepping, as on the page (Earth's sand streams from crests it has drawn).
+    const end = Number(mode.slice(4));
+    const c = el.getContext('2d')!;
+    while (t < end) {
+      p.step(16, (t += 16));
+      p.render(c, t);
+    }
   } else {
     const end = Number(mode);
     while (t < end) p.step(16, (t += 16));
