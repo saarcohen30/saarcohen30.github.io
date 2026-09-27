@@ -4,6 +4,7 @@
 import Base from '../../layouts/Base.astro';
 import ReviewCard from '../../components/review/ReviewCard.astro';
 import { ENTRIES } from '../../lib/field/review/registry';
+import { STORYBOARDS } from '../../lib/field/review/exchange-storyboards';
 import { profile } from '../../lib/site';
 
 const by = (id: string) => ENTRIES.find((e) => e.id === id)!;
@@ -15,123 +16,108 @@ const original = [
   { e: by('r-exchange'), t: 'Principled & safe AI' },
 ];
 const flowOnly = ['u-gather', 'u-share', 'u-adapt', 'u-exchange'].map(by);
-const sel = [
-  { e: by('d2-gather'), badge: 'Current direction', t: 'Coalitions & collective decisions' },
-  { e: by('d2-share-a'), badge: 'SELECTED', t: 'Fair allocation over time' },
+const selected = [
+  { e: by('d2-gather'), badge: 'FROZEN', t: 'Coalitions & collective decisions' },
+  { e: by('d2-share-a'), badge: 'SELECTED · repaired, awaiting your visual approval', t: 'Fair allocation over time' },
+  { e: by('d2-adapt-a1'), badge: 'SELECTED / FROZEN', t: 'Learning in multi-agent systems' },
 ];
-const adapt = [by('d2-adapt-a'), by('d2-adapt-a1')];
-const exchange = [
-  { e: by('d2-exchange'), badge: 'REJECTED EXECUTION, CONCEPT RETAINED' },
-  { e: by('d2-exchange-a'), badge: '' },
-  { e: by('d2-exchange-b'), badge: '' },
-  { e: by('d2-exchange-c'), badge: '' },
+const shareCompare = [
+  { e: by('share-v1'), t: 'Earlier approved (170ffa7)' },
+  { e: by('share-v2'), t: 'Regressed (e4a29aa)' },
+  { e: by('d2-share-a'), t: 'Repaired (this pass)' },
 ];
+const rejectedExchange = ['d2-exchange', 'd2-exchange-a', 'd2-exchange-b', 'd2-exchange-c'].map(by);
 const alternatives = [by('d2-share-b'), by('d2-adapt-b')];
-// The current picks per theme, in the order of the home page's themes (Exchange is provisional).
-const preferred = ['d2-gather', 'd2-share-a', 'd2-adapt-a1', 'd2-exchange-a'];
-const themes = (profile.themes as { title: string; areas: string[]; summary: string }[]).map((t, i) => ({ ...t, e: by(preferred[i]) }));
+const mockIds = ['d2-gather', 'd2-share-a', 'd2-adapt-a1', ''];
+const themes = (profile.themes as { title: string; areas: string[]; summary: string }[]).map((t, i) => ({ ...t, id: mockIds[i] }));
 ---
 
 <Base title="Scene architecture" description="Which visual system should the home page use?" noindex>
   <div class="wrap review arch">
     <p class="eyebrow">Design review · not linked from the site</p>
     <h1>Scene architecture</h1>
-
-    <section id="hypothesis">
-      <h2>Current hypothesis</h2>
-      <div class="rec">
-        <p><b>Elements = hero identity.</b> Water, Air, Earth, Fire and Convergence own the entrance: personality, atmosphere, memorability.</p>
-        <p><b>Research-specific scenes = contextual explanation.</b> In “What I work on”, each theme gets a scene that shows its own mechanism: agents and groups, items and bundles, agents learning from feedback, attacker and defender.</p>
-        <p><b>Shared art direction = coherence.</b> Same stage, pale marks, one warm accent, soft halos, hairlines and eased motion, not the same subject matter.</p>
-      </div>
-      <nav class="toc" aria-label="Sections">
-        <a href="#selected">Selected</a>
-        <a href="#adapt">Learning A0 → A1</a>
-        <a href="#exchange">Safe AI exploration</a>
-        <a href="#mock">What I work on mock</a>
-        <a href="#alternatives">Alternatives</a>
-        <a href="#elements">Elemental identity</a>
-        <a href="#motion">Motion &amp; accessibility</a>
-      </nav>
-    </section>
+    <div class="rec">
+      <p><b>Working architecture (B + D2):</b> elements are the hero identity; research-specific scenes explain the research in “What I work on”; one shared art direction connects them. Nothing is activated yet.</p>
+    </div>
+    <nav class="toc" aria-label="Sections">
+      <a href="#selected">Selected / frozen</a>
+      <a href="#share-regression">Share regression</a>
+      <a href="#safe-research">Safe AI: research</a>
+      <a href="#storyboards">Safe AI: storyboards</a>
+      <a href="#mock">What I work on mock</a>
+      <a href="#frozen">Frozen-scene sheet</a>
+      <a href="#rejected-exchange">Rejected Exchange</a>
+    </nav>
 
     <section id="selected">
-      <h2>Selected / nearly final</h2>
-      <div class="row two">
+      <h2>Selected / frozen</h2>
+      <div class="row three">
         {
-          sel.map(({ e, badge, t }) => (
+          selected.map(({ e, badge, t }) => (
             <div class="d2">
               <p class="badge">{badge}</p>
               <ReviewCard e={e} compact />
               <p class="theme-t">{t}</p>
-              <dl class="sem">
-                <dt>Intended reading</dt>
-                <dd>{e.sem!.reading}</dd>
-                <dt>Research connection</dt>
-                <dd>{e.sem!.research}</dd>
-              </dl>
             </div>
           ))
         }
       </div>
     </section>
 
-    <section id="adapt">
-      <h2>Learning refinement: Adapt A0 → A1</h2>
-      <p class="intro">A1 keeps A0’s mechanism (local interactions, feedback, links strengthening and weakening, no central controller) and adds movement, proximity and learned groups.</p>
-      <div class="row two">
+    <section id="share-regression">
+      <h2>Share regression comparison</h2>
+      <p class="intro">Same mechanism in all three. The regressed version drew each unit of value as a large circle (sized from the canvas height), scattered them over a tall area and tinted them towards the active item’s warm colour. The repair aggregates value into a compact mound (size encodes value; small grains at constant density), keeps bundles muted, and leaves the active item as the only bright warm object.</p>
+      <div class="row three">
         {
-          adapt.map((e) => (
+          shareCompare.map(({ e, t }) => (
             <div class="d2">
               <ReviewCard e={e} compact />
-              <dl class="sem">
-                <dt>Intended reading</dt>
-                <dd>{e.sem!.reading}</dd>
-                <dt>Research connection</dt>
-                <dd>{e.sem!.research}</dd>
-                <dt>Literal</dt>
-                <dd>{e.sem!.literal}</dd>
-                <dt>Metaphorical</dt>
-                <dd>{e.sem!.metaphor}</dd>
-                {e.sem!.why && <dt>Why it differs</dt>}
-                {e.sem!.why && <dd>{e.sem!.why}</dd>}
-              </dl>
+              <p class="theme-t">{t}</p>
             </div>
           ))
         }
       </div>
     </section>
 
-    <section id="exchange">
-      <h2>Principled &amp; safe AI: exploration</h2>
-      <p class="intro">Concept retained: adaptive attacker/defender self-play. Execution rethought: no wall, no projectiles, no base dot; the defender actively answers or transforms.</p>
-      <div class="row two">
-        {
-          exchange.map(({ e, badge }) => (
-            <div class:list={['d2', { rejected: !!badge }]}>
-              {badge && <p class="flag">{badge}</p>}
-              <ReviewCard e={e} compact />
-              <dl class="sem">
-                <dt>Intended reading</dt>
-                <dd>{e.sem!.reading}</dd>
-                <dt>Research connection</dt>
-                <dd>{e.sem!.research}</dd>
-                <dt>Literal</dt>
-                <dd>{e.sem!.literal}</dd>
-                <dt>Metaphorical</dt>
-                <dd>{e.sem!.metaphor}</dd>
-                {e.sem!.why && <dt>Why it differs</dt>}
-                {e.sem!.why && <dd>{e.sem!.why}</dd>}
-              </dl>
+    <section id="safe-research">
+      <h2>Safe AI: design research</h2>
+      <ul class="plain">
+        <li><b>Key message first.</b> “Ten simple rules for designing graphical abstracts” (Jambor &amp; Bornhäuser, PLOS Comput Biol 2024): without a clear central message a clear graphic is impossible; use a reading direction, sparse colour, and check what viewers see at first glance. <a href="https://journals.plos.org/ploscompbiol/article?id=10.1371%2Fjournal.pcbi.1011789">source</a></li>
+        <li><b>One thing at a time.</b> Heer &amp; Robertson (InfoVis 2007): multiple simultaneous changes raise cognitive load; stage complex transitions so one action happens at a time, with slow-in/slow-out. <a href="https://idl.cs.washington.edu/files/2007-AnimatedTransitions-InfoVis.pdf">source</a> Tversky et al. (2002): congruence and apprehension; animations are often too complex or too fast to be perceived. <a href="https://hci.stanford.edu/courses/cs448b/papers/Tversky_AnimationFacilitate_IJHCS02.pdf">source</a> People track about four objects at once (Pylyshyn &amp; Storm 1988). <a href="https://pubmed.ncbi.nlm.nih.gov/3153671">source</a></li>
+        <li><b>Salience and simplicity.</b> Nature Methods “Points of View”: use salience to direct reading; simplify to clarify; negative space. <a href="http://blogs.nature.com/methagora/2013/07/data-visualization-points-of-view.html">index</a></li>
+        <li><b>How labs describe red teaming.</b> Generate attack → target responds → judge/reward → update, iterated; plain RL attackers collapse to near-identical attacks (Beutel et al., OpenAI 2024). <a href="https://arxiv.org/abs/2412.18693">source</a> · Perez et al. 2022. <a href="https://arxiv.org/abs/2202.03286">source</a></li>
+        <li>
+          <b>The paper.</b> When attacker and defender share one model, “gradient updates for the attacker shift the defender’s decision boundaries, resulting in self-consistency”: the model learns to avoid the prompts it already defends against, so attacks stop exerting pressure. Anchored Bipolicy Self-Play freezes the base and trains separate attacker and defender adapters, “restoring adversarial pressure”. <a href="https://arxiv.org/html/2605.08427">source</a>
+        </li>
+        <li><b>Key message for the scene:</b> <i>one shared model training against itself goes slack; separate roles on a fixed shared base keep the pressure on.</i></li>
+      </ul>
+    </section>
+
+    <section id="storyboards">
+      <h2>Safe AI: storyboards (static, at card size)</h2>
+      <p class="intro">Four frames each, drawn at the real card size (270 × 169). No motion yet: approve the causal story first. Concept E (coupled vs independent trajectories) was dropped at the research stage: it is too close to the rejected strategy-space study and needs its text to be understood.</p>
+      {
+        STORYBOARDS.map((b) => (
+          <div class="board">
+            <h3>{b.title}</h3>
+            <div class="frames4" data-stills>
+              {b.frames.map((cap, i) => (
+                <figure data-still={`sb-${b.key}`} data-at={i * 1000}>
+                  <canvas aria-label={`${b.title}, frame ${i + 1}`} role="img" />
+                  <figcaption>
+                    <b>{i + 1}</b> {cap}
+                  </figcaption>
+                </figure>
+              ))}
             </div>
-          ))
-        }
-      </div>
+          </div>
+        ))
+      }
     </section>
 
     <section id="mock">
       <h2>What I work on (mock, real card size)</h2>
-      <p class="intro">The current picks (Gather, Share A, Adapt A1, and Exchange A provisionally) in the real section with its real text. No text over the animations.</p>
+      <p class="intro">Gather, Share A and Adapt A1 in the real section with its real text. The safe-AI card is a placeholder until a storyboard is chosen.</p>
       <div class="mock-work">
         <p class="mock-eyebrow"><span>02</span> Research</p>
         <p class="mock-h">What I work on</p>
@@ -139,7 +125,7 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
           {
             themes.map((t, i) => (
               <li>
-                <ReviewCard e={t.e} compact />
+                {t.id ? <ReviewCard e={by(t.id)} compact /> : <div class="placeholder"><span>safe-AI scene under design</span></div>}
                 <p class="mock-n">{String(i + 1).padStart(2, '0')}</p>
                 <h3>{t.title}</h3>
                 <p class="mock-areas">{t.areas.join(' · ')}</p>
@@ -149,72 +135,48 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
           }
         </ol>
       </div>
-      <h3>Phone width (343 px cards)</h3>
-      <div class="phone">
-        {
-          themes.map((t) => (
-            <div>
-              <ReviewCard e={t.e} compact />
-              <p class="tile-t">{t.title}</p>
-            </div>
-          ))
-        }
-      </div>
+    </section>
+
+    <section id="frozen">
+      <h2>Frozen-scene regression sheet</h2>
+      <p class="intro">Every approved scene rendered deterministically (fixed seed, size and time). <code>npm run visual-check</code> compares these against the committed references and writes a reference | current | difference contact sheet.</p>
+      <iframe class="frozen-frame" src="/design-review/frozen/" title="Frozen-scene fixtures" loading="lazy"></iframe>
+    </section>
+
+    <section id="rejected-exchange" class="secondary">
+      <details>
+        <summary><h2>Rejected Exchange experiments</h2></summary>
+        <p class="flag">Rejected because the visual metaphor required too much explanation and did not communicate the research mechanism clearly at card size.</p>
+        <div class="row two">{rejectedExchange.map((e) => <ReviewCard e={e} compact />)}</div>
+      </details>
     </section>
 
     <section id="alternatives" class="secondary">
       <details>
         <summary><h2>Alternatives, not selected</h2></summary>
-        <div class="row two">
+        <div class="row two">{alternatives.map((e) => <ReviewCard e={e} compact />)}</div>
+      </details>
+    </section>
+
+    <section id="context" class="secondary">
+      <details>
+        <summary><h2>Context: elemental identity, original scenes, rejected flow-only experiment</h2></summary>
+        <h3>Elemental identity (hero)</h3>
+        <div class="row five">{elements.map((e) => <ReviewCard e={e} compact />)}</div>
+        <h3>Original research scenes</h3>
+        <div class="row four">
           {
-            alternatives.map((e) => (
-              <div class="d2">
-                <ReviewCard e={e} compact />
-                <p class="note">{e.sem!.reading}</p>
+            original.map((o) => (
+              <div class="tile">
+                <ReviewCard e={o.e} compact />
+                <p>{o.t}</p>
               </div>
             ))
           }
         </div>
+        <h3>Flow-only experiment (rejected: semantic distinctions too weak)</h3>
+        <div class="row four">{flowOnly.map((e) => <ReviewCard e={e} compact />)}</div>
       </details>
-    </section>
-
-    <section id="elements">
-      <h2>Elemental identity (hero)</h2>
-      <p class="intro">The hero family (production scenes, unchanged).</p>
-      <div class="row five">{elements.map((e) => <ReviewCard e={e} compact />)}</div>
-    </section>
-
-    <section id="original">
-      <h2>Original research scenes</h2>
-      <p class="intro">Today’s hero rotation; the semantic foundation of the D2 studies.</p>
-      <div class="row four">
-        {
-          original.map((o) => (
-            <div class="tile">
-              <ReviewCard e={o.e} compact />
-              <p>{o.t}</p>
-            </div>
-          ))
-        }
-      </div>
-    </section>
-
-    <section id="rejected" class="rejected">
-      <h2>Earlier flow-only experiment (rejected)</h2>
-      <p class="flag">Rejected because semantic distinctions became too weak: all four read as variations of the Air scene.</p>
-      <div class="row four">{flowOnly.map((e) => <ReviewCard e={e} compact />)}</div>
-    </section>
-
-    <section id="motion">
-      <h2>Motion &amp; accessibility (applies whichever option wins)</h2>
-      <ul class="plain">
-        <li>
-          <b>WCAG 2.2.2 (Pause, Stop, Hide):</b> motion that starts automatically, lasts more than five seconds and runs alongside other content needs a way to pause, stop or hide it. The hero scenes move
-          continuously today, and so would these illustrations: both need either a small pause control or motion that settles within five seconds.
-        </li>
-        <li><b>Reduced motion:</b> show a single representative still of each illustration (no animation code), as the hero already does.</li>
-        <li><b>In context:</b> illustrations in “What I work on” should animate only while on screen, and more quietly than the hero.</li>
-      </ul>
     </section>
   </div>
 </Base>
@@ -264,6 +226,56 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
   }
   .arch .row.five {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .arch .row.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .arch .board {
+    display: grid;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+  }
+  .arch .frames4 {
+    display: grid;
+    grid-template-columns: repeat(4, 270px);
+    gap: var(--space-3);
+    overflow-x: auto;
+  }
+  .arch .frames4 canvas {
+    width: 270px;
+    height: 169px;
+    border-radius: var(--radius);
+    background: #06070a;
+  }
+  .arch .frames4 figcaption {
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    margin-top: 0.3rem;
+  }
+  .arch .frames4 figcaption b {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    margin-right: 0.3em;
+  }
+  .arch .placeholder {
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-lg);
+    background: #06070a;
+    border: 1px dashed var(--line);
+    display: grid;
+    place-items: center;
+  }
+  .arch .placeholder span {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    color: var(--ink-3, var(--ink-2));
+  }
+  .arch .frozen-frame {
+    width: 100%;
+    height: 1400px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--bg);
   }
   .arch .row.two {
     grid-template-columns: repeat(2, minmax(0, 1fr));

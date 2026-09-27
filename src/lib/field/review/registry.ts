@@ -14,6 +14,8 @@ import { createShare } from '../scenes/share';
 import { createGather } from '../scenes/gather';
 import { UNIFIED } from './unified-protos';
 import { D2 } from './d2-protos';
+import { d2ShareAv1, d2ShareAv2 } from './d2-share-history';
+import { STORYBOARDS } from './exchange-storyboards';
 import type { Proto, ProtoFactory } from './common';
 import { FIRE_PROTOS } from './fire-protos';
 import { FIRE_STUDIES } from './fire-studies';
@@ -64,7 +66,7 @@ const fromResearch =
     };
   };
 
-export type Group = 'family' | 'wind' | 'research' | 'unified' | 'd2' | 'fire-old' | 'conv-old' | 'earth-old';
+export type Group = 'family' | 'wind' | 'research' | 'unified' | 'd2' | 'story' | 'fire-old' | 'conv-old' | 'earth-old';
 
 export interface Entry {
   id: string;
@@ -103,6 +105,9 @@ export const ENTRIES: Entry[] = [
   { id: 'r-exchange', group: 'research', label: 'Exchange', title: 'Principled & safe AI', note: 'Two mirrored groups exchange messages; some are stopped at the boundary.', make: fromResearch(createExchange) },
   ...UNIFIED.map((u) => ({ id: `u-${u.key}`, group: 'unified' as const, label: u.title, title: 'in the flow language', note: u.note, make: u.make })),
   ...D2.map((d) => ({ id: `d2-${d.key}`, group: 'd2' as const, label: 'D2', title: d.title, note: d.reading, make: d.make, sem: { reading: d.reading, research: d.research, literal: d.literal, metaphor: d.metaphor, why: (d as { why?: string }).why } })),
+  { id: 'share-v1', group: 'd2', label: 'Share A', title: 'Earlier approved (170ffa7)', note: 'The version whose concept was approved.', make: d2ShareAv1 },
+  { id: 'share-v2', group: 'd2', label: 'Share A', title: 'Regressed (e4a29aa)', note: 'The card-scale rewrite that broke the bundles.', make: d2ShareAv2 },
+  ...STORYBOARDS.map((b) => ({ id: `sb-${b.key}`, group: 'story' as const, label: 'Storyboard', title: b.title, note: b.frames.join(' → '), make: b.make })),
   { id: 'conv-current', group: 'wind', label: 'Current wind', title: 'Dramatic Lake as reviewed', note: 'The study you selected, unchanged: independent, faint sky lines; smoke and mist not tied to them.', make: LAKE_STUDIES[1].make },
   { id: 'conv-refined', group: 'wind', label: 'Refined wind', title: 'Dramatic Lake, production', note: 'One wind field for everything (see Convergence above). A few long currents, not a sky full of lines.', make: fromScene(createConvergence) },
   ...FIRE_PROTOS.map((p) => ({ id: `fire-${p.key}`, group: 'fire-old' as const, label: `Fire ${p.key}`, title: p.title, note: p.note, make: p.make })),

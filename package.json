@@ -16,6 +16,7 @@
     "dev:stop": "astro dev stop",
     "check": "node scripts/validate-publications.mjs",
     "validate-pubs": "node scripts/validate-publications.mjs",
+    "visual-check": "astro build && node scripts/visual-check.mjs",
     "add-pub": "node scripts/add-publication.mjs",
     "update-pub": "node scripts/update-publication.mjs",
     "test": "node scripts/test-schema.mjs && node scripts/test-cli.mjs && node scripts/validate-publications.mjs"
@@ -24,5 +25,8 @@
     "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.3.5",
     "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
   }
 }

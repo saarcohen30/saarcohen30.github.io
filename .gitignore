@@ -3,3 +3,8 @@ dist/
 .astro/
 .DS_Store
 *.log
+
+# Visual regression check: fresh renders and the report (references are committed)
+tests/visual/current/
+tests/visual/report.html
+tests/visual/contact-sheet.png

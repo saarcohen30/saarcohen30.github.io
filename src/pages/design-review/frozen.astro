@@ -1,0 +1,80 @@
+---
+// Frozen-scene fixtures for the visual regression check (npm run visual-check). Review only:
+// noindex, not in the sitemap. Every approved scene rendered deterministically.
+import Base from '../../layouts/Base.astro';
+import Mark from '../../components/Mark.astro';
+
+const hero = ['water', 'air', 'earth', 'fire', 'convergence'];
+const cards = ['d2-gather', 'd2-share-a', 'd2-adapt-a1'];
+const fixtures = [
+  ...hero.map((id) => ({ key: `${id}-desktop`, id, w: 720, h: 450, mode: 'settled', mobile: 0 })),
+  ...hero.map((id) => ({ key: `${id}-mobile`, id, w: 390, h: 300, mode: 'settled', mobile: 1 })),
+  ...cards.map((id) => ({ key: `${id}-review`, id, w: 584, h: 366, mode: '4500', mobile: 0 })),
+  ...cards.map((id) => ({ key: `${id}-card`, id, w: 270, h: 169, mode: '4500', mobile: 0 })),
+  ...cards.map((id) => ({ key: `${id}-phone`, id, w: 343, h: 214, mode: '4500', mobile: 0 })),
+];
+---
+
+<Base title="Frozen scenes" description="Deterministic fixtures for the visual regression check." noindex>
+  <div class="wrap frozen">
+    <h1>Frozen scenes: deterministic fixtures</h1>
+    <p>Rendered with a fixed seed, size and time. Compared against references by <code>npm run visual-check</code>.</p>
+    <div class="grid">
+      {
+        fixtures.map((f) => (
+          <figure>
+            <canvas data-fixture={f.key} data-entry={f.id} data-w={f.w} data-h={f.h} data-mode={f.mode} data-mobile={f.mobile} />
+            <figcaption>{f.key}</figcaption>
+          </figure>
+        ))
+      }
+      {
+        [
+          ['mark-light', '#f4f2ec', '#14161b'],
+          ['mark-dark', '#06070a', '#eeebe4'],
+        ].map(([key, bg, fg]) => (
+          <figure>
+            <div class="mark" data-fixture={key} style={`background:${bg};color:${fg}`}>
+              <Mark size={64} />
+              <Mark size={32} />
+              <Mark size={16} />
+            </div>
+            <figcaption>{key}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+  </div>
+</Base>
+
+<script>
+  import '../../scripts/frozen-snapshots';
+</script>
+
+<style>
+  .frozen {
+    padding-block: var(--space-6);
+    display: grid;
+    gap: var(--space-4);
+  }
+  .grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  figcaption {
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .mark {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    padding: 16px;
+    width: 160px;
+  }
+  .mark :global(svg) {
+    display: block;
+  }
+</style>
