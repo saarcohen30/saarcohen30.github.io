@@ -261,24 +261,32 @@ const hStronger: Frame = (c) => mirrorSustained(c);
 export const STORYBOARDS = [
   {
     key: 'hybrid',
+    best: "the paper's complete causal story",
+    risk: "may be too much causal structure for a small card",
     title: 'H · Mirror, separation, rounds (D + G)',
     frames: ['Coupled: one shared body; the roles have become mirror images; the pressure line has gone slack; the challenge curls back', 'Separation: a quiet anchor beneath; two distinct roles on their own stems; pressure returns', 'A round: challenge, then the defender answers', 'Both updated differently (ghosts show before); a stronger challenge; pressure sustained'],
     make: board([hCoupled, hSeparate, hRound, hStronger]),
   },
   {
     key: 'mirror',
+    best: "coupling collapse versus role separation",
+    risk: "may under-emphasise the repeated self-play loop",
     title: 'D · Mirror → separation',
     frames: ['Coupled roles on one shared body, with a live challenge and taut pressure', 'Coupled updates make them mirror images; pressure slackens; the challenge curls back', 'Separation onto a quiet anchor; distinct roles; pressure returns', 'Separate updates; a strong challenge; pressure sustained'],
     make: board([mirrorCoupled, mirrorCollapse, mirrorSeparate, mirrorSustained]),
   },
   {
     key: 'core',
+    best: "the frozen shared base plus independent role adaptation",
+    risk: "may feel architectural rather than dynamic",
     title: 'F · Shared core, independent adaptations',
     frames: ['A quiet shared base with two distinct roles', 'An interaction between the roles; the base does not change', 'Each role adapts its own way (ghosts show before); the base is unchanged', 'The next interaction, between the new shapes'],
     make: board([coreRest, coreInteract, coreAdapt, coreNext]),
   },
   {
     key: 'rounds',
+    best: "iterative attacker/defender self-play",
+    risk: "may look like generic red teaming rather than this paper's distinctive contribution",
     title: 'G · Adversarial rounds',
     frames: ['Challenge: the attacker sends one probe', 'Response: the defender lights and answers', 'Outcome (defended) and both update (ghosts show before)', 'A stronger challenge in the next round'],
     make: board([gChallenge, gResponse, gUpdate, gStronger]),

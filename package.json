@@ -17,6 +17,7 @@
     "check": "node scripts/validate-publications.mjs",
     "validate-pubs": "node scripts/validate-publications.mjs",
     "visual-check": "astro build && node scripts/visual-check.mjs",
+    "verify-share": "node scripts/verify-share.mjs",
     "add-pub": "node scripts/add-publication.mjs",
     "update-pub": "node scripts/update-publication.mjs",
     "test": "node scripts/test-schema.mjs && node scripts/test-cli.mjs && node scripts/validate-publications.mjs"

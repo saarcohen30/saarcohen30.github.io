@@ -18,13 +18,13 @@ const original = [
 const flowOnly = ['u-gather', 'u-share', 'u-adapt', 'u-exchange'].map(by);
 const selected = [
   { e: by('d2-gather'), badge: 'FROZEN', t: 'Coalitions & collective decisions' },
-  { e: by('d2-share-a'), badge: 'SELECTED · repaired, awaiting your visual approval', t: 'Fair allocation over time' },
+  { e: by('d2-share-a'), badge: 'SELECTED / FROZEN · exact 170ffa7', t: 'Fair allocation over time' },
   { e: by('d2-adapt-a1'), badge: 'SELECTED / FROZEN', t: 'Learning in multi-agent systems' },
 ];
 const shareCompare = [
-  { e: by('share-v1'), t: 'Earlier approved (170ffa7)' },
-  { e: by('share-v2'), t: 'Regressed (e4a29aa)' },
-  { e: by('d2-share-a'), t: 'Repaired (this pass)' },
+  { e: by('share-v1'), badge: 'SELECTED / FROZEN', t: 'Share A — Original approved (170ffa7)' },
+  { e: by('share-v2'), badge: 'REJECTED REGRESSION', t: 'Share A — e4a29aa' },
+  { e: by('share-mound'), badge: 'REJECTED ALTERNATIVE REPAIR', t: 'Share A — mound repair' },
 ];
 const rejectedExchange = ['d2-exchange', 'd2-exchange-a', 'd2-exchange-b', 'd2-exchange-c'].map(by);
 const alternatives = [by('d2-share-b'), by('d2-adapt-b')];
@@ -66,11 +66,12 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
 
     <section id="share-regression">
       <h2>Share regression comparison</h2>
-      <p class="intro">Same mechanism in all three. The regressed version drew each unit of value as a large circle (sized from the canvas height), scattered them over a tall area and tinted them towards the active item’s warm colour. The repair aggregates value into a compact mound (size encodes value; small grains at constant density), keeps bundles muted, and leaves the active item as the only bright warm object.</p>
+      <p class="intro">The selected scene is the exact Share A from commit 170ffa7 (verified pixel-identical by <code>npm run verify-share</code>). The other two are kept only for comparison.</p>
       <div class="row three">
         {
-          shareCompare.map(({ e, t }) => (
-            <div class="d2">
+          shareCompare.map(({ e, t, badge }) => (
+            <div class:list={['d2', { rejected: badge.startsWith('REJECTED') }]}>
+              <p class={badge.startsWith('REJECTED') ? 'flag' : 'badge'}>{badge}</p>
               <ReviewCard e={e} compact />
               <p class="theme-t">{t}</p>
             </div>
@@ -100,6 +101,7 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
         STORYBOARDS.map((b) => (
           <div class="board">
             <h3>{b.title}</h3>
+            <p class="bestrisk"><b>Best at communicating:</b> {b.best} · <b>Main risk:</b> {b.risk}</p>
             <div class="frames4" data-stills>
               {b.frames.map((cap, i) => (
                 <figure data-still={`sb-${b.key}`} data-at={i * 1000}>
@@ -256,6 +258,10 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
     color: var(--accent);
     font-family: var(--font-mono);
     margin-right: 0.3em;
+  }
+  .arch .bestrisk {
+    font-size: var(--step--1);
+    color: var(--ink-2);
   }
   .arch .placeholder {
     aspect-ratio: 16 / 10;
