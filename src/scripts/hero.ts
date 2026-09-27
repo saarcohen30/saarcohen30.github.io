@@ -1,7 +1,9 @@
-// Renderer for the hero's scene family. Loaded only on the home page, and only when motion is
-// allowed. The scene (chosen in <head>, see index.astro) is lazy-loaded; everything else —
-// skipping, pausing off-screen, pointer interaction, resizing — is shared by all scenes.
+// Renderer for the hero's scene family (the elemental scenes). Loaded only on the home page. The
+// scene (chosen in <head>: pick.mjs) is lazy-loaded; everything else (skipping, pausing when
+// off-screen or on request, pointer interaction, resizing) is shared by all scenes.
+// Reduced motion: the chosen scene is drawn once, settled; no loop, no pointer response.
 import { SCENES } from '../lib/field/scenes';
+import { motionPaused, onMotionChange, showMotionControls } from './motion';
 import { canvasPainter } from '../lib/field/canvas';
 import { PALETTE, type Scene, type SceneFactory, type Rect } from '../lib/field/core';
 
@@ -16,7 +18,7 @@ if (hero && canvas) {
     .load()
     .then((factory) => start(hero, canvas, factory))
     .catch(() => {
-      // Never let the animation block the page: keep the still and finish the intro.
+      // Never let the animation block the page: finish the intro.
       root.classList.remove('intro');
       root.classList.add('no-field');
     });
@@ -38,6 +40,7 @@ function start(hero: HTMLElement, canvas: HTMLCanvasElement, factory: SceneFacto
   let nextChurn = 0;
   const pointer = { x: -1e4, y: -1e4, active: false };
   const finePointer = matchMedia('(pointer: fine)').matches;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function build(fromIntro: boolean) {
     const rect = hero.getBoundingClientRect();
@@ -109,7 +112,8 @@ function start(hero: HTMLElement, canvas: HTMLCanvasElement, factory: SceneFacto
     schedule();
   }
   function schedule() {
-    if (!raf && visible && !document.hidden) raf = requestAnimationFrame(frame);
+    if (reduce) return;
+    if (!raf && visible && !document.hidden && !motionPaused()) raf = requestAnimationFrame(frame);
   }
 
   function endIntro() {
@@ -143,10 +147,24 @@ function start(hero: HTMLElement, canvas: HTMLCanvasElement, factory: SceneFacto
   }
 
   build(intro);
-  // Elemental scenes draw their own material; the dot lattice belongs to the research scenes.
-  hero.classList.toggle('elemental', !!scene.render);
+  // Motion paused on this device: no entrance.
+  if (intro && motionPaused()) skip();
   draw();
   canvas.classList.add('ready');
+  if (!reduce) {
+    showMotionControls();
+    onMotionChange((p) => {
+      last = 0;
+      if (p) {
+        // Stop at once (including a frame already requested), settled.
+        cancelAnimationFrame(raf);
+        raf = 0;
+        skip();
+        draw();
+      }
+      schedule();
+    });
+  }
   schedule();
 
   new IntersectionObserver(([e]) => {
@@ -159,7 +177,7 @@ function start(hero: HTMLElement, canvas: HTMLCanvasElement, factory: SceneFacto
     schedule();
   });
 
-  if (finePointer) {
+  if (finePointer && !reduce) {
     hero.addEventListener('pointermove', (e) => {
       const r = hero.getBoundingClientRect();
       pointer.x = e.clientX - r.left;

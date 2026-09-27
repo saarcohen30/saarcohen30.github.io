@@ -15,6 +15,7 @@ import { createGather } from '../scenes/gather';
 import { UNIFIED } from './unified-protos';
 import { D2 } from './d2-protos';
 import { d2ShareA } from './d2-protos';
+import { d2Rounds } from '../research/rounds';
 import { d2ShareAv2, d2ShareAMound } from './d2-share-history';
 import { STORYBOARDS } from './exchange-storyboards';
 import type { Proto, ProtoFactory } from './common';
@@ -109,6 +110,7 @@ export const ENTRIES: Entry[] = [
   { id: 'share-v1', group: 'd2', label: 'Share A', title: 'Original approved (170ffa7)', note: 'The selected scene: the canonical d2ShareA, which is the exact 170ffa7 code.', make: d2ShareA },
   { id: 'share-v2', group: 'd2', label: 'Share A', title: 'e4a29aa (rejected regression)', note: 'The card-scale rewrite that broke the bundles.', make: d2ShareAv2 },
   { id: 'share-mound', group: 'd2', label: 'Share A', title: 'Mound repair (rejected alternative)', note: 'The 76d45ab repair; not the approved scene.', make: d2ShareAMound },
+  { id: 'safe-rounds', group: 'd2', label: 'Rounds', title: 'Adversarial Rounds (production)', note: 'Storyboard G in motion, deliberately general: a challenger probes, a responder answers, a difficult round gets through at the edge of its cover, and both adapt so the next round differs.', make: d2Rounds },
   ...STORYBOARDS.map((b) => ({ id: `sb-${b.key}`, group: 'story' as const, label: 'Storyboard', title: b.title, note: b.frames.join(' → '), make: b.make })),
   { id: 'conv-current', group: 'wind', label: 'Current wind', title: 'Dramatic Lake as reviewed', note: 'The study you selected, unchanged: independent, faint sky lines; smoke and mist not tied to them.', make: LAKE_STUDIES[1].make },
   { id: 'conv-refined', group: 'wind', label: 'Refined wind', title: 'Dramatic Lake, production', note: 'One wind field for everything (see Convergence above). A few long currents, not a sky full of lines.', make: fromScene(createConvergence) },

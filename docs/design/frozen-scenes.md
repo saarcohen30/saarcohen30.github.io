@@ -24,18 +24,21 @@ First time on a new machine: `npx playwright install chromium`.
 | Earth (Dune Field) | `src/lib/field/elements/earth.ts`, `dune-layer.ts` | `earth-desktop`, `earth-mobile` | Approved, frozen |
 | Fire (Converging Bursts) | `src/lib/field/elements/fire.ts`, `bursts.ts`, `flame-engine.ts` | `fire-desktop`, `fire-mobile` | Approved, frozen |
 | Convergence (Dramatic Lake) | `src/lib/field/elements/convergence.ts`, `lake.ts` | `convergence-desktop`, `convergence-mobile` | Approved, frozen |
-| Gather (coalitions) | `d2Gather` in `src/lib/field/review/d2-protos.ts` (`LEGACY_SCALE`) | `d2-gather-review` 584×366, `-card` 270×169, `-phone` 343×214 (t = 4.5 s) | Approved direction, frozen |
-| Adapt A1 (learning) | `d2AdaptA1` in `src/lib/field/review/d2-protos.ts` (`CARD_SCALE`, 12 s pre-learned) | `d2-adapt-a1-review`, `-card`, `-phone` (t = 4.5 s) | Selected, frozen |
-| Share A (allocation) | `d2ShareA` in `src/lib/field/review/d2-protos.ts`: the exact code of commit 170ffa7 (default `LEGACY_SCALE`, as at 170ffa7) | `d2-share-a-review`, `-card`, `-phone` (t = 4.5 s) | Selected, frozen. `npm run verify-share` proves it is pixel-identical to 170ffa7. |
+| Gather (coalitions) | `d2Gather` in `src/lib/field/research/gather.ts` (`LEGACY_SCALE`) | `d2-gather-review` 584×366, `-card` 270×169, `-phone` 343×214 (t = 4.5 s) | Approved direction, frozen |
+| Adapt A1 (learning) | `d2AdaptA1` in `src/lib/field/research/adapt.ts` (`CARD_SCALE`, 12 s pre-learned) | `d2-adapt-a1-review`, `-card`, `-phone` (t = 4.5 s) | Selected, frozen |
+| Share A (allocation) | `d2ShareA` in `src/lib/field/research/share.ts`: the exact code of commit 170ffa7 (moved verbatim out of `d2-protos.ts`, which re-exports it) (default `LEGACY_SCALE`, as at 170ffa7) | `d2-share-a-review`, `-card`, `-phone` (t = 4.5 s) | Selected, frozen. `npm run verify-share` proves it is pixel-identical to 170ffa7. |
+| Adversarial Rounds (safe AI, storyboard G) | `d2Rounds` in `src/lib/field/research/rounds.ts` (`ROUNDS_SCALE`, its own) | `safe-rounds-review`, `-card`, `-phone` (t = 6.6 s, the reduced-motion still) | Selected; frozen after card-size QA |
 | Counter-Rotating Currents mark | `src/components/Mark.astro`, `public/favicon.svg`, `public/favicon.ico`, app icons | `mark-light`, `mark-dark` (64, 32, 16 px) | Approved, frozen |
 
 Rules:
 
-- Scene scale is per scene (`LEGACY_SCALE`, `CARD_SCALE` in `d2-protos.ts`, or local sizes). Do not
+- Scene scale is per scene (`LEGACY_SCALE`, `CARD_SCALE` in `src/lib/field/research/kit.ts`, `ROUNDS_SCALE`, or local sizes). Do not
   change a shared primitive (scale, `scene()`, `agent`, `halo`, `hair`, the elemental kit) without
   running the visual check and confirming every frozen fixture is unchanged.
 - Hero scenes and research-card scenes have different size needs; keep their scales separate.
 - Share A's rejected versions (the e4a29aa regression and the mound repair) are review-only history in
   `d2-share-history.ts`; never point the selected scene at them.
+- The production research scenes live in `src/lib/field/research/` (the home page loads only these);
+  `src/lib/field/review/d2-protos.ts` re-exports them for the review pages.
 - Rejected and exploratory studies live in `src/lib/field/review/` and may change freely, but they must
   not share mutable state or scale with frozen scenes.

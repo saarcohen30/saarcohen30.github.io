@@ -1,41 +1,25 @@
 # Publications: Quick Start
 
-Open Terminal, then go to the website folder:
-
 ```sh
 cd ~/Documents/saarcohen30.github.io-master
-```
 
-## Add a new paper
+# Add a new arXiv paper
+npm run add-pub -- <ARXIV-ID>
 
-```sh
-npm run add-pub -- 2609.29691
-```
-
-Use the paper's arXiv id (or its DOI, e.g. `npm run add-pub -- 10.24963/ijcai.2025/422`). No id yet? Just run
-`npm run add-pub`.
-
-## Update an existing paper
-
-```sh
+# Update an existing paper (search by title words; no id needed)
 npm run update-pub
-```
 
-Type a few words from the title, pick the paper, pick what to change.
-
-## Check publication data
-
-```sh
+# Validate
 npm run validate-pubs
-```
 
-## See the site on your computer
-
-```sh
+# Run the site locally (open the address it prints; Ctrl+C to stop)
 npm run dev
 ```
 
-Open the address it prints (normally http://localhost:4321). Press **Ctrl+C** to stop.
+**That's all you normally need.** Forgot? Run `npm run pubs` to print this list.
+
+A DOI works instead of an arXiv id (`npm run add-pub -- 10.24963/ijcai.2025/422`), and `npm run add-pub` with
+nothing after it lets you type everything yourself.
 
 ## Put it online
 
@@ -45,7 +29,7 @@ git commit -m "Update publications"
 git push
 ```
 
-**That's all you normally need.** Both tools ask plain-English questions, show you exactly what will change,
+Both tools ask plain-English questions, show you exactly what will change,
 and write nothing until you say yes. If anything would be wrong, they refuse and leave your data as it was.
 
 ---

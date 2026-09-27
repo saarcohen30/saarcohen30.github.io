@@ -5,7 +5,8 @@ import Hero from '../components/Hero.astro';
 import PubItem from '../components/pubs/PubItem.astro';
 import Icon from '../components/Icon.astro';
 import portrait from '../assets/portrait.jpg';
-import { ROTATION_IDS, PREVIEW_IDS } from '../lib/field/scenes/meta';
+import { HERO_IDS } from '../lib/field/scenes/meta';
+import { pickHeroScene, heroHead } from '../lib/field/scenes/pick.mjs';
 import { profile, publications, themes, pubsForTheme, inlineMd, SITE_URL, type Publication } from '../lib/site';
 
 const accepted = publications.filter((p) => p.isAccepted);
@@ -64,6 +65,9 @@ const venueNames = [...new Set(reviewing.flatMap((r) => r.venues.split(/,\s*/).m
 const distinguished = reviewing.flatMap((r) => r.venues.split(/,\s*/).filter((v) => /distinguished/i.test(v)).map((v) => v.replace(/\s*\(.*\)$/, '')));
 const reviewYears = reviewing.map((r) => r.year);
 
+// Hero scene choice, before first paint: the tested functions from pick.mjs, inlined verbatim.
+const heroHeadScript = `${pickHeroScene.toString()}\n${heroHead.toString()}\nheroHead(${JSON.stringify(HERO_IDS)}, ${12 * 3600e3});`;
+
 const facts = [
   { label: 'Now', value: `${profile.role}, ${profile.affiliation}`, detail: `Hosted by ${profile.host.name}` },
   ...profile.education.map((e: { period: string; title: string; org: string }) => ({ label: e.period, value: `${e.title}, ${e.org}` })),
@@ -71,47 +75,7 @@ const facts = [
 ---
 
 <Base description={description} stageHeader jsonLd={jsonLd} ogType="profile">
-  <script is:inline slot="head" define:vars={{ previewIds: PREVIEW_IDS, rotationCount: ROTATION_IDS.length, replayMs: 12 * 3600e3 }}>
-    // Before first paint: pick the hero scene and decide whether this visit gets the entrance.
-    //
-    // Normal visits: a visit eligible for the full entrance (first visit, or 12 h since the
-    // last one) advances to the next scene and plays it; other visits show the current scene
-    // settled. Stored: localStorage "scene" (index shown last) and "intro-seen" (timestamp).
-    //
-    // Preview URLs (for reviewing scenes, including experimental ones; never touch localStorage):
-    //   /?scene=share            that scene, settled
-    //   /?scene=share&intro=1    that scene, with the entrance
-    // Reduced motion always wins: no entrance, static still.
-    var d = document.documentElement;
-    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var q = new URLSearchParams(location.search);
-    // Indices follow PREVIEW_IDS; the first rotationCount entries are the rotation scenes.
-    var forced = previewIds.indexOf((q.get('scene') || '').toLowerCase());
-    var scene = 0;
-    if (forced >= 0) {
-      scene = forced;
-      if (q.get('intro') === '1' && !reduce) d.classList.add('intro');
-    } else {
-      try {
-        var raw = localStorage.getItem('scene');
-        var last = raw === null ? -1 : +raw;
-        var seen = +localStorage.getItem('intro-seen') || 0;
-        scene = last >= 0 && last < rotationCount ? last : 0;
-        if (Date.now() - seen > replayMs) {
-          scene = ((last >= 0 && last < rotationCount ? last : -1) + 1) % rotationCount;
-          if (!reduce) {
-            d.classList.add('intro');
-            localStorage.setItem('intro-seen', String(Date.now()));
-            localStorage.setItem('scene', String(scene));
-          }
-        }
-      } catch (e) {
-        // Storage unavailable: first scene, with the entrance (it is short and skippable).
-        if (!reduce) d.classList.add('intro');
-      }
-    }
-    d.dataset.scene = String(scene);
-  </script>
+  <script is:inline slot="head" set:html={heroHeadScript} />
 
   <Hero />
 
@@ -157,6 +121,9 @@ const facts = [
       <header class="section-head">
         <p class="eyebrow"><span class="n">02</span> Research</p>
         <h2 id="research-h">What I work on</h2>
+        <button class="motion-toggle mono" type="button" data-motion-toggle hidden aria-pressed="false">
+          <span class="mt-label">Pause animations</span>
+        </button>
       </header>
       <ol class="themes" role="list">
         {
@@ -164,6 +131,9 @@ const facts = [
             const { count, picks } = cardExamples[i];
             return (
               <li class="theme">
+                <div class="theme-art" aria-hidden="true">
+                  <canvas data-research={t.id} />
+                </div>
                 <p class="theme-n mono" aria-hidden="true">
                   {String(i + 1).padStart(2, '0')}
                 </p>
@@ -278,6 +248,9 @@ const facts = [
       </h2>
     </div>
   </section>
+<script>
+  import '../scripts/research';
+</script>
 </Base>
 
 <style>
@@ -399,7 +372,7 @@ const facts = [
   @supports (grid-template-rows: subgrid) {
     .theme {
       display: grid;
-      grid-row: span 5;
+      grid-row: span 6;
       grid-template-rows: subgrid;
       row-gap: var(--space-3);
       align-content: start;
@@ -407,6 +380,36 @@ const facts = [
     .theme-papers {
       margin-top: 0 !important;
     }
+  }
+  /* Research illustration: a dark panel (the scenes are drawn for the dark stage in both themes). */
+  .motion-toggle {
+    justify-self: start;
+    font-size: var(--step--2);
+    color: var(--ink-3);
+    background: none;
+    border: 0;
+    padding: 0.4rem 0;
+    min-height: 32px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: var(--line);
+    text-underline-offset: 0.25em;
+  }
+  .motion-toggle:hover,
+  .motion-toggle:focus-visible {
+    color: var(--ink);
+  }
+  .theme-art {
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: #06070a;
+    margin-bottom: var(--space-1);
+  }
+  .theme-art canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
   .theme-n {
     font-size: var(--step--2);

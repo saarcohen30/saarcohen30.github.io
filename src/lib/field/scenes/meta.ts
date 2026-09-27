@@ -1,9 +1,8 @@
-// Scene names. Deliberately import-free: the page <head> script and the build read this,
+// Hero scene names. Deliberately import-free: the page <head> script and the build read this,
 // while only the client registry (./index.ts) holds the lazy loaders.
 //
-// ROTATION_IDS: what normal visitors rotate through (first visit sees the first one, which is
-// also the static still). EXPERIMENTAL_IDS: previewable with ?scene=<name> only, never rotated.
-export const ROTATION_IDS = ['adapt', 'exchange', 'share', 'gather'] as const;
-export const EXPERIMENTAL_IDS = ['water', 'earth', 'fire', 'air', 'convergence'] as const;
-export const PREVIEW_IDS = [...ROTATION_IDS, ...EXPERIMENTAL_IDS] as const;
-export type SceneId = (typeof PREVIEW_IDS)[number];
+// HERO_IDS: the elemental family. Every fresh load of the home page picks one of them uniformly at
+// random (see ./pick.mjs); ?scene=<name> forces one (for review), ?scene=<name>&intro=1 with its
+// entrance. The research illustrations live in "What I work on" (../research/), not in the hero.
+export const HERO_IDS = ['water', 'air', 'earth', 'fire', 'convergence'] as const;
+export type SceneId = (typeof HERO_IDS)[number];

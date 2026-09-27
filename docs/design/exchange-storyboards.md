@@ -2,6 +2,10 @@
 
 Static storyboards for review before any motion is built (see `/design-review/scene-architecture/#storyboards`).
 
+**Decision (2026-09-27): G · Adversarial rounds is selected**, built deliberately generically (not the
+paper's mechanism: no frozen base, adapters or self-consistency) as `src/lib/field/research/rounds.ts`.
+H, D and F are kept for review only.
+
 ## Key message (defined first)
 
 **One shared model training against itself goes slack; separate roles on a fixed shared base keep the pressure on.**

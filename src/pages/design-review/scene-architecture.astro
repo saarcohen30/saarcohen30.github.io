@@ -1,6 +1,7 @@
 ---
 // Hidden review: which visual system should the home page use? (noindex, not in the sitemap)
-// Nothing here changes the live site; the normal rotation stays Adapt, Exchange, Share, Gather.
+// Nothing here changes the live site. Live: the five elements in the hero (random on every load) and
+// the four research scenes below in "What I work on".
 import Base from '../../layouts/Base.astro';
 import ReviewCard from '../../components/review/ReviewCard.astro';
 import { ENTRIES } from '../../lib/field/review/registry';
@@ -20,6 +21,7 @@ const selected = [
   { e: by('d2-gather'), badge: 'FROZEN', t: 'Coalitions & collective decisions' },
   { e: by('d2-share-a'), badge: 'SELECTED / FROZEN · exact 170ffa7', t: 'Fair allocation over time' },
   { e: by('d2-adapt-a1'), badge: 'SELECTED / FROZEN', t: 'Learning in multi-agent systems' },
+  { e: by('safe-rounds'), badge: 'SELECTED / FROZEN · storyboard G', t: 'Principled & safe AI' },
 ];
 const shareCompare = [
   { e: by('share-v1'), badge: 'SELECTED / FROZEN', t: 'Share A — Original approved (170ffa7)' },
@@ -28,7 +30,7 @@ const shareCompare = [
 ];
 const rejectedExchange = ['d2-exchange', 'd2-exchange-a', 'd2-exchange-b', 'd2-exchange-c'].map(by);
 const alternatives = [by('d2-share-b'), by('d2-adapt-b')];
-const mockIds = ['d2-gather', 'd2-share-a', 'd2-adapt-a1', ''];
+const mockIds = ['d2-gather', 'd2-share-a', 'd2-adapt-a1', 'safe-rounds'];
 const themes = (profile.themes as { title: string; areas: string[]; summary: string }[]).map((t, i) => ({ ...t, id: mockIds[i] }));
 ---
 
@@ -37,7 +39,7 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
     <p class="eyebrow">Design review · not linked from the site</p>
     <h1>Scene architecture</h1>
     <div class="rec">
-      <p><b>Working architecture (B + D2):</b> elements are the hero identity; research-specific scenes explain the research in “What I work on”; one shared art direction connects them. Nothing is activated yet.</p>
+      <p><b>Working architecture (B + D2):</b> elements are the hero identity; research-specific scenes explain the research in “What I work on”; one shared art direction connects them. Live on the home page: Gather, Share A, Adapt A1 and Adversarial Rounds.</p>
     </div>
     <nav class="toc" aria-label="Sections">
       <a href="#selected">Selected / frozen</a>
@@ -51,7 +53,7 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
 
     <section id="selected">
       <h2>Selected / frozen</h2>
-      <div class="row three">
+      <div class="row four">
         {
           selected.map(({ e, badge, t }) => (
             <div class="d2">
@@ -96,11 +98,13 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
 
     <section id="storyboards">
       <h2>Safe AI: storyboards (static, at card size)</h2>
-      <p class="intro">Four frames each, drawn at the real card size (270 × 169). No motion yet: approve the causal story first. Concept E (coupled vs independent trajectories) was dropped at the research stage: it is too close to the rejected strategy-space study and needs its text to be understood.</p>
+      <p class="intro">Four frames each, drawn at the real card size (270 × 169). <b>G · Adversarial rounds is selected</b> (built generically, not paper-specific: see the Selected row); H, D and F are kept for review only. Concept E (coupled vs independent trajectories) was dropped at the research stage: it is too close to the rejected strategy-space study and needs its text to be understood.</p>
       {
         STORYBOARDS.map((b) => (
           <div class="board">
-            <h3>{b.title}</h3>
+            <h3>
+              {b.title} {b.key === 'rounds' ? <span class="badge inline">SELECTED</span> : <span class="flag inline">NOT SELECTED</span>}
+            </h3>
             <p class="bestrisk"><b>Best at communicating:</b> {b.best} · <b>Main risk:</b> {b.risk}</p>
             <div class="frames4" data-stills>
               {b.frames.map((cap, i) => (
@@ -119,7 +123,7 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
 
     <section id="mock">
       <h2>What I work on (mock, real card size)</h2>
-      <p class="intro">Gather, Share A and Adapt A1 in the real section with its real text. The safe-AI card is a placeholder until a storyboard is chosen.</p>
+      <p class="intro">The four production scenes in the real section with its real text, at real card size.</p>
       <div class="mock-work">
         <p class="mock-eyebrow"><span>02</span> Research</p>
         <p class="mock-h">What I work on</p>
@@ -322,6 +326,13 @@ const themes = (profile.themes as { title: string; areas: string[]; summary: str
   .arch .flag {
     color: #d9895a;
     font-size: var(--step--1);
+  }
+  .arch .inline {
+    display: inline;
+    margin-left: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
   }
   .arch .sem {
     display: grid;

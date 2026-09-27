@@ -2,23 +2,9 @@
 import Icon from './Icon.astro';
 import SocialLinks from './SocialLinks.astro';
 import { profile } from '../lib/site';
-import { createAdapt } from '../lib/field/scenes/adapt';
-import { svgPainter } from '../lib/field/svg';
-
-// Build-time still of a settled scene: shown without JavaScript and to visitors who prefer
-// reduced motion (no canvas and no animation code is loaded for them). The learning network
-// is the most general image of the family: many agents, emergent groups, information exchange.
-const SW = 1600;
-const SH = 1000;
-const still = createAdapt({ width: SW, height: SH, field: { x0: 900, x1: 1480, y0: 170, y1: 800 }, density: 80, layout: 'side', seed: 30 });
-still.finish();
-const svg = svgPainter();
-still.draw(svg.painter, -1);
 ---
 
 <section class="hero stage" data-stage-root aria-labelledby="hero-name">
-  <div class="lattice" aria-hidden="true"></div>
-  <svg class="still" viewBox={`0 0 ${SW} ${SH}`} preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false" set:html={svg.toString()} />
   <canvas data-field aria-hidden="true"></canvas>
 
   <div class="inner wrap" data-hero-text>
@@ -48,14 +34,18 @@ still.draw(svg.painter, -1);
   </div>
 
   <button class="skip mono" type="button" data-skip hidden>Skip intro <span aria-hidden="true">→</span></button>
+  <button class="pause" type="button" data-motion-toggle hidden aria-pressed="false" aria-label="Pause animations">
+    <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9M11 3.5v9" /></svg>
+    <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.5 12 8l-6.5 4.5z" /></svg>
+  </button>
   <a class="cue mono" href="#about" aria-label="Scroll to About">
     <span class="cue-line" aria-hidden="true"><span></span></span>
   </a>
 </section>
 
 <script>
-  // Only load the animated field if motion is welcome; otherwise the static SVG stays.
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) import('../scripts/hero');
+  // The hero scene (chosen in <head>). With reduced motion it is drawn once, settled.
+  import('../scripts/hero');
 </script>
 
 <style>
@@ -73,19 +63,6 @@ still.draw(svg.painter, -1);
     color: var(--stage-ink);
     color-scheme: dark;
   }
-  .lattice {
-    position: absolute;
-    inset: 0;
-    z-index: -3;
-    background-image: radial-gradient(circle at 1px 1px, rgba(238, 235, 228, 0.09) 1px, transparent 1.3px);
-    background-size: 28px 28px;
-    mask-image: radial-gradient(ellipse 65% 70% at 70% 45%, #000 10%, transparent 75%);
-  }
-  :global(.elemental) .lattice {
-    opacity: 0;
-    transition: opacity 600ms ease;
-  }
-  .still,
   canvas {
     position: absolute;
     inset: 0;
@@ -101,13 +78,6 @@ still.draw(svg.painter, -1);
   :global(.js) .hero canvas:global(.ready) {
     opacity: 1;
   }
-  /* When the canvas runs, it replaces the still. */
-  @media (prefers-reduced-motion: no-preference) {
-    :global(.js) .still {
-      display: none;
-    }
-  }
-
   .inner {
     position: relative;
     display: grid;
@@ -194,12 +164,6 @@ still.draw(svg.painter, -1);
         radial-gradient(ellipse 90% 45% at 50% 25%, rgba(80, 100, 170, 0.16), transparent 70%),
         var(--stage-bg);
     }
-    .lattice {
-      mask-image: radial-gradient(ellipse 90% 45% at 50% 28%, #000 10%, transparent 75%);
-    }
-    .still {
-      opacity: 0.55;
-    }
     /* Reserve the upper part of the stage for the field. */
     .inner {
       padding-top: clamp(12rem, 36svh, 20rem);
@@ -227,6 +191,53 @@ still.draw(svg.painter, -1);
     border-color: var(--stage-ink-2);
   }
 
+  /* Pause / play all animations (WCAG 2.2.2). Quiet until hovered or focused. */
+  .pause {
+    position: absolute;
+    right: var(--gutter);
+    bottom: 1rem;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    background: none;
+    color: var(--stage-ink-3);
+    opacity: 0.55;
+    cursor: pointer;
+    transition:
+      opacity var(--dur-1),
+      border-color var(--dur-1),
+      color var(--dur-1);
+  }
+  .pause[hidden] {
+    display: none;
+  }
+  .pause:hover,
+  .pause:focus-visible {
+    opacity: 1;
+    color: var(--stage-ink);
+    border-color: var(--stage-line);
+  }
+  .pause svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .pause .i-play {
+    display: none;
+  }
+  .pause[aria-pressed='true'] .i-pause {
+    display: none;
+  }
+  .pause[aria-pressed='true'] .i-play {
+    display: block;
+  }
   .cue {
     position: absolute;
     left: 50%;

@@ -12,6 +12,10 @@ const fixtures = [
   ...cards.map((id) => ({ key: `${id}-review`, id, w: 584, h: 366, mode: '4500', mobile: 0 })),
   ...cards.map((id) => ({ key: `${id}-card`, id, w: 270, h: 169, mode: '4500', mobile: 0 })),
   ...cards.map((id) => ({ key: `${id}-phone`, id, w: 343, h: 214, mode: '4500', mobile: 0 })),
+  // Adversarial Rounds at its reduced-motion still (a difficult round, t = 6.6 s).
+  { key: 'safe-rounds-review', id: 'safe-rounds', w: 584, h: 366, mode: '6600', mobile: 0 },
+  { key: 'safe-rounds-card', id: 'safe-rounds', w: 270, h: 169, mode: '6600', mobile: 0 },
+  { key: 'safe-rounds-phone', id: 'safe-rounds', w: 343, h: 214, mode: '6600', mobile: 0 },
 ];
 ---
 
