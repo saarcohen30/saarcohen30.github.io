@@ -9,10 +9,8 @@ export { TYPE_META, STATUS_META, LINK_META, PRESENTATION_META, citationText, bib
 
 export const profile = parse(profileText);
 export const topicIds = Object.keys(profile.topics);
-for (const t of profile.themes)
-  for (const topic of t.topics)
-    if (!topicIds.includes(topic)) throw new Error(`profile.yaml: theme "${t.id}" uses unknown topic "${topic}"`);
-export const publications = loadPublications(pubsText, { topics: topicIds });
+export const themeIds = profile.themes.map((t: { id: string }) => t.id);
+export const publications = loadPublications(pubsText, { topics: topicIds, themes: themeIds });
 export type Publication = (typeof publications)[number];
 
 export const SITE_URL = 'https://saarcohen30.github.io';
@@ -29,12 +27,16 @@ export function inlineMd(text: string): string {
 /** True for the site owner, so their name can be highlighted in author lists. */
 export const isMe = (name: string) => name === profile.name;
 
-export type Theme = { id: string; title: string; areas: string[]; topics: string[]; summary: string };
+export type Theme = { id: string; title: string; areas: string[]; summary: string };
 export const themes: Theme[] = profile.themes;
 
-/** Papers in a research theme (shares one of its topics): accepted work first, newest first. */
+/**
+ * Papers in a research theme: exactly those whose publications.yaml entry lists the theme under
+ * `themes:` (set with npm run add-pub / update-pub; never inferred from topics or keywords).
+ * Accepted work first.
+ */
 export const pubsForTheme = (theme: Theme) => {
-  const on = publications.filter((p) => p.topics.some((t) => theme.topics.includes(t)));
+  const on = publications.filter((p) => p.themes.includes(theme.id));
   return [...on.filter((p) => p.isAccepted), ...on.filter((p) => !p.isAccepted)];
 };
 

@@ -16,6 +16,8 @@ export const FILE = process.env.PUBS_FILE ? new URL(`file://${process.env.PUBS_F
 export const profile = parse(readFileSync(new URL('src/data/profile.yaml', ROOT), 'utf8'));
 export const topicIds = Object.keys(profile.topics);
 export const themes = profile.themes;
+export const themeIds = themes.map((t) => t.id);
+const themeTitle = (id) => themes.find((t) => t.id === id)?.title ?? id;
 
 // ------------------------------------------------------------------ terminal
 export const c = {
@@ -175,6 +177,7 @@ export function serialize(rec, comments = {}) {
     for (const k of VENUE_ORDER) if (rec.venue[k] !== undefined && rec.venue[k] !== '') L.push(`    ${k}: ${scalar(rec.venue[k])}`);
   }
   if (rec.featured) put('featured', 'true');
+  if (rec.themes?.length) put('themes', `[${rec.themes.join(', ')}]`);
   if (rec.topics?.length) put('topics', `[${rec.topics.join(', ')}]`);
   const links = LINK_ORDER.filter((k) => rec.links?.[k]);
   if (links.length) {
@@ -252,7 +255,7 @@ export const appendRecord = (text, rec) => `${text.trimEnd()}\n\n${serialize(rec
 
 /** Validate, write atomically, re-validate; on any failure the previous file is restored. */
 export function safeWrite(next) {
-  const validate = (t) => loadPublications(t, { topics: topicIds });
+  const validate = (t) => loadPublications(t, { topics: topicIds, themes: themeIds });
   try {
     validate(next);
   } catch (e) {
@@ -330,7 +333,8 @@ export function changes(before, after) {
   add('Authors', before.authors?.join(', '), after.authors?.join(', '));
   add('Note', before.note, after.note);
   add('Abstract', before.abstract ? 'present' : '', after.abstract ? (after.abstract === before.abstract ? 'present' : 'new text') : '');
-  add('Research themes', before.topics?.join(', '), after.topics?.join(', '));
+  add('Research themes (What I work on)', before.id ? (before.themes ?? []).map(themeTitle).join('; ') || 'none' : '', (after.themes ?? []).map(themeTitle).join('; ') || 'none');
+  add('Topics (related papers)', before.topics?.join(', '), after.topics?.join(', '));
   add('Featured on home page', before.featured ? 'yes' : 'no', after.featured ? 'yes' : 'no');
   return rows;
 }
@@ -350,6 +354,7 @@ export function describe(rec) {
     rec.venue && ['Venue', `${rec.venue.name}${rec.venue.acronym ? ` · ${rec.venue.acronym}` : ''}${rec.year ? ` ${rec.year}` : ''}`],
     rec.presentation && ['Presentation', presOf(rec)],
     ['Links', Object.entries(rec.links ?? {}).map(([k, v]) => `${LINK_LABELS[k] ?? k}: ${linkOf(v)}`).join('\n' + ' '.repeat(16)) || '(none)'],
+    ['Themes', rec.themes?.length ? rec.themes.map(themeTitle).join('; ') : 'none (not shown in "What I work on")'],
     rec.topics?.length && ['Topics', rec.topics.join(', ')],
     ['Abstract', rec.abstract ? `${rec.abstract.slice(0, 90)}…` : '(none)'],
     ['URL', `/publications/${rec.id}/`],
@@ -357,10 +362,38 @@ export function describe(rec) {
   return rows.map(([k, v]) => `  ${c.dim(k.padEnd(13))} ${v}`).join('\n');
 }
 
-/** Topic question: offer the research themes, store their first topic (valid vocabulary). */
+/** Parse "2", "1, 3" or "none" against a numbered list; null when the answer is not valid. */
+const pickNumbers = (answer, ids) => {
+  const a = answer.trim().toLowerCase();
+  if (!a || a === 'none' || a === '-' || a === '0') return [];
+  const parts = a.split(/[,\s]+/).filter(Boolean);
+  if (!parts.every((n) => /^\d+$/.test(n) && Number(n) >= 1 && Number(n) <= ids.length)) return null;
+  return [...new Set(parts.map((n) => ids[Number(n) - 1]))];
+};
+
+/**
+ * Home-page research themes ("What I work on"): an explicit choice, several or none. Nothing is
+ * pre-selected for a new paper; for an existing paper, Enter keeps its current themes.
+ */
+export async function askThemes(current = []) {
+  console.log(c.bold('\nWhich home-page research themes does this paper support?'));
+  console.log(c.dim('  It will be listed under those themes in "What I work on". Several are fine; so is none.'));
+  themes.forEach((t, i) => console.log(`  ${c.bold(String(i + 1))}) ${t.title}`));
+  const cur = current.map((id) => themeIds.indexOf(id) + 1).filter((n) => n > 0).join(', ');
+  for (;;) {
+    const got = pickNumbers(await ask('Themes (numbers such as 2 or 1, 3; "none" for none)', cur || 'none'), themeIds);
+    if (got) return got;
+    console.log(c.yellow(`  Please type numbers from 1 to ${themes.length} separated by commas, or "none".`));
+  }
+}
+
+/** Descriptive topics (optional): used only to suggest related papers on each paper's page. */
 export async function askTopics(current = []) {
-  console.log(c.dim(`Research themes: ${themes.map((t, i) => `${i + 1}) ${t.title}`).join('  ')}`));
-  const a = await ask('Themes (numbers, optional)', current.length ? current.join(', ') : '');
-  if (a && !/^[\d,\s]+$/.test(a)) return a.split(/[,\s]+/).filter((t) => topicIds.includes(t));
-  return [...new Set(a.split(/[,\s]+/).map((n) => themes[Number(n) - 1]?.topics[0]).filter(Boolean))];
+  console.log(c.dim(`Topics, for related papers (optional): ${topicIds.map((t, i) => `${i + 1}) ${profile.topics[t]}`).join('  ')}`));
+  const cur = current.map((t) => topicIds.indexOf(t) + 1).filter((n) => n > 0).join(', ');
+  for (;;) {
+    const got = pickNumbers(await ask('Topics (numbers, optional; "none" clears)', cur), topicIds);
+    if (got) return got;
+    console.log(c.yellow(`  Please type numbers from 1 to ${topicIds.length} separated by commas, or "none".`));
+  }
 }

@@ -22,12 +22,24 @@ const step = (name) => console.log(`  ✔ ${name}`);
 try {
   console.log('Publication tools (on a temporary copy)');
   // Add by hand as a working paper (no lookup).
-  run('add-publication.mjs', ['', 'A Test Paper on Flows', 'Saar Cohen, Jane Doe', '1', '2609.12345', '', '', 'https://github.com/x/y', '', 'n', '', 'n', 'cli-test-paper', 'y']);
+  // Themes: an invalid answer is asked again; then 2 = Fair allocation over time. Topics: none.
+  run('add-publication.mjs', ['', 'A Test Paper on Flows', 'Saar Cohen, Jane Doe', '1', '2609.12345', '', '', 'https://github.com/x/y', '', 'n', '7', '2', '', 'n', 'cli-test-paper', 'y']);
   let r = rec();
   assert.equal(r.type, 'working-paper');
   assert.equal(r.links.arxiv, '2609.12345');
   assert.equal(r.links.code, 'https://github.com/x/y');
-  step('add a working paper with an arXiv id and a GitHub link');
+  assert.deepEqual(r.themes, ['fair-allocation']);
+  assert.equal(r.topics, undefined);
+  step('add a working paper with an arXiv id, a GitHub link and an explicit research theme');
+
+  // Research themes of an existing paper: Other → Research themes (13, 2); several, then none.
+  run('update-publication.mjs', ['test paper flows', 'y', '13', '2', '1, 3', '14', 'y']);
+  assert.deepEqual(rec().themes, ['collective-decisions', 'multiagent-learning']);
+  run('update-publication.mjs', ['test paper flows', 'y', '13', '2', 'none', '14', 'y']);
+  assert.equal(rec().themes, undefined);
+  run('update-publication.mjs', ['test paper flows', 'y', '13', '2', '2', '14', 'y']);
+  assert.deepEqual(rec().themes, ['fair-allocation']);
+  step('update-pub edits research themes (several, none, one)');
 
   // Working paper → Under review (found by searching the title; no id needed).
   run('update-publication.mjs', ['test paper flows', 'y', '1', '2', '14', 'y']);

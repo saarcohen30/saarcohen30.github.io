@@ -11,6 +11,7 @@ try {
   const file = process.env.PUBS_FILE ? process.env.PUBS_FILE : new URL('src/data/publications.yaml', root);
   const pubs = loadPublications(readFileSync(file, 'utf8'), {
     topics: Object.keys(profile.topics),
+    themes: profile.themes.map((t) => t.id),
   });
   pubs.forEach(bibtex); // make sure every entry can produce BibTeX
   const types = typeCounts(pubs).map((t) => `${t.count} ${t.label.toLowerCase()}`).join(', ');

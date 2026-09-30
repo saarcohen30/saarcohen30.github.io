@@ -50,7 +50,9 @@ and write nothing until you say yes. If anything would be wrong, they refuse and
    "Unknown" is always fine.
 4. **Links**: arXiv, official publication page, DOI, GitHub, project page; then optionally PDF, OpenReview,
    slides, video, poster, supplementary material, dataset. Press **Enter** to skip any of them.
-5. Research themes, the abstract, whether to feature it on the home page, and its web address (suggested).
+5. Research themes: which of the four "What I work on" themes the paper supports (numbers such as `2` or `1, 3`,
+   or `none`; nothing is chosen for you). Then optional topics (for related papers), the abstract, whether to
+   feature it on the home page, and its web address (suggested).
 6. A summary, then **Save this paper?**
 
 ### Updating a paper (`npm run update-pub`)
@@ -177,7 +179,7 @@ presentation: oral   # AAAI-25 Main Track Oral Talks Schedule
 - to-appear/published without `year` and `venue.name`
 - `presentation` without a conference type, or before acceptance
 - a survey that is neither published (`[survey, journal]`) nor a working paper
-- malformed arXiv ids or DOIs, duplicate ids, duplicate aliases, unknown topics
+- malformed arXiv ids or DOIs, duplicate ids, duplicate aliases, unknown topics or research themes
 
 ## The lifecycle of a paper
 
@@ -234,7 +236,8 @@ Keep the same `id` throughout, so the paper's URL never changes.
 | `date` | no | `YYYY-MM` or `YYYY-MM-DD`. Orders papers within a year; for working papers, the date first posted. |
 | `venue.name` / `venue.acronym` | accepted work | Plus optional `volume`, `number`, `pages` (use an en dash: `159–175`), `publisher`, `series`. |
 | `note` | no | "Extended Abstract", "Doctoral Consortium", … |
-| `topics` | no | Ids from `topics:` in `src/data/profile.yaml`. They place the paper in research themes and drive "Related work" (rarer shared topics count for more). |
+| `themes` | no | Home-page research themes the paper supports: ids from `themes:` in `src/data/profile.yaml` (`collective-decisions`, `fair-allocation`, `multiagent-learning`, `safe-principled-ai`). Several or none; this alone decides where the paper appears in "What I work on". Set it with `add-pub` or `update-pub` (Other → Research themes). |
+| `topics` | no | Descriptive ids from `topics:` in `src/data/profile.yaml`. They drive "Related work" on paper pages (rarer shared topics count for more); they do not place the paper in a research theme. |
 | `featured` | no | `true` puts the paper on the home page. With none featured, the home page shows the newest public paper from each research theme. |
 | `abstract` | no | Shown in the "Abstract" drawer and on the paper page. |
 | `links` | no | `paper`, `pdf`, `arxiv` (bare id), `doi` (bare DOI), `openreview`, `code`, `project`, `data`, `slides`, `poster`, `video`, `supplement`. Any URL-valued link may be a list of `{ label, url }`. |

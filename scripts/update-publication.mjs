@@ -9,7 +9,7 @@
 // ("Status: Under Review → Accepted / To Appear") and confirm. Only that paper's lines change;
 // the file is checked before and after writing and restored automatically on failure.
 import { argv, exit } from 'node:process';
-import { c, rl, ask, yes, choose, readFile, records, replaceRecord, safeWrite, describe, askTopics, fromDoi, normaliseId, stageOf, changes, printChanges } from './lib/pubfile.mjs';
+import { c, rl, ask, yes, choose, readFile, records, replaceRecord, safeWrite, describe, askThemes, askTopics, fromDoi, normaliseId, stageOf, changes, printChanges } from './lib/pubfile.mjs';
 import { askAccepted, askPresentation, askLinks, askLink, STATUS_OPTIONS } from './add-publication.mjs';
 
 const line = (p) => `${p.title}${c.dim(` · ${p.venue?.acronym ? `${p.venue.acronym} ${p.year}` : stageOf(p)}`)}`;
@@ -124,7 +124,7 @@ async function main() {
       { label: 'Slides', value: 'slides' },
       { label: 'Video', value: 'video' },
       { label: 'Authors, title or year', value: 'title' },
-      { label: 'Other (abstract, research themes, featured, note, more links)', value: 'other' },
+      { label: 'Other (abstract, research themes, featured, note, more links, topics)', value: 'other' },
       { label: c.green('Review changes and save'), value: 'save' },
       { label: 'Quit without saving', value: 'quit' },
     ]);
@@ -156,17 +156,25 @@ async function main() {
     if (what === 'other') {
       const o = await choose('Which?', [
         { label: 'Abstract', value: 'abstract' },
-        { label: 'Research themes', value: 'topics' },
+        { label: 'Research themes (which "What I work on" themes it supports)', value: 'themes' },
         { label: 'Featured on the home page', value: 'featured' },
         { label: 'Note (e.g. "Extended Abstract")', value: 'note' },
         { label: 'All links (PDF, OpenReview, poster, supplement, dataset …)', value: 'links' },
+        { label: 'Topics (used for related papers)', value: 'topics' },
       ]);
       if (o === 'abstract') {
         const a = await ask('Paste the abstract on one line ("-" removes it)', '');
         if (a === '-') delete rec.abstract;
         else if (a) rec.abstract = a;
       }
-      if (o === 'topics') rec.topics = await askTopics(rec.topics ?? []);
+      if (o === 'themes') {
+        rec.themes = await askThemes(rec.themes ?? []);
+        if (!rec.themes.length) delete rec.themes;
+      }
+      if (o === 'topics') {
+        rec.topics = await askTopics(rec.topics ?? []);
+        if (!rec.topics.length) delete rec.topics;
+      }
       if (o === 'featured') {
         rec.featured = await yes('Feature it on the home page?', !!rec.featured);
         if (!rec.featured) delete rec.featured;

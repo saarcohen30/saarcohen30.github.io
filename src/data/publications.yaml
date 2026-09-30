@@ -28,6 +28,7 @@
   authors: [Nicholas Teh, Saar Cohen, Karen Frilya Celine, Benjamin Yu, Michael J. Wooldridge]
   type: working-paper
   date: 2026-08-31
+  themes: [fair-allocation]
   topics: [fair-division, online-algorithms, computational-social-choice, learning-augmented]
   links:
     arxiv: "2609.29691"
@@ -56,6 +57,7 @@
   authors: [Saar Cohen, Nicholas Teh, Michael Wooldridge]
   type: working-paper
   date: 2026-09-23
+  themes: [fair-allocation]
   topics: [fair-division, online-algorithms, computational-social-choice]
   links:
     arxiv: "2609.28333"
@@ -85,6 +87,7 @@
   authors: [Saar Cohen, Nicholas Teh, Paul W. Goldberg, Michael J. Wooldridge]
   type: working-paper
   date: 2026-07-25
+  themes: [fair-allocation]
   topics: [fair-division, online-algorithms, computational-social-choice, learning-augmented]
   links:
     arxiv: "2607.23310"
@@ -113,6 +116,7 @@
   title: Fairness and Efficiency in Online Coalition Formation with Partial Information
   authors: [Saar Cohen, Noa Agmon]
   status: under-revision
+  themes: [collective-decisions]
   topics: [coalition-formation, online-algorithms, computational-social-choice]
 
 - id: near-optimal-online-resource-allocation-random-order
@@ -120,6 +124,7 @@
   title: Near-Optimal Online Resource Allocation in the Random-Order Model
   authors: [Saar Cohen, Noa Agmon]
   status: under-review
+  themes: [fair-allocation]
   topics: [fair-division, online-algorithms, computational-social-choice]
   versions:
     - label: Extended abstract (AAMAS 2024)
@@ -129,12 +134,14 @@
   title: Egalitarian Welfare Maximization in Online Coalition Formation
   authors: [Saar Cohen, Noa Agmon]
   status: under-review
+  themes: [collective-decisions]
   topics: [coalition-formation, online-algorithms, computational-social-choice]
 
 - id: stability-accuracy-tradeoffs-decentralized-online-learning
   title: Stability-Accuracy Tradeoffs in Decentralized Online Learning of Coalition Structures by Selfish Agents
   authors: [Saar Cohen, Noa Agmon]
   status: under-review
+  themes: [collective-decisions, multiagent-learning]
   topics: [coalition-formation, multi-agent-learning, online-learning, game-theory]
 
 # ── 2026 ─────────────────────────────────────────────────────────────────────
@@ -150,6 +157,7 @@
   venue:
     name: Proceedings of the 40th Annual Conference on Neural Information Processing Systems
     acronym: NeurIPS
+  themes: [safe-principled-ai]
   topics: [ai-safety, large-language-models, game-theory, machine-learning]
   links:
     arxiv: "2605.08427"
@@ -186,6 +194,7 @@
   venue:
     name: Proceedings of the 25th International Conference on Autonomous Agents and Multiagent Systems
     acronym: AAMAS
+  themes: [collective-decisions, multiagent-learning]
   topics: [coalition-formation, multi-agent-learning, game-theory]
   links:
     pdf: https://ifaamas.org/Proceedings/aamas2026/pdfs/ZZZS1209.pdf
@@ -265,6 +274,7 @@
     volume: 300
     pages: 676–684
     series: Proceedings of Machine Learning Research
+  themes: [safe-principled-ai]
   topics: [graph-learning, machine-learning]
   links:
     paper: https://proceedings.mlr.press/v300/cohen26a.html
@@ -305,6 +315,7 @@
     name: Proceedings of the 28th European Conference on Artificial Intelligence
     acronym: ECAI
     series: Frontiers in Artificial Intelligence and Applications
+  themes: [collective-decisions, multiagent-learning]
   topics: [coalition-formation, multi-agent-learning, online-learning, computational-social-choice]
   links:
     paper: https://ebooks.iospress.nl/volumearticle/76341
@@ -335,6 +346,7 @@
     name: Proceedings of the 34th International Joint Conference on Artificial Intelligence
     acronym: IJCAI
     pages: 3796–3804
+  themes: [collective-decisions, multiagent-learning]
   topics: [coalition-formation, multi-agent-learning, online-learning, game-theory]
   links:
     paper: https://www.ijcai.org/proceedings/2025/422
@@ -367,6 +379,7 @@
     name: Proceedings of the 24th International Conference on Autonomous Agents and Multiagent Systems
     acronym: AAMAS
     pages: 2475–2477
+  themes: [collective-decisions]
   topics: [coalition-formation, online-algorithms, computational-social-choice]
   links:
     pdf: https://www.ifaamas.org/Proceedings/aamas2025/pdfs/p2475.pdf
@@ -399,6 +412,7 @@
     volume: 39
     number: 13
     pages: 13709–13717
+  themes: [collective-decisions, multiagent-learning]
   topics: [coalition-formation, multi-agent-learning, online-learning, game-theory]
   links:
     paper: https://ojs.aaai.org/index.php/AAAI/article/view/33498
@@ -434,6 +448,7 @@
     name: Proceedings of the 27th European Conference on Artificial Intelligence
     acronym: ECAI
     series: Frontiers in Artificial Intelligence and Applications
+  themes: [collective-decisions]
   topics: [coalition-formation, online-algorithms]
   links:
     paper: https://ebooks.iospress.nl/volumearticle/69977
@@ -461,6 +476,7 @@
     name: Proceedings of the 33rd International Joint Conference on Artificial Intelligence
     acronym: IJCAI
     pages: 2722–2730
+  themes: [collective-decisions, multiagent-learning]
   topics: [coalition-formation, multi-agent-learning, online-learning]
   links:
     paper: https://www.ijcai.org/proceedings/2024/301
@@ -492,6 +508,7 @@
     name: Proceedings of the 23rd International Conference on Autonomous Agents and Multiagent Systems
     acronym: AAMAS
     pages: 2219–2221
+  themes: [fair-allocation]
   topics: [fair-division, online-algorithms, computational-social-choice]
   links:
     pdf: https://ifmas.csc.liv.ac.uk/Proceedings/aamas2024/pdfs/p2219.pdf
@@ -526,6 +543,7 @@
     name: Proceedings of the 22nd International Conference on Autonomous Agents and Multiagent Systems
     acronym: AAMAS
     pages: 494–503
+  themes: [collective-decisions]
   topics: [coalition-formation, online-algorithms, multi-agent-systems]
   links:
     pdf: https://ifaamas.org/Proceedings/aamas2023/pdfs/p494.pdf
@@ -564,6 +582,7 @@
     name: Proceedings of the 22nd International Conference on Autonomous Agents and Multiagent Systems
     acronym: AAMAS
     pages: 2955–2957
+  themes: [collective-decisions]
   topics: [coalition-formation, online-algorithms]
   links:
     pdf: https://ifaamas.org/Proceedings/aamas2023/pdfs/p2955.pdf
@@ -597,6 +616,7 @@
     volume: 37
     number: 5
     pages: 5573–5581
+  themes: [collective-decisions]
   topics: [coalition-formation, game-theory]
   links:
     paper: https://ojs.aaai.org/index.php/AAAI/article/view/25692
@@ -630,6 +650,7 @@
     name: Proceedings of the 21st International Conference on Autonomous Agents and Multiagent Systems
     acronym: AAMAS
     pages: 290–299
+  themes: [multiagent-learning]
   topics: [multi-agent-learning, reinforcement-learning, graph-learning, multi-agent-systems]
   links:
     pdf: https://www.ifaamas.org/Proceedings/aamas2022/pdfs/p290.pdf
@@ -673,6 +694,7 @@
     name: Proceedings of the 30th International Joint Conference on Artificial Intelligence
     acronym: IJCAI
     pages: 2307–2313
+  themes: [multiagent-learning, safe-principled-ai]
   topics: [graph-learning, multi-robot-systems]
   links:
     paper: https://www.ijcai.org/proceedings/2021/318
@@ -759,6 +781,7 @@
     volume: 2
     pages: 159–175
     publisher: Springer
+  themes: [multiagent-learning]
   topics: [multi-robot-systems]
   links:
     paper: https://link.springer.com/article/10.1007/s43154-021-00049-2

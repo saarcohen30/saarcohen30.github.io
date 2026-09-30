@@ -25,31 +25,30 @@ bio:
   - "One strand of my work concerns how agents form coalitions and how goods and resources can be allocated fairly, often in these online settings. Another concerns learning: how agents can learn their preferences and stable outcomes from feedback, and how learning models such as graph neural networks can be given provable guarantees. Most recently, I have been working on the safety of large language models, studying self-play red teaming as a game between an attacker and a defender."
   - "I completed my Ph.D. at Bar-Ilan University with [Prof. Noa Agmon](https://u.cs.biu.ac.il/~agmon/), with a thesis on coalition formation in sequential decision-making under uncertainty."
 
-# Research themes on the home page. A paper belongs to a theme when it carries one of the
-# theme's `topics`. `areas` are the fields each theme draws on.
+# Research themes on the home page ("What I work on"). A paper appears under a theme only when its
+# entry in publications.yaml lists the theme id under `themes:` (set it with npm run add-pub or
+# npm run update-pub). Membership is never inferred from topics or title words, and a paper may
+# support several themes or none. `areas` are the fields each theme draws on.
 themes:
   - id: collective-decisions
     title: Coalitions & collective decisions
     areas: [Game theory, Computational social choice]
-    topics: [coalition-formation]
     summary: How self-interested agents group together, and which guarantees of stability, welfare and fairness survive when groups form online, one arrival at a time.
   - id: fair-allocation
     title: Fair allocation over time
     areas: [Computational social choice, Online algorithms]
-    topics: [fair-division, clustering]
     summary: Dividing goods, houses and resources that arrive sequentially and must be assigned irrevocably or with limited recourse, and how far subsidies, resource augmentation or predictions can restore fairness.
   - id: multiagent-learning
     title: Learning in multi-agent systems
     areas: [Online learning, Reinforcement learning, Multi-agent systems]
-    topics: [multi-agent-learning, multi-robot-systems]
     summary: Agents that learn their preferences and strategies from feedback, from online and offline learning of stable partitions to coordination in multi-agent reinforcement learning and robot swarms.
   - id: safe-principled-ai
     title: Principled & safe AI
     areas: [Machine learning, Large language models, AI safety]
-    topics: [graph-learning, ai-safety]
     summary: Learning architectures with provable guarantees, such as convexified graph neural networks, and game-theoretic approaches to the safety of large language models.
 
-# Controlled vocabulary for `topics:` in publications.yaml (used for themes and related work).
+# Controlled vocabulary for `topics:` in publications.yaml: descriptive, used for related papers.
+# Separate from the home-page themes above.
 topics:
   coalition-formation: Coalition formation
   fair-division: Fair division

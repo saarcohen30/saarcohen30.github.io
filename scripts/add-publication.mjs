@@ -9,7 +9,7 @@
 // writing and restored automatically if anything goes wrong.
 import { argv, exit } from 'node:process';
 import { pathToFileURL } from 'node:url';
-import { c, rl, ask, yes, choose, fromDoi, fromArxiv, guessAcronym, normaliseId, isDoi, readFile, records, appendRecord, safeWrite, describe, askTopics, LINK_LABELS } from './lib/pubfile.mjs';
+import { c, rl, ask, yes, choose, fromDoi, fromArxiv, guessAcronym, normaliseId, isDoi, readFile, records, appendRecord, safeWrite, describe, askThemes, askTopics, LINK_LABELS } from './lib/pubfile.mjs';
 
 const slugify = (title) =>
   title
@@ -152,6 +152,8 @@ async function main() {
     console.log(c.yellow('A working paper must be public: add its arXiv id (or a PDF link).'));
     await askLink(rec, 'arxiv', pre);
   }
+  rec.themes = await askThemes();
+  if (!rec.themes.length) delete rec.themes;
   rec.topics = await askTopics();
   if (!rec.topics.length) delete rec.topics;
   if (pre.abstract && (await yes('Use the abstract from the lookup?', true))) rec.abstract = pre.abstract;

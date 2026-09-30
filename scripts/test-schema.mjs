@@ -57,4 +57,11 @@ assert.throws(
   /used by another publication/,
 );
 console.log('  ✔ rejects duplicate aliases');
+const THEMES = ['collective-decisions', 'fair-allocation'];
+const wp = { ...base, type: 'working-paper', links: { arxiv: '2609.28333' } };
+assert.deepEqual(loadPublications(stringify([{ ...wp, themes: ['fair-allocation'] }]), { themes: THEMES })[0].themes, ['fair-allocation']);
+assert.deepEqual(loadPublications(stringify([wp]), { themes: THEMES })[0].themes, []);
+console.log('  ✔ accepts explicit research themes, or none');
+assert.throws(() => loadPublications(stringify([{ ...wp, themes: ['clustering'] }]), { themes: THEMES }), /unknown research theme "clustering"/);
+console.log('  ✔ rejects an unknown research theme (a topic is not a theme)');
 console.log('\nAll schema tests passed.');

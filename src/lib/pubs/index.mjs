@@ -22,9 +22,9 @@ export class PublicationDataError extends Error {
 
 /**
  * @param {string} text   raw YAML
- * @param {{ topics?: string[] }} [opts]  known topic ids (from profile.yaml)
+ * @param {{ topics?: string[], themes?: string[] }} [opts]  known topic and theme ids (from profile.yaml)
  */
-export function loadPublications(text, { topics = null } = {}) {
+export function loadPublications(text, { topics = null, themes = null } = {}) {
   let raw;
   try {
     const doc = parseDocument(text);
@@ -66,6 +66,11 @@ export function loadPublications(text, { topics = null } = {}) {
       for (const t of p.topics)
         if (!topics.includes(t)) problems.push(`"${p.id}" → topics: unknown topic "${t}" (known: ${topics.join(', ')})`);
     }
+    if (themes) {
+      for (const t of p.themes)
+        if (!themes.includes(t)) problems.push(`"${p.id}" → themes: unknown research theme "${t}" (known: ${themes.join(', ')})`);
+    }
+    if (new Set(p.themes).size !== p.themes.length) problems.push(`"${p.id}" → themes: listed twice`);
   }
   if (problems.length) throw new PublicationDataError(problems);
 
