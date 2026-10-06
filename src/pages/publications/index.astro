@@ -3,14 +3,16 @@ import Base from '../../layouts/Base.astro';
 import PubItem from '../../components/pubs/PubItem.astro';
 import TypeBadge from '../../components/pubs/TypeBadge.astro';
 import Icon from '../../components/Icon.astro';
-import { profile, publications, groupByYear, yearsOf, typeCounts, SITE_URL } from '../../lib/site';
+import { profile, publications, groupByYear, yearsOf, filterYearsOf, typeCounts, SITE_URL } from '../../lib/site';
 
 const working = publications.filter((p) => p.isWorkingPaper);
 const review = publications.filter((p) => p.isUnderReview);
 const accepted = publications.filter((p) => p.isAccepted);
 const years = groupByYear(publications);
 const types = typeCounts(publications);
-const yearList = yearsOf(publications);
+const yearList = yearsOf(publications); // published and accepted years (for the summary text)
+// The year filter covers every paper that has a year: published, accepted, or posted (working papers).
+const filterYears = filterYearsOf(publications);
 const publishedCount = accepted.length;
 const toAppear = accepted.filter((p) => p.status === 'to-appear').length;
 const scholar = profile.links.find((l: { kind: string }) => l.kind === 'scholar');
@@ -80,7 +82,7 @@ const jsonLd = {
           <legend class="eyebrow">Year</legend>
           <div class="chips years" data-facet="year">
             {
-              yearList.map((y) => (
+              filterYears.map((y) => (
                 <button type="button" class="fchip year" aria-pressed="false" data-value={y}>
                   <span class="mono">{y}</span>
                   <span class="count mono" data-count />

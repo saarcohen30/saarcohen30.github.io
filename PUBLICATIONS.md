@@ -39,6 +39,7 @@ and write nothing until you say yes. If anything would be wrong, they refuse and
 ### Adding a paper (`npm run add-pub -- <arXiv id or DOI>`)
 
 1. It looks the paper up and shows the title and authors. **Is this correct?** Enter means yes.
+   Then: **Do any authors have equal contribution?** If yes, it numbers the authors; type e.g. `1, 2, 3`.
 2. **What is the paper's current status?**
    - **Working Paper**: public on arXiv, *not* submitted anywhere and *not* under review.
    - **Under Review**: submitted, waiting for a decision.
@@ -230,7 +231,8 @@ Keep the same `id` throughout, so the paper's URL never changes.
 |---|---|---|
 | `id` | yes | lower-kebab-case, unique; it is the paper's URL. Never change it; if you must, add the old path to `aliases`. |
 | `title` | yes | One line. Put "(Extended Abstract)" etc. in `note`, not in the title. |
-| `authors` | yes | Your name is highlighted automatically. Append `*` for equal contribution: `"Saar Cohen*"`. |
+| `authors` | yes | Plain names, in the paper's order. Your name is highlighted automatically. Never add `*` to a name. |
+| `authorNotes` | no | Structured authorship notes, e.g. equal contribution: `- { type: equal-contribution, authors: [Emanuele La Malfa, Saar Cohen] }`. Names must match `authors` exactly; at least two; one group per type. Shown as a superscript `*` on those names with the note "These authors contributed equally to this work." (never in BibTeX or citation metadata). Set it with `add-pub`, or `update-pub` (Other → Equal contribution). |
 | `type`, `status`, `presentation` | see above | |
 | `year` | accepted work | |
 | `date` | no | `YYYY-MM` or `YYYY-MM-DD`. Orders papers within a year; for working papers, the date first posted. |

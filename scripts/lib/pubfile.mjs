@@ -164,6 +164,10 @@ export function serialize(rec, comments = {}) {
   put('title', scalar(rec.title));
   if (rec.note) put('note', scalar(rec.note));
   put('authors', `[${rec.authors.map(item).join(', ')}]`);
+  if (rec.authorNotes?.length) {
+    L.push('  authorNotes:');
+    for (const n of rec.authorNotes) L.push(`    - { type: ${n.type}, authors: [${n.authors.map(item).join(', ')}] }`);
+  }
   if (rec.type) put('type', Array.isArray(rec.type) ? `[${rec.type.join(', ')}]` : rec.type);
   if (rec.status && rec.status !== 'published') put('status', rec.status);
   if (rec.presentation) {
@@ -331,6 +335,7 @@ export function changes(before, after) {
   for (const k of Object.keys(LINK_LABELS)) add(LINK_LABELS[k], before.links?.[k] && linkOf(before.links[k]), after.links?.[k] && linkOf(after.links[k]));
   add('Title', before.title, after.title);
   add('Authors', before.authors?.join(', '), after.authors?.join(', '));
+  add('Equal contribution', equalOf(before).join(', '), equalOf(after).join(', '));
   add('Note', before.note, after.note);
   add('Abstract', before.abstract ? 'present' : '', after.abstract ? (after.abstract === before.abstract ? 'present' : 'new text') : '');
   add('Research themes (What I work on)', before.id ? (before.themes ?? []).map(themeTitle).join('; ') || 'none' : '', (after.themes ?? []).map(themeTitle).join('; ') || 'none');
@@ -350,16 +355,41 @@ export function describe(rec) {
   const rows = [
     ['Title', rec.title + (rec.note ? ` (${rec.note})` : '')],
     ['Authors', rec.authors.join(', ')],
+    equalOf(rec).length && ['Equal contribution', equalOf(rec).join('\n' + ' '.repeat(21))],
     ['Stage', stage],
     rec.venue && ['Venue', `${rec.venue.name}${rec.venue.acronym ? ` · ${rec.venue.acronym}` : ''}${rec.year ? ` ${rec.year}` : ''}`],
     rec.presentation && ['Presentation', presOf(rec)],
-    ['Links', Object.entries(rec.links ?? {}).map(([k, v]) => `${LINK_LABELS[k] ?? k}: ${linkOf(v)}`).join('\n' + ' '.repeat(16)) || '(none)'],
+    ['Links', Object.entries(rec.links ?? {}).map(([k, v]) => `${LINK_LABELS[k] ?? k}: ${linkOf(v)}`).join('\n' + ' '.repeat(21)) || '(none)'],
     ['Themes', rec.themes?.length ? rec.themes.map(themeTitle).join('; ') : 'none (not shown in "What I work on")'],
     rec.topics?.length && ['Topics', rec.topics.join(', ')],
     ['Abstract', rec.abstract ? `${rec.abstract.slice(0, 90)}…` : '(none)'],
     ['URL', `/publications/${rec.id}/`],
   ].filter(Boolean);
-  return rows.map(([k, v]) => `  ${c.dim(k.padEnd(13))} ${v}`).join('\n');
+  return rows.map(([k, v]) => `  ${c.dim(k.padEnd(18))} ${v}`).join('\n');
+}
+
+// ------------------------------------------------------------------ author notes
+/** Authors marked as contributing equally (structured `authorNotes`; names exactly as listed). */
+export const equalOf = (rec) => rec.authorNotes?.find((n) => n.type === 'equal-contribution')?.authors ?? [];
+/** Set (or with [] remove) the equal-contribution group, keeping any other author notes. */
+export function setEqual(rec, names) {
+  const others = (rec.authorNotes ?? []).filter((n) => n.type !== 'equal-contribution');
+  rec.authorNotes = names.length ? [...others, { type: 'equal-contribution', authors: rec.authors.filter((a) => names.includes(a)) }] : others;
+  if (!rec.authorNotes.length) delete rec.authorNotes;
+}
+/** Equal contribution, chosen by number from the author list (never by retyping names). */
+export async function askEqualContribution(authors, current = []) {
+  if (authors.length < 2) return [];
+  if (!(await yes('\nDo any authors have equal contribution?', current.length > 0))) return [];
+  authors.forEach((a, i) => console.log(`  ${c.bold(String(i + 1))}) ${a}`));
+  const cur = current.map((a) => authors.indexOf(a) + 1).filter((n) => n > 0).join(', ');
+  for (;;) {
+    const a = await ask('Which authors contributed equally? (numbers, e.g. 1, 2, 3; "none" for none)', cur);
+    if (a.trim().toLowerCase() === 'none') return [];
+    const got = pickNumbers(a, authors);
+    if (got && got.length >= 2) return authors.filter((x) => got.includes(x));
+    console.log(c.yellow(`  Please type at least two numbers from 1 to ${authors.length}, separated by commas (or "none").`));
+  }
 }
 
 /** Parse "2", "1, 3" or "none" against a numbered list; null when the answer is not valid. */

@@ -1,9 +1,9 @@
 // Parses + validates publications.yaml and derives everything the UI needs
 // (sorting, filters, link objects, BibTeX, citations). No presentation code here.
 import { parseDocument, visit, isScalar } from 'yaml';
-import { publicationsFileSchema, TYPE_META, STATUS_META, LINK_META, PRESENTATION_META, MODE_META } from './schema.mjs';
+import { publicationsFileSchema, TYPE_META, STATUS_META, LINK_META, PRESENTATION_META, MODE_META, AUTHOR_NOTE_META } from './schema.mjs';
 
-export { TYPE_META, STATUS_META, LINK_META, PRESENTATION_META, MODE_META };
+export { TYPE_META, STATUS_META, LINK_META, PRESENTATION_META, MODE_META, AUTHOR_NOTE_META };
 
 /** Order of the groups on the publications page. */
 export const STAGES = ['working', 'review', 'accepted'];
@@ -110,8 +110,15 @@ function normalize(p) {
     presentationLabel: pres ? PRESENTATION_META[pres.type].label : null,
     presentationModeLabel: pres?.mode ? MODE_META[pres.mode].label : null,
     venueLabel: p.venue ? (p.venue.acronym ? `${p.venue.acronym} ${p.year}` : p.venue.name) : null,
-    authors: p.authors.map((name) => ({ name: name.replace(/\*$/, ''), equal: name.endsWith('*') })),
-    hasEqualContribution: p.authors.some((a) => a.endsWith('*')),
+    // Author names stay clean; notes (e.g. equal contribution) are separate, in author-list order.
+    authors: p.authors.map((name) => ({ name, marks: p.authorNotes.filter((n) => n.authors.includes(name)).map((n) => AUTHOR_NOTE_META[n.type].symbol) })),
+    authorNotes: p.authorNotes.map((n) => {
+      const names = p.authors.filter((a) => n.authors.includes(a));
+      const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
+      return { type: n.type, authors: names, symbol: AUTHOR_NOTE_META[n.type].symbol, note: AUTHOR_NOTE_META[n.type].note, spoken: `${list} ${AUTHOR_NOTE_META[n.type].srVerb}.` };
+    }),
+    // The year a paper belongs to: its publication year, else the year it was first posted.
+    displayYear: p.year ?? (date ? Number(date.slice(0, 4)) : null),
     links: resolveLinks(p.links),
     versions: p.versions.map((v) => ({
       ...v,
@@ -232,6 +239,8 @@ export function bibtex(p) {
 
 /** Years present among accepted papers, newest first — never hard-coded. */
 export const yearsOf = (pubs) => [...new Set(pubs.filter((p) => p.isAccepted).map((p) => p.year))].sort((a, b) => b - a);
+/** Every year a paper belongs to (published, accepted, working paper or under review with a date). */
+export const filterYearsOf = (pubs) => [...new Set(pubs.map((p) => p.displayYear).filter(Boolean))].sort((a, b) => b - a);
 
 /** Types that actually occur, in canonical order, with counts. */
 export const typeCounts = (pubs) =>

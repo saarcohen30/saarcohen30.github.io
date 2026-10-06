@@ -1,0 +1,38 @@
+---
+// Author notes (e.g. equal contribution): the symbol and a shared note, as in Nature's convention.
+// Sighted readers see "* These authors contributed equally to this work."; assistive technology
+// hears one sentence naming those authors instead (the symbols on the names are hidden from it).
+import type { Publication } from '../../lib/site';
+
+interface Props {
+  pub: Publication;
+  class?: string;
+}
+const { pub, class: className } = Astro.props;
+---
+
+{
+  pub.authorNotes.map((n) => (
+    <span class:list={['author-note', className]}>
+      <span aria-hidden="true">
+        <sup class="sym">{n.symbol}</sup>
+        {n.note}
+      </span>
+      <span class="visually-hidden">{n.spoken}</span>
+    </span>
+  ))
+}
+
+<style>
+  .author-note {
+    font-family: inherit;
+    font-size: var(--step--2);
+    font-weight: 400;
+    color: var(--ink-3);
+    text-decoration: none;
+  }
+  .sym {
+    font-size: 0.85em;
+    margin-right: 0.15em;
+  }
+</style>

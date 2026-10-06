@@ -4,6 +4,7 @@
 import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
 import Authors from '../components/pubs/Authors.astro';
+import AuthorNotes from '../components/pubs/AuthorNotes.astro';
 import { profile, publications, inlineMd, TYPE_META } from '../lib/site';
 
 const sections = [
@@ -85,7 +86,7 @@ type Entry = { period: string; title: string; org: string; detail?: string; item
               <ol class="cv-pubs" reversed>
                 {s.items.map((p) => (
                   <li>
-                    <Authors pub={p} class="cv-authors" />
+                    <Authors pub={p} class="cv-authors" notes={false} />
                     <a class="cv-title" href={`/publications/${p.id}/`}>
                       {p.title}
                       {p.note && ` (${p.note})`}
@@ -104,6 +105,12 @@ type Entry = { period: string; title: string; org: string; detail?: string; item
                         p.statusLabel
                       )}
                     </span>
+                    {p.authorNotes.length > 0 && (
+                      <Fragment>
+                        {'. '}
+                        <AuthorNotes pub={p} />
+                      </Fragment>
+                    )}
                   </li>
                 ))}
               </ol>

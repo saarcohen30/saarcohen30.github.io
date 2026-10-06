@@ -5,7 +5,7 @@ import pubsText from '../data/publications.yaml?raw';
 import { loadPublications } from './pubs/index.mjs';
 
 import { relatedTo as related } from './pubs/index.mjs';
-export { TYPE_META, STATUS_META, LINK_META, PRESENTATION_META, citationText, bibtex, yearsOf, typeCounts, groupByYear } from './pubs/index.mjs';
+export { TYPE_META, STATUS_META, LINK_META, PRESENTATION_META, citationText, bibtex, yearsOf, filterYearsOf, typeCounts, groupByYear } from './pubs/index.mjs';
 
 export const profile = parse(profileText);
 export const topicIds = Object.keys(profile.topics);

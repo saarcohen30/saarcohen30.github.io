@@ -12,7 +12,8 @@
 #
 #  - id: my-new-paper                 # URL → /publications/my-new-paper/
 #    title: My New Paper
-#    authors: [Saar Cohen, Noa Agmon] # append * for equal contribution: "Saar Cohen*"
+#    authors: [Saar Cohen, Noa Agmon] # plain names, in order (never add * to a name)
+#    authorNotes: [{ type: equal-contribution, authors: [Saar Cohen, Noa Agmon] }]   # optional
 #    type: conference                 # conference | journal | survey | working-paper (or a list)
 #    status: to-appear                # omit once published; working papers have no status
 #    year: 2027
@@ -791,6 +792,8 @@
 - id: reflections-fragments-securing-llms-against-sequential-mosaic
   title: "Reflections and Fragments: Securing LLMs Against Sequential Mosaic Attacks"
   authors: [Emanuele La Malfa, Saar Cohen, Gabriele La Malfa, Mickel Liu, Christian Schroeder de Witt, Natasha Jaques, Michael J. Wooldridge]
+  authorNotes:
+    - { type: equal-contribution, authors: [Emanuele La Malfa, Saar Cohen, Gabriele La Malfa] }
   type: working-paper
   date: 2026-10-04
   themes: [safe-principled-ai]

@@ -22,9 +22,13 @@ const step = (name) => console.log(`  ✔ ${name}`);
 try {
   console.log('Publication tools (on a temporary copy)');
   // Add by hand as a working paper (no lookup).
-  // Themes: an invalid answer is asked again; then 2 = Fair allocation over time. Topics: none.
-  run('add-publication.mjs', ['', 'A Test Paper on Flows', 'Saar Cohen, Jane Doe', '1', '2609.12345', '', '', 'https://github.com/x/y', '', 'n', '7', '2', '', 'n', 'cli-test-paper', 'y']);
+  // Equal contribution: chosen by number; an out-of-range number and a single author are asked
+  // again, then 1, 2. Themes: an invalid answer is asked again; then 2 = Fair allocation over time.
+  run('add-publication.mjs', ['', 'A Test Paper on Flows', 'Saar Cohen, Jane Doe, John Roe', 'y', '4', '2', '1, 2', '1', '2609.12345', '', '', 'https://github.com/x/y', '', 'n', '7', '2', '', 'n', 'cli-test-paper', 'y']);
   let r = rec();
+  assert.deepEqual(r.authors, ['Saar Cohen', 'Jane Doe', 'John Roe']);
+  assert.deepEqual(r.authorNotes, [{ type: 'equal-contribution', authors: ['Saar Cohen', 'Jane Doe'] }]);
+  step('add-pub records equal contribution by author number (bad numbers are asked again)');
   assert.equal(r.type, 'working-paper');
   assert.equal(r.links.arxiv, '2609.12345');
   assert.equal(r.links.code, 'https://github.com/x/y');
@@ -40,6 +44,19 @@ try {
   run('update-publication.mjs', ['test paper flows', 'y', '13', '2', '2', '14', 'y']);
   assert.deepEqual(rec().themes, ['fair-allocation']);
   step('update-pub edits research themes (several, none, one)');
+
+  // Equal contribution of an existing paper: Other → Equal contribution (13, 7): edit, remove, add.
+  run('update-publication.mjs', ['test paper flows', 'y', '13', '7', 'y', '2, 3', '14', 'y']);
+  assert.deepEqual(rec().authorNotes, [{ type: 'equal-contribution', authors: ['Jane Doe', 'John Roe'] }]);
+  run('update-publication.mjs', ['test paper flows', 'y', '13', '7', 'n', '14', 'y']);
+  assert.equal(rec().authorNotes, undefined);
+  run('update-publication.mjs', ['test paper flows', 'y', '13', '7', 'y', '1, 2, 3', '14', 'y']);
+  assert.deepEqual(rec().authorNotes, [{ type: 'equal-contribution', authors: ['Saar Cohen', 'Jane Doe', 'John Roe'] }]);
+  // Renaming an author keeps the note valid: the changed name drops out of it.
+  run('update-publication.mjs', ['test paper flows', 'y', '12', '', 'Saar Cohen, Jane Doe, John Q. Roe', '14', 'y']);
+  assert.deepEqual(rec().authorNotes, [{ type: 'equal-contribution', authors: ['Saar Cohen', 'Jane Doe'] }]);
+  assert.deepEqual(rec().authors, ['Saar Cohen', 'Jane Doe', 'John Q. Roe']);
+  step('update-pub adds, edits and removes equal contribution; author renames keep it valid');
 
   // Working paper → Under review (found by searching the title; no id needed).
   run('update-publication.mjs', ['test paper flows', 'y', '1', '2', '14', 'y']);

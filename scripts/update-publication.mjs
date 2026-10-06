@@ -9,7 +9,7 @@
 // ("Status: Under Review → Accepted / To Appear") and confirm. Only that paper's lines change;
 // the file is checked before and after writing and restored automatically on failure.
 import { argv, exit } from 'node:process';
-import { c, rl, ask, yes, choose, readFile, records, replaceRecord, safeWrite, describe, askThemes, askTopics, fromDoi, normaliseId, stageOf, changes, printChanges } from './lib/pubfile.mjs';
+import { c, rl, ask, yes, choose, readFile, records, replaceRecord, safeWrite, describe, askThemes, askTopics, askEqualContribution, setEqual, equalOf, fromDoi, normaliseId, stageOf, changes, printChanges } from './lib/pubfile.mjs';
 import { askAccepted, askPresentation, askLinks, askLink, STATUS_OPTIONS } from './add-publication.mjs';
 
 const line = (p) => `${p.title}${c.dim(` · ${p.venue?.acronym ? `${p.venue.acronym} ${p.year}` : stageOf(p)}`)}`;
@@ -124,7 +124,7 @@ async function main() {
       { label: 'Slides', value: 'slides' },
       { label: 'Video', value: 'video' },
       { label: 'Authors, title or year', value: 'title' },
-      { label: 'Other (abstract, research themes, featured, note, more links, topics)', value: 'other' },
+      { label: 'Other (abstract, research themes, featured, note, more links, topics, equal contribution)', value: 'other' },
       { label: c.green('Review changes and save'), value: 'save' },
       { label: 'Quit without saving', value: 'quit' },
     ]);
@@ -151,6 +151,13 @@ async function main() {
     if (what === 'title') {
       rec.title = await ask('Title', rec.title);
       rec.authors = (await ask('Authors, comma-separated', rec.authors.join(', '))).split(',').map((s) => s.trim()).filter(Boolean);
+      // Equal contribution refers to names: keep only those still listed, and say so if one changed.
+      const eq = equalOf(rec);
+      const kept = eq.filter((a) => rec.authors.includes(a));
+      if (kept.length !== eq.length) {
+        setEqual(rec, kept.length >= 2 ? kept : []);
+        console.log(c.yellow('  An author marked as contributing equally changed or was removed: check Other → Equal contribution.'));
+      }
       if (rec.venue) rec.year = Number(await ask('Year', rec.year));
     }
     if (what === 'other') {
@@ -161,6 +168,7 @@ async function main() {
         { label: 'Note (e.g. "Extended Abstract")', value: 'note' },
         { label: 'All links (PDF, OpenReview, poster, supplement, dataset …)', value: 'links' },
         { label: 'Topics (used for related papers)', value: 'topics' },
+        { label: 'Equal contribution (authors who contributed equally)', value: 'equal' },
       ]);
       if (o === 'abstract') {
         const a = await ask('Paste the abstract on one line ("-" removes it)', '');
@@ -171,6 +179,7 @@ async function main() {
         rec.themes = await askThemes(rec.themes ?? []);
         if (!rec.themes.length) delete rec.themes;
       }
+      if (o === 'equal') setEqual(rec, await askEqualContribution(rec.authors, equalOf(rec)));
       if (o === 'topics') {
         rec.topics = await askTopics(rec.topics ?? []);
         if (!rec.topics.length) delete rec.topics;

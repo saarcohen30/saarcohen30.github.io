@@ -1,11 +1,14 @@
 ---
 import { isMe, type Publication } from '../../lib/site';
+import AuthorNotes from './AuthorNotes.astro';
 
 interface Props {
   pub: Publication;
   class?: string;
+  /** Show the author note (e.g. equal contribution) under the names; off where the page places it itself. */
+  notes?: boolean;
 }
-const { pub, class: className } = Astro.props;
+const { pub, class: className, notes = true } = Astro.props;
 const n = pub.authors.length;
 ---
 
@@ -13,17 +16,20 @@ const n = pub.authors.length;
   {
     pub.authors.map((a, i) => (
       <Fragment>
-        <span class:list={['an', { me: isMe(a.name) }]}>{a.name}</span>
-        {a.equal && (
-          <sup class="eq" title="Equal contribution">
-            *
-          </sup>
-        )}
+        {/* Name and symbol never separate across a line break. */}
+        <span class="an">
+          <span class:list={{ me: isMe(a.name) }}>{a.name}</span>
+          {a.marks.length > 0 && (
+            <sup class="mark" aria-hidden="true">
+              {a.marks.join('')}
+            </sup>
+          )}
+        </span>
         {i < n - 2 ? ', ' : i === n - 2 ? (n > 2 ? ', and ' : ' and ') : ''}
       </Fragment>
     ))
   }
-  {pub.hasEqualContribution && <span class="eq-note">(* equal contribution)</span>}
+  {notes && pub.authorNotes.length > 0 && <AuthorNotes pub={pub} class="below" />}
 </p>
 
 <style>
@@ -41,15 +47,14 @@ const n = pub.authors.length;
     text-decoration-thickness: 1.5px;
     text-underline-offset: 0.22em;
   }
-  .eq {
-    font-family: var(--font-mono);
-    font-size: 0.7em;
-    color: var(--ink-3);
+  .mark {
+    font-size: 0.72em;
+    margin-left: 0.05em;
+    color: var(--ink-2);
+    font-weight: 400;
   }
-  .eq-note {
-    margin-left: 0.5em;
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    color: var(--ink-3);
+  .authors :global(.author-note.below) {
+    display: block;
+    margin-top: 0.2em;
   }
 </style>

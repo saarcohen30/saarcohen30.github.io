@@ -31,7 +31,7 @@ const citable = !(pub.isUnderReview && pub.links.length === 0);
   id={compact ? undefined : pub.id}
   data-pub
   data-types={pub.types.join(' ')}
-  data-year={pub.year ?? ''}
+  data-year={pub.displayYear ?? ''}
   data-search={compact ? undefined : searchText}
   data-type={pub.primaryType ?? 'none'}
   data-stage={pub.stage}

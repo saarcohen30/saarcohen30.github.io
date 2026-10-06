@@ -96,13 +96,37 @@ const versionSchema = z
   .strict()
   .refine((v) => v.url || v.doi || v.arxiv, 'a version needs at least one of url, doi or arxiv');
 
+/**
+ * Author notes: structured authorship metadata shown next to the author list (never part of a
+ * name, never in citations). Following Nature's convention, one group per kind: a symbol on each
+ * named author and one shared note. Add a kind here (e.g. joint supervision, †) without migrating
+ * existing records.
+ */
+export const AUTHOR_NOTE_META = {
+  'equal-contribution': { symbol: '*', note: 'These authors contributed equally to this work.', srVerb: 'contributed equally to this work' },
+};
+const authorNoteSchema = z
+  .object({
+    type: z.enum(Object.keys(AUTHOR_NOTE_META), { error: `type must be one of ${Object.keys(AUTHOR_NOTE_META).join(' | ')}` }),
+    authors: z.array(z.string().min(2)).min(2, 'an author note needs at least two authors'),
+  })
+  .strict();
+
 export const publicationSchema = z
   .object({
     id: z
       .string()
       .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'must be lower-case-kebab-case (it becomes the URL /publications/<id>/)'),
     title: z.string().min(3).refine((t) => !/\n/.test(t), 'title must be on one line'),
-    authors: z.array(z.string().min(2)).min(1),
+    authors: z
+      .array(
+        z
+          .string()
+          .min(2)
+          .refine((n) => !/[*†‡]\s*$/.test(n), 'author names must be plain names: record equal contribution under authorNotes (npm run update-pub → Other → Equal contribution), not with "*"'),
+      )
+      .min(1),
+    authorNotes: z.array(authorNoteSchema).default([]).describe('Structured authorship notes, e.g. equal contribution'),
     type: z.union([typeEnum, z.array(typeEnum).min(1)]).optional(),
     status: z.enum(Object.keys(STATUS_META)).optional(),
     presentation: z
@@ -147,6 +171,14 @@ export const publicationSchema = z
     const accepted = has('conference') || has('journal');
     const inReview = REVIEW_STATUSES.includes(p.status);
     const publicCopy = p.links.arxiv || p.links.paper || p.links.pdf || p.links.openreview;
+    // Author notes refer to authors exactly as listed, once each, one group per kind.
+    const kinds = new Set();
+    for (const n of p.authorNotes) {
+      if (kinds.has(n.type)) issue('authorNotes', `only one "${n.type}" group is allowed`);
+      kinds.add(n.type);
+      for (const a of n.authors) if (!p.authors.includes(a)) issue('authorNotes', `"${a}" is not one of this paper's authors (names must match the author list exactly)`);
+      if (new Set(n.authors).size !== n.authors.length) issue('authorNotes', `an author is listed twice in "${n.type}"`);
+    }
 
     if (new Set(types).size !== types.length) issue('type', 'duplicate type');
 

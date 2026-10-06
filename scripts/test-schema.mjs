@@ -57,6 +57,22 @@ assert.throws(
   /used by another publication/,
 );
 console.log('  ✔ rejects duplicate aliases');
+const three = { type: 'working-paper', links: { arxiv: '2609.28333' }, authors: ['Ann One', 'Saar Cohen', 'Bea Two', 'Cy Three'] };
+accepts('equal contribution of three listed authors', { ...three, authorNotes: [{ type: 'equal-contribution', authors: ['Ann One', 'Saar Cohen', 'Bea Two'] }] }, (p) => {
+  assert.deepEqual(p.authors.map((a) => a.name), ['Ann One', 'Saar Cohen', 'Bea Two', 'Cy Three'], 'order and names unchanged');
+  assert.deepEqual(p.authors.map((a) => a.marks.join('')), ['*', '*', '*', '']);
+  assert.equal(p.authorNotes[0].note, 'These authors contributed equally to this work.');
+});
+accepts('no author notes (renders as before)', three, (p) => {
+  assert.deepEqual(p.authorNotes, []);
+  assert.ok(p.authors.every((a) => a.marks.length === 0));
+});
+rejects('equal contribution naming a non-author', { ...three, authorNotes: [{ type: 'equal-contribution', authors: ['Saar Cohen', 'John Doe'] }] }, /"John Doe" is not one of this paper's authors/);
+rejects('equal contribution of a single author', { ...three, authorNotes: [{ type: 'equal-contribution', authors: ['Saar Cohen'] }] }, /at least two authors/);
+rejects('two equal-contribution groups', { ...three, authorNotes: [{ type: 'equal-contribution', authors: ['Ann One', 'Saar Cohen'] }, { type: 'equal-contribution', authors: ['Bea Two', 'Cy Three'] }] }, /only one "equal-contribution" group/);
+rejects('an unknown author-note type', { ...three, authorNotes: [{ type: 'corresponding', authors: ['Ann One', 'Saar Cohen'] }] }, /type must be one of/);
+rejects('a "*" inside an author name', { ...three, authors: ['Ann One*', 'Saar Cohen'] }, /plain names/);
+accepts('working paper year comes from its date', { ...three, date: '2026-10-04' }, (p) => assert.equal(p.displayYear, 2026));
 const THEMES = ['collective-decisions', 'fair-allocation'];
 const wp = { ...base, type: 'working-paper', links: { arxiv: '2609.28333' } };
 assert.deepEqual(loadPublications(stringify([{ ...wp, themes: ['fair-allocation'] }]), { themes: THEMES })[0].themes, ['fair-allocation']);

@@ -9,7 +9,7 @@
 // writing and restored automatically if anything goes wrong.
 import { argv, exit } from 'node:process';
 import { pathToFileURL } from 'node:url';
-import { c, rl, ask, yes, choose, fromDoi, fromArxiv, guessAcronym, normaliseId, isDoi, readFile, records, appendRecord, safeWrite, describe, askThemes, askTopics, LINK_LABELS } from './lib/pubfile.mjs';
+import { c, rl, ask, yes, choose, fromDoi, fromArxiv, guessAcronym, normaliseId, isDoi, readFile, records, appendRecord, safeWrite, describe, askThemes, askTopics, askEqualContribution, setEqual, LINK_LABELS } from './lib/pubfile.mjs';
 
 const slugify = (title) =>
   title
@@ -131,11 +131,12 @@ async function main() {
   const rec = { id: '', title: pre.title ?? '', authors: pre.authors ?? [], links: {} };
   if (!confirmed) {
     rec.title = await ask('Title', pre.title ?? '');
-    rec.authors = (await ask('Authors, comma-separated (add * after a name for equal contribution)', pre.authors?.join(', ') ?? ''))
+    rec.authors = (await ask('Authors, comma-separated, in order', pre.authors?.join(', ') ?? ''))
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
   }
+  setEqual(rec, await askEqualContribution(rec.authors));
 
   console.log();
   const stage = await choose("What is the paper's current status?", STATUS_OPTIONS, pre.links?.doi ? 'published' : undefined);
