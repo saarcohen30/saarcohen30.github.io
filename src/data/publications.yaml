@@ -787,3 +787,34 @@
     paper: https://link.springer.com/article/10.1007/s43154-021-00049-2
     doi: 10.1007/s43154-021-00049-2
   aliases: [/publication/2021-recent-advances]
+
+- id: reflections-fragments-securing-llms-against-sequential-mosaic
+  title: "Reflections and Fragments: Securing LLMs Against Sequential Mosaic Attacks"
+  authors: [Emanuele La Malfa, Saar Cohen, Gabriele La Malfa, Mickel Liu, Christian Schroeder de Witt, Natasha Jaques, Michael J. Wooldridge]
+  type: working-paper
+  date: 2026-10-04
+  themes: [safe-principled-ai]
+  topics: [large-language-models, ai-safety]
+  links:
+    arxiv: "2610.05346"
+  abstract: >-
+    Self-play red-teaming improves language-model safety by pitting attacker and defender roles
+    against each other in a zero-sum game. However, real adversaries increasingly use mosaic
+    attacks: multi-turn sequences whose individual fragments are innocuous in isolation yet assemble
+    into a harmful payload. We develop a theory of mosaic defense that characterizes what is
+    required to prevent such attacks without sacrificing helpfulness. We first show that no fixed
+    bounded window of recent prompts is sufficient in general: safety-relevant information may occur
+    arbitrarily far back in the interaction. We formalize a watchman, an online state mechanism that
+    carries this information forward, and show that under explicit assumptions it enables
+    zero-failure defense with positive benign helpfulness. Under stronger conditions, it is also
+    optimal among zero-failure defenders. An exact watchman may nevertheless require exponentially
+    many states, while exact maliciousness detection can require exponentially many queries in an
+    unstructured black-box model. These state and query lower bounds do not by themselves imply hard
+    learning: the construction underlying the state lower bound is efficiently learnable from
+    labeled examples, whereas certifying worst-case safety can require substantially more
+    information under restricted access. We also show that self-play equilibrium alone does not
+    certify usefulness, motivating a constrained formulation that maximizes worst-case benign
+    helpfulness among zero-failure defenders. Empirically, training role-specific attacker and
+    defender LoRA adapters over frozen LLMs via multi-turn self-play strengthens both roles:
+    attackers become more effective at eliciting harmful responses, while defenders become more
+    robust to attack, with improvements also observed on unseen attack objectives.
