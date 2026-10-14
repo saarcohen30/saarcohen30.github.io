@@ -116,7 +116,12 @@
 - id: fairness-efficiency-online-coalition-formation-partial-information
   title: Fairness and Efficiency in Online Coalition Formation with Partial Information
   authors: [Saar Cohen, Noa Agmon]
-  status: under-revision
+  type: journal
+  status: accepted-minor-revisions
+  year: 2026
+  venue:
+    name: Journal of Artificial Intelligence Research
+    acronym: JAIR
   themes: [collective-decisions]
   topics: [coalition-formation, online-algorithms, computational-social-choice]
 
@@ -141,7 +146,12 @@
 - id: stability-accuracy-tradeoffs-decentralized-online-learning
   title: Stability-Accuracy Tradeoffs in Decentralized Online Learning of Coalition Structures by Selfish Agents
   authors: [Saar Cohen, Noa Agmon]
-  status: under-review
+  type: journal
+  status: to-appear
+  year: 2026
+  venue:
+    name: Journal of Artificial Intelligence Research
+    acronym: JAIR
   themes: [collective-decisions, multiagent-learning]
   topics: [coalition-formation, multi-agent-learning, online-learning, game-theory]
 
