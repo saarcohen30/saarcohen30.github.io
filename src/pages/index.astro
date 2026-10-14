@@ -19,7 +19,7 @@ const featured = publications.filter((p) => p.featured);
 const byTheme: { theme: string; pub: Publication }[] = [];
 for (const t of themes) {
   const pick = pubsForTheme(t)
-    .filter((p) => !p.isUnderReview && !byTheme.some((x) => x.pub.id === p.id))
+    .filter((p) => !p.isUnderReview && !p.isConditional && !byTheme.some((x) => x.pub.id === p.id))
     .sort((a, b) => (a.sortKey < b.sortKey ? 1 : -1))[0];
   if (pick) byTheme.push({ theme: t.title, pub: pick });
 }
@@ -149,7 +149,7 @@ const facts = [
                       {picks.map((p) => (
                         <li>
                           <a href={`/publications/${p.id}/`}>{p.title}</a>
-                          <span class="mono">{p.venueLabel ?? (p.isWorkingPaper ? 'Working paper' : p.statusLabel)}</span>
+                          <span class="mono">{p.venueLabel ? `${p.venueLabel}${p.isConditional ? ` · ${p.statusLabel.toLowerCase()}` : ''}` : p.isWorkingPaper ? 'Working paper' : p.statusLabel}</span>
                         </li>
                       ))}
                     </ul>

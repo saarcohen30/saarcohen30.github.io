@@ -292,6 +292,7 @@ export function stageOf(rec) {
   if (types.includes('working-paper')) return 'Working Paper';
   if (rec.status === 'under-review') return 'Under Review';
   if (rec.status === 'under-revision') return 'Under Revision';
+  if (rec.status === 'accepted-minor-revisions') return 'Accepted with Minor Revisions';
   if (rec.status === 'to-appear') return 'Accepted / To Appear';
   return 'Published';
 }

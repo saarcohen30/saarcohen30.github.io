@@ -4,7 +4,8 @@
 //
 // Four independent dimensions — never collapse them into one field:
 //   type          what the work IS:            conference | journal | survey | working-paper
-//   status        where it is in review:       under-review | under-revision | to-appear | published
+//   status        where it is in review:       under-review | under-revision | accepted-minor-revisions
+//                                              | to-appear | published
 //   presentation  how it was presented:        { type: oral | spotlight | poster | contributed-talk,
 //                                               mode: in-person | online | hybrid }  (or just "oral")
 //   links/versions where it can be read:       arXiv, DOI, proceedings, code, …
@@ -21,11 +22,18 @@ export const TYPE_META = {
   survey: { label: 'Survey', plural: 'Surveys', glyph: 'triangle' },
 };
 
-/** Review / publication states. `stage` groups them on the publications page. */
+/**
+ * Review / publication states. `stage` groups them on the publications page; `tag` is shown after
+ * the venue ("JAIR 2026 [Accepted with Minor Revisions]").
+ * accepted-minor-revisions: the venue has issued a conditional acceptance that requires minor
+ * revisions before final acceptance. It has a venue and a year but is NOT accepted or published
+ * yet (stage "conditional"), so it is never shown or exported as final.
+ */
 export const STATUS_META = {
   'under-review': { label: 'Under review', stage: 'review' },
   'under-revision': { label: 'Under revision', stage: 'review' },
-  'to-appear': { label: 'To appear', stage: 'accepted' },
+  'accepted-minor-revisions': { label: 'Accepted with minor revisions', stage: 'conditional', tag: 'Accepted with Minor Revisions' },
+  'to-appear': { label: 'To appear', stage: 'accepted', tag: 'To Appear' },
   published: { label: 'Published', stage: 'accepted' },
 };
 export const REVIEW_STATUSES = Object.keys(STATUS_META).filter((s) => STATUS_META[s].stage === 'review');
@@ -202,8 +210,9 @@ export const publicationSchema = z
       // e.g. a survey that is only on arXiv
       if (!has('working-paper')) issue('type', 'a survey must also be "journal"/"conference" (where it appeared) or "working-paper" (preprint only), e.g. type: [survey, journal]');
     } else {
-      if (!p.year) issue('year', 'accepted and published papers need a year');
-      if (!p.venue) issue('venue', 'accepted and published papers need venue.name (and usually venue.acronym)');
+      // Conditional acceptance (accepted-minor-revisions), to-appear and published all have a venue.
+      if (!p.year) issue('year', 'accepted and published papers (and conditional acceptances) need a year');
+      if (!p.venue) issue('venue', 'accepted and published papers (and conditional acceptances) need venue.name (and usually venue.acronym)');
     }
 
     if (p.presentation) {

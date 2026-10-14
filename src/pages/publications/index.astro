@@ -8,6 +8,7 @@ import { profile, publications, groupByYear, yearsOf, filterYearsOf, typeCounts,
 const working = publications.filter((p) => p.isWorkingPaper);
 const review = publications.filter((p) => p.isUnderReview);
 const accepted = publications.filter((p) => p.isAccepted);
+const conditional = publications.filter((p) => p.isConditional); // shown with accepted work, tagged
 const years = groupByYear(publications);
 const types = typeCounts(publications);
 const yearList = yearsOf(publications); // published and accepted years (for the summary text)
@@ -36,6 +37,11 @@ const jsonLd = {
     <h1>Publications</h1>
     <p class="summary">
       <span class="mono">{publishedCount}</span> published and accepted papers from {yearList.at(-1)} to {yearList[0]}{toAppear > 0 && ` (${toAppear} to appear)`},{' '}
+      {conditional.length > 0 && (
+        <Fragment>
+          <span class="mono">{conditional.length}</span> accepted with minor revisions,{' '}
+        </Fragment>
+      )}
       <span class="mono">{working.length}</span> working papers and <span class="mono">{review.length}</span> under review. Each paper has its own page with the abstract, all versions and a citation.
     </p>
     <p class="head-links">

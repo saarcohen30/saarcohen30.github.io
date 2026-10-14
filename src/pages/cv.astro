@@ -8,8 +8,8 @@ import AuthorNotes from '../components/pubs/AuthorNotes.astro';
 import { profile, publications, inlineMd, TYPE_META } from '../lib/site';
 
 const sections = [
-  { title: 'Conference papers', test: (p) => p.isAccepted && p.types.includes('conference') },
-  { title: 'Journal articles & surveys', test: (p) => p.isAccepted && !p.types.includes('conference') },
+  { title: 'Conference papers', test: (p) => (p.isAccepted || p.isConditional) && p.types.includes('conference') },
+  { title: 'Journal articles & surveys', test: (p) => (p.isAccepted || p.isConditional) && !p.types.includes('conference') },
   { title: 'Working papers', test: (p) => p.isWorkingPaper },
   { title: 'Under review / revision', test: (p) => p.isUnderReview },
 ].map((s) => ({ ...s, items: publications.filter(s.test) }));
@@ -96,6 +96,7 @@ type Entry = { period: string; title: string; org: string; detail?: string; item
                         <Fragment>
                           <i>{p.venueLabel}</i>
                           {p.status === 'to-appear' && ' (to appear)'}
+                          {p.isConditional && ` (${p.statusLabel.toLowerCase()})`}
                           {p.presentationLabel && ` · ${p.presentationLabel}${p.presentationModeLabel ? ` (${p.presentationModeLabel.toLowerCase()})` : ''}`}
                           {p.types.includes('survey') && ` · ${TYPE_META.survey.label}`}
                         </Fragment>

@@ -73,6 +73,25 @@ rejects('two equal-contribution groups', { ...three, authorNotes: [{ type: 'equa
 rejects('an unknown author-note type', { ...three, authorNotes: [{ type: 'corresponding', authors: ['Ann One', 'Saar Cohen'] }] }, /type must be one of/);
 rejects('a "*" inside an author name', { ...three, authors: ['Ann One*', 'Saar Cohen'] }, /plain names/);
 accepts('working paper year comes from its date', { ...three, date: '2026-10-04' }, (p) => assert.equal(p.displayYear, 2026));
+const jairVenue = { name: 'Journal of Artificial Intelligence Research', acronym: 'JAIR' };
+accepts('accepted with minor revisions (journal, venue, year)', { type: 'journal', status: 'accepted-minor-revisions', year: 2026, venue: jairVenue }, (p) => {
+  assert.equal(p.stage, 'conditional');
+  assert.equal(p.isConditional, true);
+  assert.equal(p.isAccepted, false, 'a conditional acceptance is not final');
+  assert.equal(p.isUnderReview, false);
+  assert.equal(p.isWorkingPaper, false);
+  assert.equal(p.statusTag, 'Accepted with Minor Revisions');
+  assert.equal(p.displayYear, 2026);
+});
+rejects('accepted with minor revisions without a venue', { type: 'journal', status: 'accepted-minor-revisions', year: 2026 }, /venue\.name/);
+rejects('accepted with minor revisions without a year', { type: 'journal', status: 'accepted-minor-revisions', venue: jairVenue }, /need a year/);
+rejects('accepted with minor revisions without a type', { status: 'accepted-minor-revisions', year: 2026, venue: jairVenue }, /type is required/);
+rejects('a working paper accepted with minor revisions', { type: 'working-paper', status: 'accepted-minor-revisions', links: { arxiv: '2609.28333' } }, /neither accepted nor published/);
+accepts('existing statuses unchanged (to appear stays accepted)', { type: 'journal', status: 'to-appear', year: 2026, venue: jairVenue }, (p) => {
+  assert.equal(p.stage, 'accepted');
+  assert.equal(p.isConditional, false);
+  assert.equal(p.statusTag, 'To Appear');
+});
 const THEMES = ['collective-decisions', 'fair-allocation'];
 const wp = { ...base, type: 'working-paper', links: { arxiv: '2609.28333' } };
 assert.deepEqual(loadPublications(stringify([{ ...wp, themes: ['fair-allocation'] }]), { themes: THEMES })[0].themes, ['fair-allocation']);

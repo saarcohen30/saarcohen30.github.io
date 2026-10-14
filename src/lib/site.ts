@@ -1,7 +1,8 @@
 // Build-time data access for pages. `?raw` imports keep Vite watching the YAML in dev.
+import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import profileText from '../data/profile.yaml?raw';
-import pubsText from '../data/publications.yaml?raw';
+import pubsData from '../data/publications.yaml?raw';
 import { loadPublications } from './pubs/index.mjs';
 
 import { relatedTo as related } from './pubs/index.mjs';
@@ -10,6 +11,8 @@ export { TYPE_META, STATUS_META, LINK_META, PRESENTATION_META, citationText, bib
 export const profile = parse(profileText);
 export const topicIds = Object.keys(profile.topics);
 export const themeIds = profile.themes.map((t: { id: string }) => t.id);
+// Tests may build the site from a temporary copy of the data (PUBS_FILE); normally the real file.
+const pubsText = process.env.PUBS_FILE ? readFileSync(process.env.PUBS_FILE, 'utf8') : pubsData;
 export const publications = loadPublications(pubsText, { topics: topicIds, themes: themeIds });
 export type Publication = (typeof publications)[number];
 

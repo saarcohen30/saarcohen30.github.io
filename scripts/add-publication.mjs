@@ -25,6 +25,7 @@ const slugify = (title) =>
 export const STATUS_OPTIONS = [
   { label: `Working Paper ${c.dim('(public preprint; not submitted anywhere and not under review)')}`, value: 'working' },
   { label: `Under Review ${c.dim('(submitted; waiting for a decision)')}`, value: 'under-review' },
+  { label: `Accepted with Minor Revisions ${c.dim('(conditionally accepted; minor revisions due before final acceptance)')}`, value: 'accepted-minor-revisions' },
   { label: `Accepted / To Appear ${c.dim('(accepted; proceedings or issue not out yet)')}`, value: 'to-appear' },
   { label: `Published ${c.dim('(proceedings or journal issue is out)')}`, value: 'published' },
 ];
@@ -35,12 +36,13 @@ export async function askAccepted(rec, pre = {}, status = 'to-appear') {
   const kind = await choose('Conference or journal?', [
     { label: 'Conference', value: 'conference' },
     { label: 'Journal', value: 'journal' },
-  ], types.includes('journal') || pre.type === 'journal' ? 'journal' : 'conference');
+  ], types.includes('journal') || pre.type === 'journal' || (status === 'accepted-minor-revisions' && !types.includes('conference')) ? 'journal' : 'conference');
   const survey = types.includes('survey') ? await yes('Is it a survey paper?', true) : false;
   rec.type = survey ? ['survey', kind] : kind;
   rec.status = status;
-  rec.year = Number(await ask('Year', rec.year ?? pre.year ?? new Date().getFullYear()));
-  const name = await ask(`Full ${kind === 'journal' ? 'journal' : 'proceedings'} name, e.g. "Proceedings of the 40th Annual Conference on Neural Information Processing Systems"`, rec.venue?.name ?? pre.venueName ?? '');
+  rec.year = Number(await ask(status === 'accepted-minor-revisions' ? 'Year (of the decision)' : 'Year', rec.year ?? pre.year ?? new Date().getFullYear()));
+  const example = kind === 'journal' ? 'Journal of Artificial Intelligence Research' : 'Proceedings of the 40th Annual Conference on Neural Information Processing Systems';
+  const name = await ask(`Full ${kind === 'journal' ? 'journal' : 'proceedings'} name, e.g. "${example}"`, rec.venue?.name ?? pre.venueName ?? '');
   const acronym = await ask('Short venue name, shown in bold (e.g. NeurIPS; optional for journals)', rec.venue?.acronym ?? pre.venueAcronym ?? guessAcronym(name));
   rec.venue = { ...(rec.venue ?? {}), name };
   if (acronym) rec.venue.acronym = acronym;

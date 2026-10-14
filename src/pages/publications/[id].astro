@@ -38,7 +38,7 @@ const description = pub.abstract
   ? pub.abstract.length > 200
     ? pub.abstract.slice(0, pub.abstract.lastIndexOf(' ', 197)) + '…'
     : pub.abstract
-  : `${pub.authors.map((a) => a.name).join(', ')}. ${pub.title}${pub.venueLabel ? `. ${pub.venueLabel}${pub.status === 'to-appear' ? ' (to appear)' : ''}` : ` (${status.toLowerCase()})`}.`;
+  : `${pub.authors.map((a) => a.name).join(', ')}. ${pub.title}${pub.venueLabel ? `. ${pub.venueLabel}${pub.status === 'to-appear' ? ' (to appear)' : pub.isConditional ? ` (${status.toLowerCase()})` : ''}` : ` (${status.toLowerCase()})`}.`;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -98,7 +98,7 @@ const jsonLd = {
         {pub.types.map((t) => <TypeBadge type={t} />)}
         <Presentation pub={pub} />
         {pub.note && <span class="mono muted">{pub.note}</span>}
-        {!pub.isAccepted && <span class="mono status">{status}</span>}
+        {!pub.isAccepted && !pub.isConditional && <span class="mono status">{status}</span>}
       </p>
       <h1 style={`view-transition-name: pub-${pub.id}; view-transition-class: pub-title`}>{pub.title}</h1>
       <Authors pub={pub} class="authors-lg" />
@@ -157,7 +157,7 @@ const jsonLd = {
             {related.map((p) => (
               <li>
                 <a href={`/publications/${p.id}/`}>{p.title}</a>
-                <span class="mono muted">{p.venueLabel ? `${p.venueLabel}${p.status === 'to-appear' ? ' · to appear' : ''}` : (p.statusLabel ?? 'Working paper')}</span>
+                <span class="mono muted">{p.venueLabel ? `${p.venueLabel}${p.status === 'to-appear' ? ' · to appear' : p.isConditional ? ` · ${p.statusLabel.toLowerCase()}` : ''}` : (p.statusLabel ?? 'Working paper')}</span>
               </li>
             ))}
           </ul>

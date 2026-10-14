@@ -65,8 +65,29 @@ try {
   assert.equal(r.type, undefined, 'no longer a working paper');
   step('working paper → under review (and no longer a working paper)');
 
+  // Status menu in update-pub: 1 Working Paper, 2 Under Review, 3 Under Revision,
+  // 4 Accepted with Minor Revisions, 5 Accepted / To Appear, 6 Published.
+  // Under review → Accepted with Minor Revisions (a journal; no DOI, volume or pages asked).
+  const jair = ['2', '2026', 'Journal of Artificial Intelligence Research', 'JAIR', '', ''];
+  run('update-publication.mjs', ['test paper flows', 'y', '1', '4', ...jair, '14', 'y']);
+  r = rec();
+  assert.equal(r.status, 'accepted-minor-revisions');
+  assert.equal(r.type, 'journal');
+  assert.deepEqual(r.venue, { name: 'Journal of Artificial Intelligence Research', acronym: 'JAIR' });
+  assert.equal(r.year, 2026);
+  assert.deepEqual(r.links, { arxiv: '2609.12345', code: 'https://github.com/x/y' }, 'existing links kept; no DOI or official URL invented');
+  step('under review → accepted with minor revisions (journal, venue and year; nothing invented)');
+
+  // A correction: back to Under review removes the venue and type again.
+  run('update-publication.mjs', ['test paper flows', 'y', '1', '2', '14', 'y']);
+  r = rec();
+  assert.equal(r.status, 'under-review');
+  assert.equal(r.type, undefined);
+  assert.equal(r.venue, undefined);
+  step('accepted with minor revisions → under review (reversal leaves no stale venue)');
+
   // Under review → Accepted / to appear, with venue and presentation.
-  run('update-publication.mjs', ['test paper flows', 'y', '1', '4', '1', '2027', 'Proceedings of the 41st Annual Conference on Neural Information Processing Systems', '', '', '1', '3', 'https://example.org/paper', '14', 'y']);
+  run('update-publication.mjs', ['test paper flows', 'y', '1', '5', '1', '2027', 'Proceedings of the 41st Annual Conference on Neural Information Processing Systems', '', '', '1', '3', 'https://example.org/paper', '14', 'y']);
   r = rec();
   assert.equal(r.type, 'conference');
   assert.equal(r.status, 'to-appear');
@@ -76,12 +97,32 @@ try {
   assert.equal(r.links.paper, 'https://example.org/paper');
   step('under review → accepted / to appear (venue, year, oral · hybrid, official URL)');
 
+  // Conditional and final acceptance switch without re-entering the venue (only the status changes).
+  run('update-publication.mjs', ['test paper flows', 'y', '1', '4', '', '14', 'y']);
+  r = rec();
+  assert.equal(r.status, 'accepted-minor-revisions');
+  assert.equal(r.venue.acronym, 'NeurIPS');
+  assert.deepEqual(r.presentation, { type: 'oral', mode: 'hybrid' });
+  run('update-publication.mjs', ['test paper flows', 'y', '1', '5', '', '14', 'y']);
+  assert.equal(rec().status, 'to-appear');
+  step('to appear ⇄ accepted with minor revisions keeps venue, year, presentation and links');
+
   // Accepted → Published.
-  run('update-publication.mjs', ['test paper flows', 'y', '1', '5', '', '', '14', 'y']);
+  run('update-publication.mjs', ['test paper flows', 'y', '1', '6', '', '', '14', 'y']);
   r = rec();
   assert.equal(r.status, undefined, 'published is the default');
   assert.equal(r.type, 'conference');
   step('accepted → published');
+
+  // add-pub: a new paper conditionally accepted at a journal (status 3 in add-pub's menu).
+  run('add-publication.mjs', ['', 'A Conditionally Accepted Journal Paper', 'Saar Cohen, Jane Doe', 'n', '3', '2', '2026', 'Journal of Artificial Intelligence Research', 'JAIR', '', '', '', '', '', '', 'n', '', '', 'n', 'cli-conditional-paper', 'y']);
+  const cond = parse(readFileSync(file, 'utf8')).find((p) => p.id === 'cli-conditional-paper');
+  assert.equal(cond.status, 'accepted-minor-revisions');
+  assert.equal(cond.type, 'journal');
+  assert.equal(cond.year, 2026);
+  assert.equal(cond.venue.acronym, 'JAIR');
+  assert.equal(cond.featured, undefined);
+  step('add-pub records a conditionally accepted journal paper');
 
   // Declining the preview writes nothing.
   const before = readFileSync(file, 'utf8');

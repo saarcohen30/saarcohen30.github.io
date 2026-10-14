@@ -1,6 +1,7 @@
 ---
 // Composes the venue line from structured data — no markup in the YAML:
 //   Proceedings of the 40th Annual Conference on … Systems  NeurIPS 2026  [To Appear]
+//   Journal of Artificial Intelligence Research  JAIR 2026  [Accepted with Minor Revisions]
 import type { Publication } from '../../lib/site';
 
 interface Props {
@@ -25,13 +26,13 @@ const v = pub.venue;
           {' '}
           <span class="vid">
             <strong class="vacr">{v.acronym}</strong> <span class="vyear">{pub.year}</span>
-            {pub.status === 'to-appear' && <span class="appear"> [To Appear]</span>}
+            {pub.statusTag && <span class="appear"> [{pub.statusTag}]</span>}
           </span>
         </Fragment>
       ) : (
         <Fragment>
           {short ? <span class="vname">{pub.venueLabel}</span> : <span class="vyear">{`, ${pub.year}`}</span>}
-          {pub.status === 'to-appear' && <span class="appear"> [To Appear]</span>}
+          {pub.statusTag && <span class="appear"> [{pub.statusTag}]</span>}
         </Fragment>
       )}
       {full && v.series && <span class="vmeta">{`, ${v.series}`}</span>}

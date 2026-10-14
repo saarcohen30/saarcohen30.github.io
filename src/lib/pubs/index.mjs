@@ -6,7 +6,7 @@ import { publicationsFileSchema, TYPE_META, STATUS_META, LINK_META, PRESENTATION
 export { TYPE_META, STATUS_META, LINK_META, PRESENTATION_META, MODE_META, AUTHOR_NOTE_META };
 
 /** Order of the groups on the publications page. */
-export const STAGES = ['working', 'review', 'accepted'];
+export const STAGES = ['working', 'review', 'conditional', 'accepted'];
 
 export class PublicationDataError extends Error {
   constructor(problems) {
@@ -103,7 +103,10 @@ function normalize(p) {
     isWorkingPaper,
     isUnderReview: stage === 'review',
     isAccepted: stage === 'accepted',
+    // Conditionally accepted (minor revisions requested): has a venue, but is not final.
+    isConditional: stage === 'conditional',
     statusLabel: status ? STATUS_META[status].label : null,
+    statusTag: status ? (STATUS_META[status].tag ?? null) : null,
     presentation: pres,
     presentationType: pres?.type ?? null,
     presentationMode: pres?.mode ?? null,
@@ -189,7 +192,7 @@ const joinAuthors = (authors) => {
 export function citationText(p) {
   const parts = [`${joinAuthors(p.authors)}.`, `${p.title}${p.note ? ` (${p.note})` : ''}.`];
   const arxiv = p.links.find((l) => l.kind === 'arxiv');
-  if (!p.isAccepted) {
+  if (!p.isAccepted && !p.isConditional) {
     if (arxiv) parts.push(`${arxiv.title}${p.date ? `, ${p.date.slice(0, 4)}` : ''}.`);
     if (p.isUnderReview) parts.push(`${p.statusLabel}.`);
   } else {
@@ -199,6 +202,7 @@ export function citationText(p) {
     if (p.venue.pages) venue += `${isJournal ? ':' : ', pp.'} ${p.venue.pages}`;
     parts.push(`${venue}, ${p.year}.`);
     if (p.status === 'to-appear') parts.push('To appear.');
+    if (p.isConditional) parts.push(`${p.statusLabel}.`);
   }
   return parts.join(' ');
 }
@@ -229,7 +233,7 @@ export function bibtex(p) {
     ['archivePrefix', arxiv && (!doi || entry === 'misc') ? 'arXiv' : undefined],
     ['url', !doi && url ? url.href : undefined],
     p.status === 'to-appear' && ['note', 'To appear'],
-    p.isUnderReview && ['note', p.statusLabel],
+    (p.isUnderReview || p.isConditional) && ['note', p.statusLabel],
   ].filter((f) => f && f[1] !== undefined && f[1] !== null && f[1] !== '');
   const width = Math.max(...fields.map(([k]) => k.length));
   return `@${entry}{${p.bibkey},\n${fields.map(([k, v]) => `  ${k.padEnd(width)} = {${v}}`).join(',\n')}\n}`;
@@ -248,14 +252,15 @@ export const typeCounts = (pubs) =>
     .map((type) => ({ type, ...TYPE_META[type], count: pubs.filter((p) => p.types.includes(type)).length }))
     .filter((t) => t.count > 0);
 
+/** Accepted and published work, plus conditional acceptances (clearly tagged), by year, newest first. */
 export function groupByYear(pubs) {
   const groups = new Map();
   for (const p of pubs) {
-    if (!p.isAccepted) continue;
+    if (!p.isAccepted && !p.isConditional) continue;
     if (!groups.has(p.year)) groups.set(p.year, []);
     groups.get(p.year).push(p);
   }
-  return [...groups].map(([year, items]) => ({ year, items }));
+  return [...groups].sort((a, b) => b[0] - a[0]).map(([year, items]) => ({ year, items }));
 }
 
 /**

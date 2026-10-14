@@ -43,9 +43,12 @@ and write nothing until you say yes. If anything would be wrong, they refuse and
 2. **What is the paper's current status?**
    - **Working Paper**: public on arXiv, *not* submitted anywhere and *not* under review.
    - **Under Review**: submitted, waiting for a decision.
+   - **Accepted with Minor Revisions**: conditionally accepted; the venue asked for minor revisions before
+     final acceptance.
    - **Accepted / To Appear**: accepted; proceedings or journal issue not out yet.
    - **Published**: the proceedings or issue is out.
-3. For accepted or published papers only: conference or journal, year, the full proceedings name, the short
+3. For conditionally accepted, accepted or published papers only: conference or journal (Journal is
+   preselected for Accepted with Minor Revisions), year (of the decision), the full journal or proceedings name, the short
    name shown in bold (e.g. **NeurIPS**, usually guessed for you), and for conferences the presentation:
    Oral / Spotlight / Poster / Other / Unknown, then In person / Online / Hybrid / Not specified.
    "Unknown" is always fine.
@@ -91,6 +94,8 @@ Nothing is written unless you type **y**.
 |---|---|---|
 | Posted on arXiv, not submitted | `npm run add-pub -- <arXiv id>` | Working Paper |
 | Submitted | `npm run update-pub` | 1) Status → Under Review. It stops being a Working Paper automatically. |
+| Accepted with minor revisions | `npm run update-pub` | 1) Status → Accepted with Minor Revisions, then answer the venue questions (journal, year, name) |
+| Revisions accepted | `npm run update-pub` | 1) Status → Accepted / To Appear (the venue is kept; nothing to re-enter) |
 | Accepted | `npm run update-pub` | 1) Status → Accepted / To Appear, then answer the venue questions |
 | Proceedings out | `npm run update-pub` | 1) Status → Published (add the DOI if there is one) |
 | New GitHub repo, slides, video … | `npm run update-pub` | 8) GitHub, 10) Slides, 11) Video … |
@@ -123,7 +128,7 @@ Never encode one of these in another.
 | Field | Answers | Values |
 |---|---|---|
 | `type` | What is it? | `conference`, `journal`, `survey`, `working-paper` (or a list, e.g. `[survey, journal]`) |
-| `status` | Where is it in review? | `under-review`, `under-revision`, `to-appear`, `published` (default for conference/journal) |
+| `status` | Where is it in review? | `under-review`, `under-revision`, `accepted-minor-revisions`, `to-appear`, `published` (default for conference/journal) |
 | `presentation` | How was it presented? | `oral`, `spotlight`, `contributed-talk`, `poster`, or with the mode: `{ type: oral, mode: online }` (`mode`: `in-person`, `online` or `hybrid`). Only record what the official programme or you can confirm. |
 | `links` / `versions` | Where can it be read? | arXiv, DOI, proceedings, OpenReview, PDF, code, … |
 
@@ -143,6 +148,28 @@ A submitted paper. It has `status: under-review` or `status: under-revision`, **
 review is not public), and normally **no `type`**. Use `type: survey` if it is a survey. It may carry an
 `arxiv` link if a preprint is public. It appears in its own "Under review" section and is not counted as a
 working paper.
+
+### Accepted with Minor Revisions
+
+The venue has issued a **conditional acceptance**: the paper will be accepted once minor revisions are made.
+It is recorded as `status: accepted-minor-revisions` with its `type` (usually `journal`), `venue` and `year`
+(the year of the decision), exactly like an accepted paper, but it is **not** shown as accepted or published:
+
+- it differs from **Under Review / Under Revision** because a decision has been made and the venue is public;
+- it differs from **Accepted / To Appear** because final acceptance still depends on the revisions.
+
+On the site it is listed with that year's publications, tagged on its venue line, e.g.
+*Journal of Artificial Intelligence Research* **JAIR** 2026 [Accepted with Minor Revisions]; the Journal and
+year filters include it; its page, citation and BibTeX say "Accepted with minor revisions"; it gets no
+publication date, no Google Scholar tags and no place in the home page's Current work. Add volume, pages or a
+DOI only once they exist.
+
+**Set it:** `npm run add-pub -- <arXiv id>` → status 3) Accepted with Minor Revisions, or
+`npm run update-pub` → 1) Status → 4) Accepted with Minor Revisions (Journal, year, journal name, short name).
+
+**After final acceptance:** `npm run update-pub` → 1) Status → 5) Accepted / To Appear; the venue and year
+are kept. Later, 6) Published (with the DOI). Every change is shown for confirmation before it is written;
+nothing changes status on its own.
 
 ### Conference / Journal
 
@@ -177,7 +204,7 @@ presentation: oral   # AAAI-25 Main Track Oral Talks Schedule
 - working paper + conference/journal, or with a venue, or without a public link
 - conference/journal + under review/revision (a venue type means it was accepted)
 - a venue on a paper under review
-- to-appear/published without `year` and `venue.name`
+- accepted-minor-revisions/to-appear/published without a conference/journal type, `year` and `venue.name`
 - `presentation` without a conference type, or before acceptance
 - a survey that is neither published (`[survey, journal]`) nor a working paper
 - malformed arXiv ids or DOIs, duplicate ids, duplicate aliases, unknown topics or research themes
@@ -203,6 +230,18 @@ Keep the same `id` throughout, so the paper's URL never changes.
 - type: working-paper
 + status: under-review
 ```
+
+**Stage C′ — conditionally accepted (optional)** → Journal (or Conference), accepted with minor revisions
+
+```diff
+- status: under-review
++ type: journal
++ status: accepted-minor-revisions
++ year: 2026
++ venue: { name: Journal of Artificial Intelligence Research, acronym: JAIR }
+```
+
+Once the revisions are accepted, only the status changes: `status: to-appear` (then Stage D).
 
 **Stage C — accepted** → Conference (or Journal), to appear; arXiv stays as a link
 
