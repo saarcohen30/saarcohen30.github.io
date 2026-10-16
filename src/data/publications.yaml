@@ -154,6 +154,8 @@
     acronym: JAIR
   themes: [collective-decisions, multiagent-learning]
   topics: [coalition-formation, multi-agent-learning, online-learning, game-theory]
+  links:
+    paper: https://jair.org/index.php/jair/article/view/19776
 
 # ── 2026 ─────────────────────────────────────────────────────────────────────
 
